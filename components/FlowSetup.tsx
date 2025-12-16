@@ -17,31 +17,38 @@ export interface FlowSetupProps {
 
 export function FlowSetup({ form, onChange }: FlowSetupProps) {
   return (
-    <section className="flow-setup">
-      <Row label="Name" id="experimentName">
-        <input type="text" id="experimentName" required placeholder="e.g. Button Color Test" value={form.experimentName} onChange={onChange} />
-      </Row>
-      <Row label="Description" id="experimentDescription">
-        <input type="text" id="experimentDescription" placeholder="Short description (optional)" value={form.experimentDescription} onChange={onChange} />
-      </Row>
-      <Row label="Round" id="roundNumber">
-        <input type="number" id="roundNumber" min={1} value={form.roundNumber} required onChange={onChange} />
-      </Row>
-      <Row label="Entry node" id="entryLabel">
-        <input type="text" id="entryLabel" value={form.entryLabel} required onChange={onChange} />
-      </Row>
-      <Row label="Exit node" id="exitLabel">
-        <input type="text" id="exitLabel" value={form.exitLabel} required onChange={onChange} />
-      </Row>
-      <Row label="Figma link" id="figmaLink">
-        <input type="url" id="figmaLink" className="integration-input" placeholder="https://www.figma.com/file/..." value={form.figmaLink} onChange={onChange} />
-      </Row>
-      <Row label="Jira link" id="jiraLink">
-        <input type="url" id="jiraLink" className="integration-input" placeholder="https://jira.company.com/browse/..." value={form.jiraLink} onChange={onChange} />
-      </Row>
-      <Row label="Miro link" id="miroLink">
-        <input type="url" id="miroLink" className="integration-input" placeholder="https://miro.com/app/board/..." value={form.miroLink} onChange={onChange} />
-      </Row>
+    <section className="Section Card Stack">
+      <div className="Stack" style={{ gap: 8 }}>
+        <div className="Row">
+          <label className="Label" htmlFor="experimentName">Name</label>
+          <input className="Input" type="text" id="experimentName" required placeholder="e.g. Button Color Test" value={form.experimentName} onChange={onChange} />
+        </div>
+        <div className="Row">
+          <label className="Label" htmlFor="experimentDescription">Description</label>
+          <input className="Input" type="text" id="experimentDescription" placeholder="Short description (optional)" value={form.experimentDescription} onChange={onChange} />
+        </div>
+        <div className="Row" style={{ gap: 16 }}>
+          <label className="Label" htmlFor="roundNumber" style={{ minWidth: 60 }}>Round</label>
+          <input className="Input" type="number" id="roundNumber" min={1} value={form.roundNumber} required onChange={onChange} style={{ width: 60 }} />
+          <label className="Label" htmlFor="entryLabel" style={{ minWidth: 80 }}>Entry node</label>
+          <input className="Input" type="text" id="entryLabel" value={form.entryLabel} required onChange={onChange} style={{ minWidth: 80 }} />
+          <span className="arrow-icon" style={{ fontSize: '1.2em', color: '#b0b8c9', userSelect: 'none' }}>&#8594;</span>
+          <label className="Label" htmlFor="exitLabel" style={{ minWidth: 70 }}>Exit node</label>
+          <input className="Input" type="text" id="exitLabel" value={form.exitLabel} required onChange={onChange} style={{ minWidth: 80 }} />
+        </div>
+        <div className="Row">
+          <label className="Label" htmlFor="figmaLink">Figma link</label>
+          <input className="Input integration-input" type="url" id="figmaLink" placeholder="https://www.figma.com/file/..." value={form.figmaLink} onChange={onChange} />
+        </div>
+        <div className="Row">
+          <label className="Label" htmlFor="jiraLink">Jira link</label>
+          <input className="Input integration-input" type="url" id="jiraLink" placeholder="https://jira.company.com/browse/..." value={form.jiraLink} onChange={onChange} />
+        </div>
+        <div className="Row">
+          <label className="Label" htmlFor="miroLink">Miro link</label>
+          <input className="Input integration-input" type="url" id="miroLink" placeholder="https://miro.com/app/board/..." value={form.miroLink} onChange={onChange} />
+        </div>
+      </div>
     </section>
   );
 }

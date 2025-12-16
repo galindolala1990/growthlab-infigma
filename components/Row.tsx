@@ -9,8 +9,8 @@ export interface RowProps {
 
 export function Row({ label, id, children }: RowProps) {
   return (
-    <div className="row">
-      <label htmlFor={id} style={{ minWidth: 110 }}>{label}</label>
+    <div className="Row">
+      <label className="Label" htmlFor={id}>{label}</label>
       {children}
     </div>
   );

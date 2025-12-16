@@ -2,46 +2,108 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
-  .traffic-input-group {
-    display: inline-flex;
-    align-items: center;
-    background: #eaf7f0;
-    border: 1.5px solid #b6e2c6;
-    border-radius: 7px;
-    padding: 0 4px 0 0;
-    margin-left: 8px;
-    height: 32px;
-  }
-  .variant-traffic-input {
-    width: 54px;
-    border: none;
-    background: transparent;
-    font-size: 1.08rem;
-    font-weight: 600;
-    color: #217a4d;
-    outline: none;
-    text-align: right;
-    padding: 2px 0 2px 8px;
-  }
-  .traffic-percent {
-    font-size: 1.08rem;
-    color: #217a4d;
-    font-weight: 600;
-    margin-left: 2px;
-    margin-right: 6px;
-  }
-  .variant-card {
-    background: #fff;
-    border: 1.5px solid #e6eaf2;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-    padding: 20px 20px 18px 20px;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: box-shadow 0.18s, border 0.18s;
-  }
+/* --- Spacing scale: 4, 8, 12, 16, 24, 32px --- */
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.Section {
+  margin-bottom: 32px;
+}
+.Card {
+  background: #fff;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.Card:last-child {
+  margin-bottom: 0;
+}
+.SectionLabel {
+  font-size: 1.32em;
+  font-weight: 900;
+  color: #18305a;
+  margin-bottom: 16px;
+  margin-top: 0;
+  line-height: 1.2;
+}
+.Input {
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+.Label {
+  min-width: 120px;
+  color: #6b7a90;
+  font-weight: 500;
+  margin-right: 8px;
+  text-align: left;
+}
+.ButtonGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-top: 16px;
+}
+.traffic-input-group {
+  display: inline-flex;
+  align-items: center;
+  background: #eaf7f0;
+  border: 1.5px solid #b6e2c6;
+  border-radius: 8px;
+  padding: 0 4px 0 0;
+  margin-left: 8px;
+  height: 32px;
+}
+.variant-traffic-input {
+  width: 54px;
+  border: none;
+  background: transparent;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #217a4d;
+  outline: none;
+  text-align: right;
+  padding: 2px 0 2px 8px;
+}
+.traffic-percent {
+  font-size: 1.08rem;
+  color: #217a4d;
+  font-weight: 600;
+  margin-left: 2px;
+  margin-right: 6px;
+}
+.variant-card {
+  background: #fff;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  padding: 24px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: box-shadow 0.18s, border 0.18s;
+}
 </style>
 
 
@@ -119,28 +181,19 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 .meta-card {
   background: #f9fbfd;
   border: 1.5px solid #e6eaf2;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
-  padding: 20px 24px 16px 24px;
+  padding: 24px;
   margin-bottom: 32px;
   margin-top: 16px;
   transition: box-shadow 0.2s;
 }
-.meta-summary {
-  font-size: 1.32em;
-  font-weight: 900;
-  color: #18305a;
-  margin-bottom: 22px;
-}
-  letter-spacing: 0.01em;
-  text-transform: none;
-  line-height: 1.2;
-  font-size: 1.18em;
-  font-weight: 800;
-  color: #1a2330;
-  margin-bottom: 14px;
-  outline: none;
-}
+  .meta-summary {
+    font-size: 1.32em;
+    font-weight: 900;
+    color: #18305a;
+    margin-bottom: 22px;
+  }
 .meta-card[open] {
   padding-top: 0;
 }
@@ -326,73 +379,60 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 </style>
 
 <div class="app" id="container">
-  <header class="main-header" style="margin-bottom: 1.2em;">
-    <h2 style="margin-bottom: 0.1em; font-size: 1.45em; font-weight: 800; color: #1a2330;">Growthlab Flow Builder</h2>
-    <div class="subtitle" style="font-size: 1.05em; color: #4a5a70; font-weight: 400; margin-top: 0;">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
+  <header class="main-header Section Stack" style="gap:8px;">
+    <h2 class="SectionLabel" style="margin:0;">Growthlab Flow Builder</h2>
+    <div class="subtitle" style="font-size:1.05em; color:#4a5a70; font-weight:400; margin:0;">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
   </header>
-  <form id="exp-form" autocomplete="off">
-    <div class="flow-setup-group">
-      <div class="row row-name" style="margin-bottom: 8px;">
-        <label style="flex:0 0 90px;">Name</label>
-        <input type="text" id="experimentName" required placeholder="e.g. Button Color Test" style="flex:1;">
+  <form id="exp-form" autocomplete="off" class="Stack" style="gap:32px;">
+    <section class="Card Stack Section" aria-labelledby="exp-setup-label">
+      <h3 id="exp-setup-label" class="SectionLabel" style="margin-bottom:0;">Experiment Setup</h3>
+      <div class="Row">
+        <label class="Label" for="experimentName">Name</label>
+        <input class="Input" type="text" id="experimentName" required placeholder="e.g. Button Color Test">
       </div>
-      <div class="row row-flow" style="gap:10px; align-items:center; margin-bottom: 0;">
-        <label style="flex:0 0 60px;">Round</label>
-        <input type="number" id="roundNumber" min="1" value="1" required style="width:60px; flex:0 0 60px;">
-        <label style="flex:0 0 80px; margin-left:12px;">Entry node</label>
-        <input type="text" id="entryLabel" value="Login" required style="flex:1; min-width:80px;">
-        <span class="arrow-icon" style="margin:0 10px; font-size:1.2em; color:#b0b8c9;">&#8594;</span>
-        <label style="flex:0 0 70px;">Exit node</label>
-        <input type="text" id="exitLabel" value="Welcome" required style="flex:1; min-width:80px;">
+      <div class="Row">
+        <label class="Label" for="roundNumber">Round</label>
+        <input class="Input" type="number" id="roundNumber" min="1" value="1" required style="width:60px;">
       </div>
-    </div>
-    <details class="meta-card" style="margin-bottom: 18px;">
-      <style>
-      .flow-setup-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        margin-bottom: 8px;
-      }
-      .row-name {
-        margin-bottom: 6px !important;
-      }
-      .row-flow {
-        margin-bottom: 0 !important;
-        gap: 10px !important;
-      }
-      .arrow-icon {
-        font-size: 1.2em;
-        color: #b0b8c9;
-        margin: 0 10px;
-        user-select: none;
-      }
-      </style>
-      <summary class="meta-summary">Experiment details</summary>
-      <section class="flow-setup">
-        <div class="row"><label>Description</label><input type="text" id="experimentDescription" placeholder="Short description (optional)"></div>
-        <div class="row"><label>Figma link</label><input type="url" id="figmaLink" class="integration-input" placeholder="https://www.figma.com/file/..." ></div>
-        <div class="row"><label>Jira link</label><input type="url" id="jiraLink" class="integration-input" placeholder="https://jira.company.com/browse/..." ></div>
-        <div class="row"><label>Miro link</label><input type="url" id="miroLink" class="integration-input" placeholder="https://miro.com/app/board/..." ></div>
-      </section>
+      <div class="Row">
+        <label class="Label" for="entryLabel">Entry node</label>
+        <input class="Input" type="text" id="entryLabel" value="Login" required>
+      </div>
+      <div class="Row">
+        <label class="Label" for="exitLabel">Exit node</label>
+        <input class="Input" type="text" id="exitLabel" value="Welcome" required>
+      </div>
+    </section>
+    <details class="Card Section Stack" aria-labelledby="exp-details-label">
+      <summary class="meta-summary SectionLabel" id="exp-details-label">Experiment details</summary>
+      <div class="Row">
+        <label class="Label" for="experimentDescription">Description</label>
+        <input class="Input" type="text" id="experimentDescription" placeholder="Short description (optional)">
+      </div>
+      <div class="Row">
+        <label class="Label" for="figmaLink">Figma link</label>
+        <input class="Input integration-input" type="url" id="figmaLink" placeholder="https://www.figma.com/file/..." >
+      </div>
+      <div class="Row">
+        <label class="Label" for="jiraLink">Jira link</label>
+        <input class="Input integration-input" type="url" id="jiraLink" placeholder="https://jira.company.com/browse/..." >
+      </div>
+      <div class="Row">
+        <label class="Label" for="miroLink">Miro link</label>
+        <input class="Input integration-input" type="url" id="miroLink" placeholder="https://miro.com/app/board/..." >
+      </div>
     </details>
-    <div class="flow-builder-card">
-      <div class="flow-builder-header">
-        <span class="flow-icon">🧩</span>
-        <span class="flow-title">Build your flow</span>
+    <section class="Card Section Stack" aria-labelledby="variants-label">
+      <h3 id="variants-label" class="SectionLabel" style="margin-bottom:0;">Variants</h3>
+      <div class="variant-cards-list Stack" id="variantsCardsList" style="gap:24px;">
+        <!-- Cards inserted by JS -->
       </div>
-      <section class="variants-section emphasized">
-        <div class="section-label">Variants</div>
-        <div class="variant-cards-list" id="variantsCardsList">
-          <!-- Cards inserted by JS -->
-        </div>
-      </section>
-    </div>
-    <footer class="actions-footer">
+    </section>
+    <footer class="actions-footer Card Stack" style="padding:24px;">
       <div class="footer-helper" style="font-size:0.98em; color:#4a5a70; margin-bottom:8px;">
         <span>“Create flow” will generate and display your experiment as a visual flow on the canvas.</span>
       </div>
-      <div class="actions">
+      <div class="ButtonGroup" style="margin-top:16px;">
         <button type="submit">Create flow</button>
         <button class="secondary" type="button" id="cancel">Cancel</button>
       </div>
