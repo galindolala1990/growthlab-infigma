@@ -418,7 +418,10 @@ if (figma.editorType === 'figma') {
         arrow.name = 'Arrowhead';
         arrow.x = 0;
         arrow.y = 0;
-        figma.currentPage.appendChild(arrow);
+        // Insert arrow just above the flowFrame (background)
+        const flowFrameIndex = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
+        const insertIndex = flowFrameIndex >= 0 ? flowFrameIndex + 1 : 0;
+        figma.currentPage.insertChild(insertIndex, arrow);
         // Label (traffic %)
         if (options === null || options === void 0 ? void 0 : options.label) {
             const label = figma.createText();
@@ -430,9 +433,15 @@ if (figma.editorType === 'figma') {
             // Place label near the midpoint (approximate, offset for clarity)
             label.x = (fromX + toX) / 2 + 24;
             label.y = (fromY + toY) / 2 - 12;
-            figma.currentPage.appendChild(label);
+            if (options === null || options === void 0 ? void 0 : options.label) {
+                const flowFrameIndex = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
+                const insertIndex = flowFrameIndex >= 0 ? flowFrameIndex + 1 : 0;
+                figma.currentPage.insertChild(insertIndex, label);
+            }
         }
-        figma.currentPage.appendChild(connector);
+        const flowFrameIndex2 = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
+        const insertIndex2 = flowFrameIndex2 >= 0 ? flowFrameIndex2 + 1 : 0;
+        figma.currentPage.insertChild(insertIndex2, connector);
         return connector;
     }
     function loadFonts() {
