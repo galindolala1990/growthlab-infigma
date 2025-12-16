@@ -41,7 +41,12 @@ if (figma.editorType === 'figma') {
     return pill;
   }
 
-  figma.showUI(__html__, { width: 520, height: 800, title: 'Growthlab Flow Builder' });
+  figma.showUI(__html__, {
+    width: 640,
+    height: 720,
+    title: 'Growthlab Flow Builder',
+    themeColors: true,
+  });
 
   figma.ui.onmessage = async (msg: PluginMessage) => {
     // ...existing code...
@@ -223,11 +228,7 @@ if (figma.editorType === 'figma') {
         await figma.loadFontAsync({ family: "Roboto", style: "Bold" }).catch(()=>{});
       }
 
-        // Runs this code if the plugin is run in Figma
-        if (figma.editorType === 'figma') {
-          figma.showUI(__html__, { width: 400, height: 500 });
-
-          figma.ui.onmessage = async (msg: PluginMessage) => {
+        // ...existing code...
             if (msg.type === 'create-flow' && msg.payload) {
               const {
                 experimentName,
@@ -320,13 +321,20 @@ if (figma.editorType === 'figma') {
               // Not implemented yet: would use selected frames as thumbnails
               figma.closePlugin('Create from selection is not yet implemented.');
             }
+
+
             else if (msg.type === 'cancel') {
               figma.closePlugin('Cancelled.');
             }
-        }
-    }
-  };
-}
+
+
+
+
+
+
+
+
+
 
 
 
