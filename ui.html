@@ -8,7 +8,7 @@ html {
 }
 /* Force Figtree font everywhere */
 body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5, h6, .app {
-  font-family: "Figtree", Arial, sans-serif;
+  font-family: "Figtree", system-ui, Arial, sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
@@ -78,13 +78,6 @@ form {
   gap: 12px;
   align-items: center;
 }
-.variants-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: 4px;
-}
-.variants-table th, .variants-table td {
-  padding: 4px 6px;
   text-align: left;
   font-size: 0.875em;
 }
@@ -97,6 +90,30 @@ form {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
+.flow-setup {
+  margin-bottom: 24px;
+  padding-bottom: 0;
+  border-bottom: 1px solid #e6eaf2;
+}
+.variants-section {
+  margin: 0 0 24px 0;
+  padding: 0 0 8px 0;
+}
+.actions-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  box-shadow: 0 -2px 12px 0 rgba(40,60,90,0.04);
+  padding: 20px 24px 16px 24px;
+  margin-left: -24px;
+  margin-right: -24px;
+  z-index: 10;
+}
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 0;
+}
   font-size: 0.92em;
   font-weight: 500;
   background: #e0e7ef;
@@ -120,12 +137,17 @@ form {
 }
 .metrics-chip {
   display: inline-block;
-  background: #f3f6fa;
-  color: #3a4a5a;
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 0.91em;
-  margin-right: 2px;
+  background: #eaf0fa;
+  color: #2a4d7a;
+  border-radius: 8px;
+  padding: 2px 10px 2px 10px;
+  font-size: 0.93em;
+  font-weight: 500;
+  margin-right: 4px;
+  border: none;
+  box-shadow: none;
+  pointer-events: none;
+  user-select: text;
 }
 .actions {
   display: flex;
@@ -165,54 +187,206 @@ button.secondary {
   color: #2a4d7a;
   border: 1px solid #b5c7de;
 }
+/* --- Section layout for refactor --- */
+.flow-setup {
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e6eaf2;
+}
+.variants-section {
+  margin: 0 0 24px 0;
+  padding: 0;
+  font-weight: 600;
+  font-size: 1em;
+
+}
+.variant-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 8px;
+}
+.variant-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f7fafd;
+  border: 1px solid #e6eaf2;
+  border-radius: 16px;
+  padding: 16px 16px 16px 16px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.04);
+  position: relative;
+  font-family: "Figtree", system-ui, Arial, sans-serif;
+}
+.variant-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2px;
+}
+.variant-key-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2a4d7a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-right: 0;
+  flex-shrink: 0;
+}
+.variant-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.variant-name-input {
+  font-size: 1.08rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  padding: 0 0 2px 0;
+  min-width: 120px;
+  flex: 1 1 120px;
+  outline: none;
+  color: #1a2330;
+}
+.variant-traffic-input {
+  width: 54px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #217a4d;
+  background: #eaf7f0;
+  border: 1.5px solid #b6e2c6;
+  border-radius: 7px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  margin-right: 2px;
+  text-align: right;
+}
+.variant-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.variant-status-select {
+  min-width: 90px;
+  font-size: 0.98rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+}
+.variant-status-pill {
+  font-size: 0.85em;
+  padding: 1px 10px;
+  border-radius: 10px;
+  margin-left: 0;
+  opacity: 0.6;
+  font-weight: 500;
+  background: #e0e7ef;
+  color: #2a4d7a;
+  border: 1px solid #e0e7ef;
+  pointer-events: none;
+  box-shadow: none;
+  cursor: default;
+  transition: none;
+  user-select: text;
+}
+.variant-key-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2a4d7a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.variant-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  flex: 1;
+}
+.variant-name-input {
+  min-width: 120px;
+  flex: 1 1 120px;
+}
+.variant-status-select {
+  min-width: 90px;
+}
+.variant-traffic-input {
+  width: 60px;
+}
+.variant-metrics {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+  transition: opacity 0.15s;
+}
+.variant-metrics.hidden {
+  display: none !important;
+}
+.actions-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  box-shadow: 0 -2px 12px 0 rgba(40,60,90,0.04);
+  padding-top: 16px;
+  margin-left: -24px;
+  margin-right: -24px;
+  padding-left: 24px;
+  padding-right: 24px;
+  z-index: 10;
+}
 </style>
 <div class="app" id="container">
   <h2>Growthlab Flow Builder</h2>
   <form id="exp-form" autocomplete="off">
-  <div class="row">
-    <label style="min-width:110px;">Name</label>
-    <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
-  </div>
-  <div class="row">
-    <label style="min-width:110px;">Round</label>
-    <input type="number" id="roundNumber" min="1" value="1" required>
-  </div>
-  <div class="row">
-    <label style="min-width:110px;">Entry node</label>
-    <input type="text" id="entryLabel" value="Login" required>
-  </div>
-  <div class="row">
-    <label style="min-width:110px;">Exit node</label>
-    <input type="text" id="exitLabel" value="Welcome" required>
-  </div>
-  <div>
-    <label>Variants</label>
-    <table class="variants-table" id="variantsTable">
-      <thead>
-        <tr>
-          <th style="width:32px;">Key</th>
-          <th>Name</th>
-          <th style="width:60px;">Traffic %</th>
-          <th style="width:80px;">Status</th>
-          <th colspan="3">Metrics</th>
-        </tr>
-        <tr>
-          <th></th><th></th><th></th><th></th>
-          <th style="width:48px;">CTR</th>
-          <th style="width:48px;">CR</th>
-          <th style="width:48px;">SU</th>
-        </tr>
-      </thead>
-      <tbody id="variantsBody">
-        <!-- Rows inserted by JS -->
-      </tbody>
-    </table>
-  </div>
-  <div class="actions">
-    <button type="submit">Create flow</button>
-    <!-- <button class="secondary" type="button" id="createFromSelection">Create from selection</button> -->
-    <button class="secondary" type="button" id="cancel">Cancel</button>
-  </div>
+    <!-- Flow setup section -->
+    <section class="flow-setup">
+      <div class="row">
+        <label style="min-width:110px;">Name</label>
+        <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Round</label>
+        <input type="number" id="roundNumber" min="1" value="1" required>
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Entry node</label>
+        <input type="text" id="entryLabel" value="Login" required>
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Exit node</label>
+        <input type="text" id="exitLabel" value="Welcome" required>
+      </div>
+    </section>
+    <!-- Variants section -->
+    <section class="variants-section">
+      <label>Variants</label>
+      <div class="variant-cards-list" id="variantsCardsList">
+        <!-- Cards inserted by JS -->
+      </div>
+    </section>
+    <!-- Sticky action footer -->
+    <footer class="actions-footer">
+      <div class="actions">
+        <button type="submit">Create flow</button>
+        <!-- <button class="secondary" type="button" id="createFromSelection">Create from selection</button> -->
+        <button class="secondary" type="button" id="cancel">Cancel</button>
+      </div>
+    </footer>
   </form>
 </div>
 
@@ -230,25 +404,46 @@ const statusOptions = [
 ];
 
 function renderVariants(variants) {
-  const tbody = document.getElementById('variantsBody');
-  tbody.innerHTML = '';
+  const list = document.getElementById('variantsCardsList');
+  list.innerHTML = '';
   variants.forEach((v, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="text" value="${v.key}" maxlength="1" style="width:28px;" data-idx="${i}" data-field="key"></td>
-      <td><input type="text" value="${v.name}" placeholder="Variant name" data-idx="${i}" data-field="name"></td>
-      <td><input type="number" value="${v.traffic}" min="0" max="100" data-idx="${i}" data-field="traffic"></td>
-      <td>
-        <select data-idx="${i}" data-field="status">
+    const card = document.createElement('div');
+    card.className = 'variant-card';
+    // Determine if metrics should be shown
+    const hasMetrics = v.metrics.CTR || v.metrics.CR || v.metrics.SU;
+    card.innerHTML = `
+      <div class="variant-card-header">
+        <span class="variant-key-badge">${v.key}</span>
+        <div class="variant-title-group">
+          <input type="text" class="variant-name-input" value="${v.name}" placeholder="Variant name" data-idx="${i}" data-field="name">
+          <input type="number" class="variant-traffic-input" value="${v.traffic}" min="0" max="100" data-idx="${i}" data-field="traffic">%
+        </div>
+      </div>
+      <div class="variant-status-row">
+        <select class="variant-status-select" data-idx="${i}" data-field="status">
           ${statusOptions.map(opt => `<option value="${opt.value}" ${v.status===opt.value?'selected':''}>${opt.label}</option>`).join('')}
         </select>
-        <span class="pill ${v.status.toLowerCase()}">${v.status}</span>
-      </td>
-      <td><input type="number" value="${v.metrics.CTR}" step="0.1" data-idx="${i}" data-field="CTR"></td>
-      <td><input type="number" value="${v.metrics.CR}" step="0.1" data-idx="${i}" data-field="CR"></td>
-      <td><input type="number" value="${v.metrics.SU}" step="0.1" data-idx="${i}" data-field="SU"></td>
+        <span class="variant-status-pill ${v.status.toLowerCase()}" style="pointer-events:none;">${v.status}</span>
+      </div>
+      <div class="variant-metrics${hasMetrics ? '' : ' hidden'}" tabindex="0">
+        <span class="metrics-chip">CTR: ${v.metrics.CTR || 0}</span>
+        <span class="metrics-chip">CR: ${v.metrics.CR || 0}</span>
+        <span class="metrics-chip">SU: ${v.metrics.SU || 0}</span>
+      </div>
     `;
-    tbody.appendChild(tr);
+    // Reveal metrics on focus
+    const metricsDiv = card.querySelector('.variant-metrics');
+    if (metricsDiv) {
+      card.addEventListener('focusin', () => {
+        metricsDiv.classList.remove('hidden');
+      });
+      card.addEventListener('focusout', () => {
+        if (!(v.metrics.CTR || v.metrics.CR || v.metrics.SU)) {
+          metricsDiv.classList.add('hidden');
+        }
+      });
+    }
+    list.appendChild(card);
   });
 }
 
@@ -256,16 +451,17 @@ let variants = JSON.parse(JSON.stringify(defaultVariants));
 renderVariants(variants);
 
 // Listen for changes in the variants table
-document.getElementById('variantsBody').addEventListener('input', (e) => {
+document.getElementById('variantsCardsList').addEventListener('input', (e) => {
   const idx = +e.target.getAttribute('data-idx');
   const field = e.target.getAttribute('data-field');
-  if (['key', 'name', 'traffic'].includes(field)) {
+  if (['name', 'traffic'].includes(field)) {
     variants[idx][field] = field === 'traffic' ? Number(e.target.value) : e.target.value;
   } else if (['CTR', 'CR', 'SU'].includes(field)) {
     variants[idx].metrics[field] = Number(e.target.value);
   }
+  renderVariants(variants);
 });
-document.getElementById('variantsBody').addEventListener('change', (e) => {
+document.getElementById('variantsCardsList').addEventListener('change', (e) => {
   const idx = +e.target.getAttribute('data-idx');
   const field = e.target.getAttribute('data-field');
   if (field === 'status') {
