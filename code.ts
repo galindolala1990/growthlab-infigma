@@ -253,9 +253,8 @@ if (figma.editorType === 'figma') {
   }
 
   figma.ui.onmessage = async (msg: PluginMessage) => {
-    if (msg.type === 'create-flow' && msg.payload) {
-      // ...existing code for create-flow...
 
+    if (msg.type === 'create-flow' && msg.payload) {
       const {
         experimentName,
         roundNumber,
@@ -264,9 +263,13 @@ if (figma.editorType === 'figma') {
       } = msg.payload;
       const variants: Variant[] = msg.payload.variants;
 
+      // Check for variants array
+      if (!Array.isArray(variants) || variants.length === 0) {
+        figma.notify('You must add at least one variant to create a flow.');
+        return;
+      }
 
       await loadFonts();
-
 
       // --- Stable naming helpers ---
       function slugify(str: string): string {
@@ -282,16 +285,14 @@ if (figma.editorType === 'figma') {
 
       // --- Find or create info card ---
       let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
-      if (!infoCard) {
-        infoCard = await createExperimentInfoCard(experimentName);
-      } else {
-        // Optionally update info card text if experimentName changed (title row)
-        const titleRow = infoCard.findOne(n => n.type === 'FRAME' && n.name === 'Title Row') as FrameNode | undefined;
-        if (titleRow) {
-          const titleText = titleRow.findOne(n => n.type === 'TEXT') as TextNode | undefined;
-          if (titleText) titleText.characters = experimentName;
-        }
-      }
+      if (infoCard) infoCard.remove();
+      infoCard = await createExperimentInfoCard(
+        experimentName,
+        msg.payload.experimentDescription || '',
+        msg.payload.figmaLink || '',
+        msg.payload.jiraLink || '',
+        msg.payload.miroLink || ''
+      );
 
       // --- Main Flow Frame ---
       const flowFrame = figma.createFrame();
@@ -317,9 +318,9 @@ if (figma.editorType === 'figma') {
       // Will append in correct order below
 
       // --- Round 1 variants container ---
-        // IMPORTANT:
-        // Variants MUST be stacked vertically inside a round.
-        // Do NOT change variantsContainer.layoutMode to HORIZONTAL.
+      // IMPORTANT:
+      // Variants MUST be stacked vertically inside a round.
+      // Do NOT change variantsContainer.layoutMode to HORIZONTAL.
       const variantsContainer = figma.createFrame();
       variantsContainer.name = 'Round 1 Variants';
       variantsContainer.layoutMode = 'VERTICAL';
@@ -354,8 +355,6 @@ if (figma.editorType === 'figma') {
       const exitCard = createNodeCard(exitLabel);
       exitCard.name = 'Exit Node';
       // Will append in correct order below
-
-
 
       // --- Place in viewport center ---
       // Append children in strict order: Entry, Variants, Exit

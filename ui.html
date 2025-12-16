@@ -331,6 +331,14 @@ button.secondary {
   margin-right: -24px;
   z-index: 10;
 }
+.integration-input {
+  font-size: 1rem;
+  padding: 4px 7px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
 </style>
 <div class="app" id="container">
   <h2>Growthlab Flow Builder</h2>
@@ -340,6 +348,10 @@ button.secondary {
       <div class="row">
         <label style="min-width:110px;">Name</label>
         <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Description</label>
+        <input type="text" id="experimentDescription" placeholder="Short description (optional)">
       </div>
       <div class="row">
         <label style="min-width:110px;">Round</label>
@@ -352,6 +364,19 @@ button.secondary {
       <div class="row">
         <label style="min-width:110px;">Exit node</label>
         <input type="text" id="exitLabel" value="Welcome" required>
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Figma link</label>
+        <input type="url" id="figmaLink" class="integration-input" placeholder="https://www.figma.com/file/...">
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Jira link</label>
+        <input type="url" id="jiraLink" class="integration-input" placeholder="https://jira.company.com/browse/...">
+      </div>
+      <div class="row">
+        <label style="min-width:110px;">Miro link</label>
+        <input type="url" id="miroLink" class="integration-input" placeholder="https://miro.com/app/board/...">
+      
       </div>
     </section>
     <!-- Variants section -->
@@ -456,16 +481,24 @@ document.getElementById('variantsCardsList').addEventListener('change', (e) => {
 document.getElementById('exp-form').onsubmit = (e) => {
   e.preventDefault();
   const experimentName = document.getElementById('experimentName').value.trim();
+  const experimentDescription = document.getElementById('experimentDescription').value.trim();
   const roundNumber = Number(document.getElementById('roundNumber').value);
   const entryLabel = document.getElementById('entryLabel').value.trim();
   const exitLabel = document.getElementById('exitLabel').value.trim();
+  const figmaLink = document.getElementById('figmaLink').value.trim();
+  const jiraLink = document.getElementById('jiraLink').value.trim();
+  const miroLink = document.getElementById('miroLink').value.trim();
   parent.postMessage({ pluginMessage: {
     type: 'create-flow',
     payload: {
       experimentName,
+      experimentDescription,
       roundNumber,
       entryLabel,
       exitLabel,
+      figmaLink,
+      jiraLink,
+      miroLink,
       variants: JSON.parse(JSON.stringify(variants))
     }
   } }, '*');

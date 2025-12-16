@@ -49,7 +49,7 @@ function getLoadedFigtreeSemibold() {
 }
 
 // experiment-info-card.ts
-function createExperimentInfoCard(experimentName) {
+function createExperimentInfoCard(experimentName, description = "", figmaLink = "", jiraLink = "", miroLink = "") {
   return __async(this, null, function* () {
     yield loadFonts();
     const card = figma.createFrame();
@@ -57,15 +57,15 @@ function createExperimentInfoCard(experimentName) {
     card.layoutMode = "VERTICAL";
     card.counterAxisSizingMode = "AUTO";
     card.primaryAxisSizingMode = "FIXED";
-    card.itemSpacing = 20;
-    card.paddingLeft = card.paddingRight = 20;
-    card.paddingTop = card.paddingBottom = 20;
-    card.cornerRadius = 20;
+    card.itemSpacing = 24;
+    card.paddingLeft = card.paddingRight = 32;
+    card.paddingTop = card.paddingBottom = 32;
+    card.cornerRadius = 18;
     card.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-    card.strokes = [{ type: "SOLID", color: { r: 0.85, g: 0.9, b: 1 } }];
+    card.strokes = [{ type: "SOLID", color: { r: 0.91, g: 0.93, b: 0.97 } }];
     card.strokeWeight = 1;
-    card.effects = [{ type: "DROP_SHADOW", color: { r: 0.1, g: 0.2, b: 0.4, a: 0.08 }, offset: { x: 0, y: 2 }, radius: 8, visible: true, blendMode: "NORMAL" }];
-    card.resize(340, 480);
+    card.effects = [];
+    card.resize(400, 540);
     const badge = figma.createFrame();
     badge.layoutMode = "HORIZONTAL";
     badge.counterAxisSizingMode = "AUTO";
@@ -73,12 +73,12 @@ function createExperimentInfoCard(experimentName) {
     badge.paddingLeft = badge.paddingRight = 12;
     badge.paddingTop = badge.paddingBottom = 4;
     badge.cornerRadius = 8;
-    badge.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+    badge.fills = [{ type: "SOLID", color: { r: 0.89, g: 0.94, b: 1 } }];
     badge.name = "Status Badge";
     const badgeText = figma.createText();
     badgeText.fontName = { family: "Figtree", style: "Bold" };
-    badgeText.fontSize = 13;
-    badgeText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+    badgeText.fontSize = 14;
+    badgeText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
     badgeText.textAutoResize = "WIDTH_AND_HEIGHT";
     badgeText.characters = "Active";
     badge.appendChild(badgeText);
@@ -87,53 +87,47 @@ function createExperimentInfoCard(experimentName) {
     titleRow.layoutMode = "HORIZONTAL";
     titleRow.counterAxisSizingMode = "AUTO";
     titleRow.primaryAxisSizingMode = "AUTO";
-    titleRow.itemSpacing = 8;
+    titleRow.itemSpacing = 12;
     titleRow.fills = [];
     titleRow.strokes = [];
     titleRow.name = "Title Row";
-    const flask = figma.createEllipse();
-    flask.resize(20, 20);
-    flask.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
-    flask.name = "Flask Icon";
-    titleRow.appendChild(flask);
+    const flaskText = figma.createText();
+    flaskText.fontName = { family: "Figtree", style: "Bold" };
+    flaskText.fontSize = 28;
+    flaskText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+    flaskText.textAutoResize = "WIDTH_AND_HEIGHT";
+    flaskText.characters = "\u2697\uFE0F";
+    titleRow.appendChild(flaskText);
     const titleText = figma.createText();
     titleText.fontName = { family: "Figtree", style: "Bold" };
-    titleText.fontSize = 20;
-    titleText.fills = [{ type: "SOLID", color: { r: 0.15, g: 0.18, b: 0.25 } }];
+    titleText.fontSize = 28;
+    titleText.fills = [{ type: "SOLID", color: { r: 0.07, g: 0.09, b: 0.16 } }];
     titleText.textAutoResize = "WIDTH_AND_HEIGHT";
     titleText.characters = experimentName;
     titleRow.appendChild(titleText);
     card.appendChild(titleRow);
-    const descSection = yield createSection("Description", "Lorem ipsum");
+    const descSection = yield createSection("Description", description || "", true);
     card.appendChild(descSection);
-    const hypSection = yield createSection("Hypothesis", "Lorem ipsum");
+    const hypSection = yield createSection("Hypothesis", "Lorem ipsum", true);
     card.appendChild(hypSection);
     const metricsSection = figma.createFrame();
     metricsSection.layoutMode = "VERTICAL";
     metricsSection.counterAxisSizingMode = "AUTO";
     metricsSection.primaryAxisSizingMode = "AUTO";
-    metricsSection.itemSpacing = 4;
+    metricsSection.itemSpacing = 8;
     metricsSection.fills = [];
     metricsSection.strokes = [];
     metricsSection.name = "Metrics Section";
     const metricsLabel = figma.createText();
     metricsLabel.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
-    metricsLabel.fontSize = 13;
-    metricsLabel.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+    metricsLabel.fontSize = 15;
+    metricsLabel.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
     metricsLabel.textAutoResize = "WIDTH_AND_HEIGHT";
     metricsLabel.characters = "Metrics";
     metricsSection.appendChild(metricsLabel);
-    const metricsList = figma.createFrame();
-    metricsList.layoutMode = "VERTICAL";
-    metricsList.counterAxisSizingMode = "AUTO";
-    metricsList.primaryAxisSizingMode = "AUTO";
-    metricsList.itemSpacing = 2;
-    metricsList.fills = [];
-    metricsList.strokes = [];
-    metricsList.appendChild(createMetricRow("Click through rate (CTR)", "--%"));
-    metricsList.appendChild(createMetricRow("Conversion rate (CR)", "--%"));
-    metricsList.appendChild(createMetricRow("Sign ups (SU)", "--%"));
-    metricsSection.appendChild(metricsList);
+    metricsSection.appendChild(createMetricRow(1, "Click through rate (CTR)", "--%"));
+    metricsSection.appendChild(createMetricRow(2, "Conversion rate (CR)", "--%"));
+    metricsSection.appendChild(createMetricRow(3, "Sign ups (SU)", "--%"));
     card.appendChild(metricsSection);
     const linksSection = figma.createFrame();
     linksSection.layoutMode = "VERTICAL";
@@ -157,15 +151,21 @@ function createExperimentInfoCard(experimentName) {
     linksRow.itemSpacing = 8;
     linksRow.fills = [];
     linksRow.strokes = [];
-    linksRow.appendChild(createLinkChip("Figma project name"));
-    linksRow.appendChild(createLinkChip("Jira KEY"));
-    linksRow.appendChild(createLinkChip("Miro project name"));
+    if (figmaLink) {
+      linksRow.appendChild(createLinkChip("Figma", figmaLink));
+    }
+    if (jiraLink) {
+      linksRow.appendChild(createLinkChip("Jira", jiraLink));
+    }
+    if (miroLink) {
+      linksRow.appendChild(createLinkChip("Miro", miroLink));
+    }
     linksSection.appendChild(linksRow);
     card.appendChild(linksSection);
     return card;
   });
 }
-function createSection(label, value) {
+function createSection(label, value, muted = false) {
   return __async(this, null, function* () {
     yield loadFonts();
     const section = figma.createFrame();
@@ -178,63 +178,96 @@ function createSection(label, value) {
     section.name = `${label} Section`;
     const labelText = figma.createText();
     labelText.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
-    labelText.fontSize = 13;
-    labelText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+    labelText.fontSize = 16;
+    labelText.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
     labelText.textAutoResize = "WIDTH_AND_HEIGHT";
     labelText.characters = label;
     section.appendChild(labelText);
     const valueText = figma.createText();
     valueText.fontName = { family: "Figtree", style: "Regular" };
-    valueText.fontSize = 14;
-    valueText.fills = [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.3 } }];
+    valueText.fontSize = 17;
+    valueText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.2, b: 0.25 } }];
     valueText.textAutoResize = "WIDTH_AND_HEIGHT";
     valueText.characters = value;
     section.appendChild(valueText);
     return section;
   });
 }
-function createMetricRow(label, value) {
+function createMetricRow(num, label, value) {
   const row = figma.createFrame();
   row.layoutMode = "HORIZONTAL";
   row.counterAxisSizingMode = "AUTO";
   row.primaryAxisSizingMode = "AUTO";
-  row.itemSpacing = 8;
+  row.itemSpacing = 10;
   row.fills = [];
   row.strokes = [];
+  const numText = figma.createText();
+  numText.fontName = { family: "Figtree", style: "Regular" };
+  numText.fontSize = 16;
+  numText.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
+  numText.textAutoResize = "WIDTH_AND_HEIGHT";
+  numText.characters = `${num}.`;
+  row.appendChild(numText);
   const labelText = figma.createText();
   labelText.fontName = { family: "Figtree", style: "Regular" };
-  labelText.fontSize = 14;
-  labelText.fills = [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.3 } }];
+  labelText.fontSize = 16;
+  labelText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.2, b: 0.25 } }];
   labelText.textAutoResize = "WIDTH_AND_HEIGHT";
   labelText.characters = label;
   row.appendChild(labelText);
+  const pill = figma.createFrame();
+  pill.layoutMode = "HORIZONTAL";
+  pill.counterAxisSizingMode = "AUTO";
+  pill.primaryAxisSizingMode = "AUTO";
+  pill.paddingLeft = pill.paddingRight = 10;
+  pill.paddingTop = pill.paddingBottom = 2;
+  pill.cornerRadius = 8;
+  pill.fills = [{ type: "SOLID", color: { r: 0.96, g: 0.97, b: 0.99 } }];
+  pill.strokes = [{ type: "SOLID", color: { r: 0.87, g: 0.89, b: 0.93 } }];
+  pill.strokeWeight = 1;
+  pill.name = "Metric Pill";
+  const icon = figma.createText();
+  icon.fontName = { family: "Figtree", style: "Regular" };
+  icon.fontSize = 15;
+  icon.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
+  icon.textAutoResize = "WIDTH_AND_HEIGHT";
+  icon.characters = "\u{1F3AF}";
+  pill.appendChild(icon);
   const valueText = figma.createText();
   valueText.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
-  valueText.fontSize = 14;
-  valueText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+  valueText.fontSize = 15;
+  valueText.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
   valueText.textAutoResize = "WIDTH_AND_HEIGHT";
   valueText.characters = value;
-  row.appendChild(valueText);
+  pill.appendChild(valueText);
+  row.appendChild(pill);
   return row;
 }
-function createLinkChip(label) {
+function createLinkChip(label, url) {
   const chip = figma.createFrame();
   chip.layoutMode = "HORIZONTAL";
   chip.counterAxisSizingMode = "AUTO";
   chip.primaryAxisSizingMode = "AUTO";
-  chip.paddingLeft = chip.paddingRight = 10;
-  chip.paddingTop = chip.paddingBottom = 4;
-  chip.cornerRadius = 8;
-  chip.fills = [{ type: "SOLID", color: { r: 0.95, g: 0.97, b: 1 } }];
-  chip.strokes = [{ type: "SOLID", color: { r: 0.85, g: 0.9, b: 1 } }];
+  chip.paddingLeft = chip.paddingRight = 16;
+  chip.paddingTop = chip.paddingBottom = 8;
+  chip.cornerRadius = 10;
+  chip.fills = [{ type: "SOLID", color: { r: 0.96, g: 0.97, b: 0.99 } }];
+  chip.strokes = [{ type: "SOLID", color: { r: 0.87, g: 0.89, b: 0.93 } }];
   chip.strokeWeight = 1;
   chip.name = "Link Chip";
+  const icon = figma.createText();
+  icon.fontName = { family: "Figtree", style: "Bold" };
+  icon.fontSize = 18;
+  icon.fills = label === "Figma" ? [{ type: "SOLID", color: { r: 0.98, g: 0.36, b: 0.19 } }] : label === "Jira" ? [{ type: "SOLID", color: { r: 0.13, g: 0.47, b: 0.95 } }] : label === "Miro" ? [{ type: "SOLID", color: { r: 1, g: 0.82, b: 0.09 } }] : [{ type: "SOLID", color: { r: 0.55, g: 0.6, b: 0.67 } }];
+  icon.textAutoResize = "WIDTH_AND_HEIGHT";
+  icon.characters = label === "Figma" ? "\u{1F7E0}" : label === "Jira" ? "\u{1F7E6}" : label === "Miro" ? "\u{1F7E8}" : "\u{1F517}";
+  chip.appendChild(icon);
   const txt = figma.createText();
   txt.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
-  txt.fontSize = 13;
-  txt.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+  txt.fontSize = 16;
+  txt.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.2, b: 0.25 } }];
   txt.textAutoResize = "WIDTH_AND_HEIGHT";
-  txt.characters = label;
+  txt.characters = ` ${label} project name`;
   chip.appendChild(txt);
   return chip;
 }
@@ -471,6 +504,10 @@ if (figma.editorType === "figma") {
         exitLabel
       } = msg.payload;
       const variants = msg.payload.variants;
+      if (!Array.isArray(variants) || variants.length === 0) {
+        figma.notify("You must add at least one variant to create a flow.");
+        return;
+      }
       yield loadFonts2();
       const slug = slugify2(experimentName);
       const flowFrameName = `Experiment Flow \u2014 ${slug} \u2014 Round ${roundNumber}`;
@@ -478,15 +515,14 @@ if (figma.editorType === "figma") {
       const existingFlow = figma.currentPage.findOne((n) => n.type === "FRAME" && n.name === flowFrameName);
       if (existingFlow) existingFlow.remove();
       let infoCard = figma.currentPage.findOne((n) => n.type === "FRAME" && n.name === infoCardName);
-      if (!infoCard) {
-        infoCard = yield createExperimentInfoCard(experimentName);
-      } else {
-        const titleRow = infoCard.findOne((n) => n.type === "FRAME" && n.name === "Title Row");
-        if (titleRow) {
-          const titleText = titleRow.findOne((n) => n.type === "TEXT");
-          if (titleText) titleText.characters = experimentName;
-        }
-      }
+      if (infoCard) infoCard.remove();
+      infoCard = yield createExperimentInfoCard(
+        experimentName,
+        msg.payload.experimentDescription || "",
+        msg.payload.figmaLink || "",
+        msg.payload.jiraLink || "",
+        msg.payload.miroLink || ""
+      );
       const flowFrame = figma.createFrame();
       flowFrame.name = flowFrameName;
       flowFrame.layoutMode = "HORIZONTAL";
