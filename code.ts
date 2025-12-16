@@ -34,6 +34,10 @@ interface PluginMessage {
 // Toggle this flag to control plugin close behavior
 const KEEP_OPEN = true;
 
+
+import { createExperimentInfoCard } from './experiment-info-card';
+import { loadFonts } from './load-fonts';
+
 if (figma.editorType === 'figma') {
 
   function createPill(text: string, fillColor: RGB, textColor: RGB): FrameNode {
@@ -260,7 +264,16 @@ if (figma.editorType === 'figma') {
       } = msg.payload;
       const variants: Variant[] = msg.payload.variants;
 
+
       await loadFonts();
+
+      // --- Experiment Info Card ---
+      const infoCardName = `Experiment Info — ${experimentName}`;
+      let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
+      if (!infoCard) {
+        infoCard = await createExperimentInfoCard(experimentName);
+        // Positioning will be handled after Entry node is created
+      }
 
       // --- Main Frame ---
       const flowFrame = figma.createFrame();
@@ -324,6 +337,7 @@ if (figma.editorType === 'figma') {
       exitCard.name = 'Exit Node';
       // Will append in correct order below
 
+
       // --- Place in viewport center ---
       // Append children in strict order: Entry, Variants, Exit
       flowFrame.appendChild(entryCard);
@@ -334,6 +348,15 @@ if (figma.editorType === 'figma') {
       flowFrame.x = center.x - 600;
       flowFrame.y = center.y - 200;
       figma.currentPage.appendChild(flowFrame);
+
+      // --- Place Experiment Info card to the left of Entry node ---
+      if (infoCard.parent == null) {
+        // Vertically center with Entry node, left of flow
+        infoCard.x = flowFrame.x - infoCard.width - 64;
+        infoCard.y = flowFrame.y + entryCard.y + (entryCard.height / 2) - (infoCard.height / 2);
+        figma.currentPage.appendChild(infoCard);
+      }
+
       figma.currentPage.selection = [flowFrame];
       figma.viewport.scrollAndZoomIntoView([flowFrame]);
 
