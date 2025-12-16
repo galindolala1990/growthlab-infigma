@@ -1,40 +1,37 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+## Experiment Flow Builder Figma Plugin
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+This plugin helps you quickly create clean, Growth Labs–style experiment flows in Figma.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+### Features
+- Build experiment flows with entry/exit nodes, variant cards, traffic splits, winner badges, and metrics chips
+- Modern, compact UI for easy experiment setup
+- Auto Layout for all frames and cards for easy resizing and alignment
+- Supports using selected frames as variant thumbnails ("Create from selection")
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+### Usage
+1. Open your Figma file and run the plugin
+2. Fill in the experiment name, round number, entry/exit labels, and edit the variants as needed
+3. Click "Create flow" to generate the experiment flow diagram on the canvas
+4. Optionally, select up to 3 frames and click "Create from selection" to use them as variant thumbnails
 
-  https://nodejs.org/en/download/
+### Development
+This plugin uses TypeScript and NPM for development.
 
-Next, install TypeScript using the command:
+#### Setup
+1. Install Node.js (includes NPM): https://nodejs.org/en/download/
+2. Install dependencies:
+   npm install
+3. To build once:
+   npm run build
+4. To watch and auto-build on save:
+   npm run watch
 
-  npm install -g typescript
+#### Linting
+Run lint checks with:
+   npm run lint
+Auto-fix lint issues with:
+   npm run lint:fix
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
-
-  npm install --save-dev @figma/plugin-typings
-
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
-
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
-
-For more information, visit https://www.typescriptlang.org/
-
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
-
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+#### More info
+For Figma plugin API docs, see: https://www.figma.com/plugin-docs/
+For TypeScript info: https://www.typescriptlang.org/
