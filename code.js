@@ -87,17 +87,10 @@ function createExperimentInfoCard(experimentName, description = "", figmaLink = 
     titleRow.layoutMode = "HORIZONTAL";
     titleRow.counterAxisSizingMode = "AUTO";
     titleRow.primaryAxisSizingMode = "AUTO";
-    titleRow.itemSpacing = 12;
+    titleRow.itemSpacing = 0;
     titleRow.fills = [];
     titleRow.strokes = [];
     titleRow.name = "Title Row";
-    const flaskText = figma.createText();
-    flaskText.fontName = { family: "Figtree", style: "Bold" };
-    flaskText.fontSize = 28;
-    flaskText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
-    flaskText.textAutoResize = "WIDTH_AND_HEIGHT";
-    flaskText.characters = "\u2697\uFE0F";
-    titleRow.appendChild(flaskText);
     const titleText = figma.createText();
     titleText.fontName = { family: "Figtree", style: "Bold" };
     titleText.fontSize = 28;

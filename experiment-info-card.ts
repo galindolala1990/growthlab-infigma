@@ -44,24 +44,16 @@ export async function createExperimentInfoCard(
   badge.appendChild(badgeText);
   card.appendChild(badge);
 
-  // Title row with flask icon and bold name
+  // Title row with bold experiment name only
   const titleRow = figma.createFrame();
   titleRow.layoutMode = "HORIZONTAL";
   titleRow.counterAxisSizingMode = "AUTO";
   titleRow.primaryAxisSizingMode = "AUTO";
-  titleRow.itemSpacing = 12;
+  titleRow.itemSpacing = 0;
   titleRow.fills = [];
   titleRow.strokes = [];
   titleRow.name = "Title Row";
-  // Flask icon (SVG-like, use emoji for now)
-  const flaskText = figma.createText();
-  flaskText.fontName = { family: "Figtree", style: "Bold" };
-  flaskText.fontSize = 28;
-  flaskText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
-  flaskText.textAutoResize = "WIDTH_AND_HEIGHT";
-  flaskText.characters = "\u2697\uFE0F"; // ⚗️
-  titleRow.appendChild(flaskText);
-  // Experiment name
+  // Experiment name only
   const titleText = figma.createText();
   titleText.fontName = { family: "Figtree", style: "Bold" };
   titleText.fontSize = 28;
