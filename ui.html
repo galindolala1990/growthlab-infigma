@@ -22,6 +22,7 @@ body {
   box-sizing: border-box;
   background: #FFFFFF;
 }
+h2 {
   margin-top: 0;
   font-size: 1.3rem;
   font-weight: 600;
@@ -143,26 +144,7 @@ button.secondary {
   </div>
   <div>
     <label>Variants</label>
-    <table class="variants-table" id="variantsTable">
-      <thead>
-        <tr>
-          <th style="width:32px;">Key</th>
-          <th>Name</th>
-          <th style="width:60px;">Traffic %</th>
-          <th style="width:80px;">Status</th>
-          <th colspan="3">Metrics</th>
-        </tr>
-        <tr>
-          <th></th><th></th><th></th><th></th>
-          <th style="width:48px;">CTR</th>
-          <th style="width:48px;">CR</th>
-          <th style="width:48px;">SU</th>
-        </tr>
-      </thead>
-      <tbody id="variantsBody">
-        <!-- Rows inserted by JS -->
-      </tbody>
-    </table>
+    <div id="variantsCards" class="variants-cards"></div>
   </div>
   <div class="actions">
 
@@ -189,23 +171,33 @@ const statusOptions = [
 function renderVariants(variants) {
   const tbody = document.getElementById('variantsBody');
   tbody.innerHTML = '';
-  variants.forEach((v, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="text" value="${v.key}" maxlength="1" style="width:28px;" data-idx="${i}" data-field="key"></td>
-      <td><input type="text" value="${v.name}" placeholder="Variant name" data-idx="${i}" data-field="name"></td>
-      <td><input type="number" value="${v.traffic}" min="0" max="100" data-idx="${i}" data-field="traffic"></td>
-      <td>
-        <select data-idx="${i}" data-field="status">
-          ${statusOptions.map(opt => `<option value="${opt.value}" ${v.status===opt.value?'selected':''}>${opt.label}</option>`).join('')}
-        </select>
-        <span class="pill ${v.status.toLowerCase()}">${v.status}</span>
-      </td>
-      <td><input type="number" value="${v.metrics.CTR}" step="0.1" data-idx="${i}" data-field="CTR"></td>
-      <td><input type="number" value="${v.metrics.CR}" step="0.1" data-idx="${i}" data-field="CR"></td>
-      <td><input type="number" value="${v.metrics.SU}" step="0.1" data-idx="${i}" data-field="SU"></td>
-    `;
-    tbody.appendChild(tr);
+    variants.forEach((v, i) => {
+      const card = document.createElement('div');
+      card.className = 'variant-card';
+      card.innerHTML = `
+        <div class="variant-card-row">
+          <div class="variant-card-main">
+            <input type="text" value="${v.key}" maxlength="1" class="variant-key" data-idx="${i}" data-field="key" title="Key">
+            <input type="text" value="${v.name}" placeholder="Variant name" class="variant-name" data-idx="${i}" data-field="name">
+            <button type="button" class="variant-btn" disabled>${v.name || v.key}</button>
+            <span class="pill ${v.status.toLowerCase()}">${v.status}</span>
+          </div>
+          <div class="variant-card-side">
+            <label class="traffic-label">Traffic:</label>
+            <input type="number" value="${v.traffic}" min="0" max="100" class="variant-traffic" data-idx="${i}" data-field="traffic">%
+          </div>
+        </div>
+        <div class="variant-card-metrics">
+          <span class="metrics-chip">CTR <input type="number" value="${v.metrics.CTR}" step="0.1" data-idx="${i}" data-field="CTR" class="metric-input"></span>
+          <span class="metrics-chip">CR <input type="number" value="${v.metrics.CR}" step="0.1" data-idx="${i}" data-field="CR" class="metric-input"></span>
+          <span class="metrics-chip">SU <input type="number" value="${v.metrics.SU}" step="0.1" data-idx="${i}" data-field="SU" class="metric-input"></span>
+          <select data-idx="${i}" data-field="status" class="variant-status-select">
+            ${statusOptions.map(opt => `<option value="${opt.value}" ${v.status===opt.value?'selected':''}>${opt.label}</option>`).join('')}
+          </select>
+        </div>
+      `;
+      container.appendChild(card);
+    });
   });
 }
 
@@ -221,15 +213,16 @@ document.getElementById('variantsBody').addEventListener('input', (e) => {
   } else if (['CTR', 'CR', 'SU'].includes(field)) {
     variants[idx].metrics[field] = Number(e.target.value);
   }
-});
-document.getElementById('variantsBody').addEventListener('change', (e) => {
-  const idx = +e.target.getAttribute('data-idx');
-  const field = e.target.getAttribute('data-field');
-  if (field === 'status') {
-    variants[idx][field] = e.target.value;
-    renderVariants(variants); // re-render to update pill
-  }
-});
+  });
+  document.getElementById('variantsCards').addEventListener('change', (e) => {
+    const target = e.target;
+    const idx = +target.getAttribute('data-idx');
+    const field = target.getAttribute('data-field');
+    if (field === 'status') {
+      variants[idx][field] = target.value;
+      renderVariants(variants); // re-render to update pill
+    }
+  });
 
 // Form submit
 document.getElementById('exp-form').onsubmit = (e) => {
@@ -258,3 +251,108 @@ document.getElementById('cancel').onclick = () => {
   parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
 };
 </script>
+<style>
+.variants-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+.variant-card {
+  background: #f6faff;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 16px;
+  padding: 16px 20px 12px 20px;
+  box-shadow: 0 1px 4px 0 rgba(60,80,120,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.variant-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.variant-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.variant-card-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.variant-btn {
+  background: #222;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  padding: 4px 16px;
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: default;
+  opacity: 0.95;
+}
+.variant-card-metrics {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.metrics-chip {
+  background: #eaf2fb;
+  color: #2a4d7a;
+  border-radius: 10px;
+  padding: 2px 10px;
+  font-size: 0.97em;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.metric-input {
+  width: 44px;
+  margin-left: 2px;
+  font-size: 0.97em;
+  border-radius: 5px;
+  border: 1px solid #b5c7de;
+  padding: 2px 4px;
+}
+.variant-status-select {
+  margin-left: 12px;
+  border-radius: 8px;
+  border: 1px solid #b5c7de;
+  padding: 2px 8px;
+  font-size: 0.97em;
+}
+.traffic-label {
+  font-size: 0.97em;
+  color: #3a4a5a;
+  margin-right: 2px;
+}
+.variant-key {
+  width: 28px;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #b5c7de;
+  background: #fff;
+}
+.variant-name {
+  min-width: 90px;
+  border-radius: 6px;
+  border: 1px solid #b5c7de;
+  background: #fff;
+  padding: 2px 8px;
+}
+.variant-traffic {
+  width: 48px;
+  border-radius: 6px;
+  border: 1px solid #b5c7de;
+  background: #fff;
+  padding: 2px 6px;
+}
+</style>
