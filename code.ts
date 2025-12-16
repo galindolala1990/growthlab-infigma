@@ -5,7 +5,7 @@
 
 // Runs this code if the plugin is run in Figma
 if (figma.editorType === 'figma') {
-  figma.showUI(__html__, { width: 520, height: 800 });
+  figma.showUI(__html__, { width: 520, height: 800, title: 'Growthlab Flow Builder' });
 
   figma.ui.onmessage = async (msg: PluginMessage) => {
     if (msg.type === 'create-flow' && msg.payload) {
