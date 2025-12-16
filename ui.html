@@ -1,12 +1,31 @@
 
 <style>
+/* Ensure the main container fills the iframe */
+#container {
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
   padding: 24px 20px 20px 20px;
   background: #fff;
   color: #222;
-  min-width: 340px;
+  width: 400px;
+  height: 500px;
+  min-width: 400px;
+  min-height: 500px;
+  max-width: 400px;
+  max-height: 500px;
+  box-sizing: border-box;
 }
 h2 {
   margin-top: 0;
@@ -109,9 +128,9 @@ button.secondary {
   border: 1px solid #b5c7de;
 }
 </style>
-
-<h2>Experiment Flow Builder</h2>
-<form id="exp-form" autocomplete="off">
+<div id="container">
+  <h2>Experiment Flow Builder</h2>
+  <form id="exp-form" autocomplete="off">
   <div class="row">
     <label style="min-width:110px;">Experiment name</label>
     <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
@@ -152,11 +171,13 @@ button.secondary {
     </table>
   </div>
   <div class="actions">
+
     <button type="submit">Create flow</button>
     <button type="button" id="createFromSelection" class="secondary">Create from selection</button>
     <button type="button" id="cancel" class="secondary">Cancel</button>
   </div>
-</form>
+  </form>
+</div>
 
 <script>
 const defaultVariants = [

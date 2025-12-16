@@ -14,7 +14,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 // Runs this code if the plugin is run in Figma
 if (figma.editorType === 'figma') {
-    figma.showUI(__html__);
+    figma.showUI(__html__, { width: 400, height: 500 });
     figma.ui.onmessage = (msg) => __awaiter(void 0, void 0, void 0, function* () {
         if (msg.type === 'create-flow' && msg.payload) {
             const { experimentName, roundNumber, entryLabel, exitLabel, variants } = msg.payload;
@@ -305,7 +305,7 @@ if (figma.editorType === 'figjam') {
     // This plugin will open a window to prompt the user to enter a number, and
     // it will then create that many shapes and connectors on the screen.
     // This shows the HTML page in "ui.html".
-    figma.showUI(__html__);
+    figma.showUI(__html__, { width: 400, height: 500 });
     // Calls to "parent.postMessage" from within the HTML page will trigger this
     // callback. The callback will be passed the "pluginMessage" property of the
     // posted message.
@@ -350,7 +350,7 @@ if (figma.editorType === 'slides') {
     // This plugin will open a window to prompt the user to enter a number, and
     // it will then create that many slides on the screen.
     // This shows the HTML page in "ui.html".
-    figma.showUI(__html__);
+    figma.showUI(__html__, { width: 400, height: 500 });
     // Calls to "parent.postMessage" from within the HTML page will trigger this
     // callback. The callback will be passed the "pluginMessage" property of the
     // posted message.
@@ -378,7 +378,7 @@ if (figma.editorType === 'buzz') {
     // This plugin will open a window to prompt the user to enter a number, and
     // it will then create that many frames on the screen.
     // This shows the HTML page in "ui.html".
-    figma.showUI(__html__);
+    figma.showUI(__html__, { width: 400, height: 500 });
     // Calls to "parent.postMessage" from within the HTML page will trigger this
     // callback. The callback will be passed the "pluginMessage" property of the
     // posted message.
