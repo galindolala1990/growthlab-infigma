@@ -1,6 +1,9 @@
 ## Growthlab Flow Builder Figma Plugin
 
+
 This plugin helps you quickly create clean, Growth Labs–style experiment flows in Figma.
+
+**Font:** This plugin uses the [Figtree](https://fonts.google.com/specimen/Figtree) font for all UI and generated nodes. Make sure Figtree is available in your Figma environment for best results.
 
 ### Features
 - Build experiment flows with entry/exit nodes, variant cards, traffic splits, winner badges, and metrics chips

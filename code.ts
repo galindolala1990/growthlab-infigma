@@ -34,7 +34,7 @@ if (figma.editorType === 'figma') {
     const txt = figma.createText();
     txt.characters = text;
     txt.fontSize = 13;
-    txt.fontName = { family: "Inter", style: "Bold" };
+    txt.fontName = { family: "Figtree", style: "Bold" };
     txt.fills = [{ type: 'SOLID', color: textColor }];
     txt.textAutoResize = 'WIDTH_AND_HEIGHT';
     pill.appendChild(txt);
@@ -65,7 +65,7 @@ if (figma.editorType === 'figma') {
     const txt = figma.createText();
     txt.characters = `${label}: ${value}`;
     txt.fontSize = 12;
-    txt.fontName = { family: "Inter", style: "Medium" };
+    txt.fontName = { family: "Figtree", style: "Medium" };
     txt.fills = [{ type: 'SOLID', color: { r: 0.18, g: 0.45, b: 0.85 } }];
     txt.textAutoResize = 'WIDTH_AND_HEIGHT';
     chip.appendChild(txt);
@@ -89,7 +89,7 @@ if (figma.editorType === 'figma') {
     const titleText = figma.createText();
     titleText.characters = variant.name;
     titleText.fontSize = 18;
-    titleText.fontName = { family: "Inter", style: "Bold" };
+    titleText.fontName = { family: "Figtree", style: "Bold" };
     titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     card.appendChild(titleText);
@@ -119,7 +119,7 @@ if (figma.editorType === 'figma') {
     const titleText = figma.createText();
     titleText.characters = title;
     titleText.fontSize = 18;
-    titleText.fontName = { family: "Inter", style: "Bold" };
+    titleText.fontName = { family: "Figtree", style: "Bold" };
     titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     card.appendChild(titleText);
@@ -128,7 +128,7 @@ if (figma.editorType === 'figma') {
       const subtitleText = figma.createText();
       subtitleText.characters = subtitle;
       subtitleText.fontSize = 14;
-      subtitleText.fontName = { family: "Inter", style: "Regular" };
+      subtitleText.fontName = { family: "Figtree", style: "Regular" };
       subtitleText.fills = [{ type: 'SOLID', color: { r: 0.4, g: 0.4, b: 0.5 } }];
       subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
       card.appendChild(subtitleText);
@@ -250,7 +250,7 @@ if (figma.editorType === 'figma') {
             const label = figma.createText();
             label.characters = options.label;
             label.fontSize = 13;
-            label.fontName = { family: "Inter", style: "Bold" };
+            label.fontName = { family: "Figtree", style: "Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 0.18, g: 0.45, b: 0.85 } }];
             label.textAutoResize = 'WIDTH_AND_HEIGHT';
             // Place label near the midpoint (approximate)
@@ -263,9 +263,9 @@ if (figma.editorType === 'figma') {
 
 
       async function loadFonts() {
-        await figma.loadFontAsync({ family: "Inter", style: "Regular" }).catch(()=>{});
-        await figma.loadFontAsync({ family: "Inter", style: "Medium" }).catch(()=>{});
-        await figma.loadFontAsync({ family: "Inter", style: "Bold" }).catch(()=>{});
+        await figma.loadFontAsync({ family: "Figtree", style: "Regular" }).catch(()=>{});
+        await figma.loadFontAsync({ family: "Figtree", style: "Medium" }).catch(()=>{});
+        await figma.loadFontAsync({ family: "Figtree", style: "Bold" }).catch(()=>{});
         await figma.loadFontAsync({ family: "Roboto", style: "Regular" }).catch(()=>{});
         await figma.loadFontAsync({ family: "Roboto", style: "Bold" }).catch(()=>{});
       }
