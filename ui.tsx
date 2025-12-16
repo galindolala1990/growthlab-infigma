@@ -8,6 +8,8 @@ import { FlowSetup } from './components/FlowSetup';
 import { VariantsSection } from './components/VariantsSection';
 import { ActionsFooter } from './components/ActionsFooter';
 
+import './ui.css';
+
 const defaultVariants: Variant[] = [
   { key: 'A', name: 'Black btn', traffic: 50, status: 'Running', metrics: { CTR: 0, CR: 0, SU: 0 } },
   { key: 'B', name: 'Blue btn', traffic: 25, status: 'Winner', metrics: { CTR: 1, CR: 1, SU: 31 } },

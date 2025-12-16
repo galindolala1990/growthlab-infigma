@@ -1,0 +1,191 @@
+/* Standard row spacing for form fields */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+/* ui.css */
+:root {
+  --space-0: 0;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+}
+body {
+  background: #f7fafd !important;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+@import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
+html {
+  font-size: 14px;
+}
+body,
+input,
+button,
+select,
+textarea,
+table,
+th,
+td,
+label,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.app {
+  font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  font-optical-sizing: auto;
+}
+.app,
+#container {
+  background: #f7fafd;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+.variant-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-8);
+}
+.variant-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: #f7fafd;
+  border: 1px solid #e6eaf2;
+  border-radius: var(--space-16);
+  padding: var(--space-16);
+  box-shadow: 0 2px var(--space-8) 0 rgba(40, 60, 90, 0.04);
+  position: relative;
+  font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+}
+.variant-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-0);
+}
+.variant-key-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-32);
+  height: var(--space-32);
+  border-radius: 50%;
+  background: #2a4d7a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: var(--space-8);
+  flex-shrink: 0;
+}
+.variant-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+.variant-name-input {
+  font-size: 1.08rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  padding: var(--space-0) var(--space-0) var(--space-4) var(--space-0);
+  min-width: 120px;
+  flex: 1 1 120px;
+  outline: none;
+  color: #1a2330;
+}
+.variant-traffic-input {
+  width: 64px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #217a4d;
+  background: #eaf7f0;
+  border: 1.5px solid #b6e2c6;
+  border-radius: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  margin-left: var(--space-8);
+  margin-right: var(--space-0);
+  text-align: right;
+}
+.variant-status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-0);
+}
+.variant-status-select {
+  min-width: 96px;
+  font-size: 0.98rem;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--space-8);
+  border: 1px solid #dbe3ef;
+  background: #fff;
+}
+.variant-status-pill {
+  font-size: 0.85em;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--space-16);
+  margin-left: var(--space-0);
+  opacity: 0.6;
+  font-weight: 500;
+  background: #e0e7ef;
+  color: #2a4d7a;
+  border: 1px solid #e0e7ef;
+  pointer-events: none;
+  box-shadow: none;
+  cursor: default;
+  transition: none;
+  user-select: text;
+}
+.variant-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  flex: 1;
+}
+.variant-metrics {
+  display: flex;
+  gap: var(--space-8);
+  margin-left: var(--space-8);
+  transition: opacity 0.15s;
+}
+.variant-metrics.hidden {
+  display: none !important;
+}
+.actions-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  box-shadow: 0 -2px var(--space-16) 0 rgba(40, 60, 90, 0.04);
+  padding: var(--space-16) var(--space-24) var(--space-16) var(--space-24);
+  margin-left: calc(-1 * var(--space-24));
+  margin-right: calc(-1 * var(--space-24));
+  z-index: 10;
+}
+.integration-input {
+  font-size: 1rem;
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid #ccc;
+  border-radius: var(--space-8);
+  width: 100%;
+  box-sizing: border-box;
+}
+/*# sourceMappingURL=ui.css.map */
