@@ -34,7 +34,7 @@ if (figma.editorType === 'figma') {
     const txt = figma.createText();
     txt.characters = text;
     txt.fontSize = 13;
-    txt.fontName = { family: "Figtree", style: "Bold", weight: 700 };
+    txt.fontName = { family: "Figtree", style: "Bold" };
     txt.fills = [{ type: 'SOLID', color: textColor }];
     txt.textAutoResize = 'WIDTH_AND_HEIGHT';
     pill.appendChild(txt);
@@ -67,9 +67,9 @@ if (figma.editorType === 'figma') {
     txt.fontSize = 12;
     // Figtree Semibold fallback to Medium if Semibold is not available
     try {
-      txt.fontName = { family: "Figtree", style: "Semibold", weight: 600 };
+      txt.fontName = { family: "Figtree", style: "Semibold" };
     } catch {
-      txt.fontName = { family: "Figtree", style: "Medium", weight: 600 };
+      txt.fontName = { family: "Figtree", style: "Medium" };
     }
     txt.fills = [{ type: 'SOLID', color: { r: 0.18, g: 0.45, b: 0.85 } }];
     txt.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -94,7 +94,7 @@ if (figma.editorType === 'figma') {
     const titleText = figma.createText();
     titleText.characters = variant.name;
     titleText.fontSize = 18;
-    titleText.fontName = { family: "Figtree", style: "Bold", weight: 700 };
+    titleText.fontName = { family: "Figtree", style: "Bold" };
     titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     card.appendChild(titleText);
@@ -124,7 +124,7 @@ if (figma.editorType === 'figma') {
     const titleText = figma.createText();
     titleText.characters = title;
     titleText.fontSize = 18;
-    titleText.fontName = { family: "Figtree", style: "Bold", weight: 700 };
+    titleText.fontName = { family: "Figtree", style: "Bold" };
     titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     card.appendChild(titleText);
@@ -133,7 +133,7 @@ if (figma.editorType === 'figma') {
       const subtitleText = figma.createText();
       subtitleText.characters = subtitle;
       subtitleText.fontSize = 14;
-      subtitleText.fontName = { family: "Figtree", style: "Regular", weight: 400 };
+      subtitleText.fontName = { family: "Figtree", style: "Regular" };
       subtitleText.fills = [{ type: 'SOLID', color: { r: 0.4, g: 0.4, b: 0.5 } }];
       subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
       card.appendChild(subtitleText);
@@ -255,7 +255,7 @@ if (figma.editorType === 'figma') {
             const label = figma.createText();
             label.characters = options.label;
             label.fontSize = 13;
-            label.fontName = { family: "Figtree", style: "Bold", weight: 700 };
+            label.fontName = { family: "Figtree", style: "Bold" };
             label.fills = [{ type: 'SOLID', color: { r: 0.18, g: 0.45, b: 0.85 } }];
             label.textAutoResize = 'WIDTH_AND_HEIGHT';
             // Place label near the midpoint (approximate)
@@ -268,16 +268,16 @@ if (figma.editorType === 'figma') {
 
 
       async function loadFonts() {
-        // Always load Figtree Regular 400
-        await figma.loadFontAsync({ family: "Figtree", style: "Regular", weight: 400 }).catch(()=>{});
-        // Try to load Semibold 600, fallback to Medium 600 if not available
+        // Always load Figtree Regular
+        await figma.loadFontAsync({ family: "Figtree", style: "Regular" }).catch(()=>{});
+        // Try to load Semibold, fallback to Medium if not available
         try {
-          await figma.loadFontAsync({ family: "Figtree", style: "Semibold", weight: 600 });
+          await figma.loadFontAsync({ family: "Figtree", style: "Semibold" });
         } catch {
-          await figma.loadFontAsync({ family: "Figtree", style: "Medium", weight: 600 }).catch(()=>{});
+          await figma.loadFontAsync({ family: "Figtree", style: "Medium" }).catch(()=>{});
         }
-        // Always load Figtree Bold 700
-        await figma.loadFontAsync({ family: "Figtree", style: "Bold", weight: 700 }).catch(()=>{});
+        // Always load Figtree Bold
+        await figma.loadFontAsync({ family: "Figtree", style: "Bold" }).catch(()=>{});
         await figma.loadFontAsync({ family: "Roboto", style: "Regular" }).catch(()=>{});
         await figma.loadFontAsync({ family: "Roboto", style: "Bold" }).catch(()=>{});
       }

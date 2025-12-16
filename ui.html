@@ -1,6 +1,41 @@
 
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
+/* Force Figtree font everywhere */
+  font-family: "Figtree", "Google Sans", Arial, sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('./fonts/Figtree-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('./fonts/Figtree-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('./fonts/Figtree-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Figtree';
+  src: url('./fonts/Figtree-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 /* Ensure the main container fills the iframe */
 html, body {
   height: 100%;
@@ -166,10 +201,9 @@ button.secondary {
     </table>
   </div>
   <div class="actions">
-
     <button type="submit">Create flow</button>
-    <button type="button" id="createFromSelection" class="secondary">Create from selection</button>
-    <button type="button" id="cancel" class="secondary">Cancel</button>
+    <button class="secondary" type="button" id="createFromSelection">Create from selection</button>
+    <button class="secondary" type="button" id="cancel">Cancel</button>
   </div>
   </form>
 </div>
