@@ -286,9 +286,12 @@ document.getElementById('exp-form').onsubmit = (e) => {
   } }, '*');
 };
 
-document.getElementById('createFromSelection').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'create-from-selection' } }, '*');
-};
+const createFromSelectionBtn = document.getElementById('createFromSelection');
+if (createFromSelectionBtn) {
+  createFromSelectionBtn.onclick = () => {
+    parent.postMessage({ pluginMessage: { type: 'create-from-selection' } }, '*');
+  };
+}
 
 document.getElementById('cancel').onclick = () => {
   parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
