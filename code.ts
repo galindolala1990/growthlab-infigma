@@ -5,26 +5,46 @@
 
 // Runs this code if the plugin is run in Figma
 if (figma.editorType === 'figma') {
+
+  // --- Type and helper declarations ---
+  type Variant = {
+    key: string;
+    name: string;
+    status: string;
+    traffic: number;
+    metrics: { CTR: number; CR: number; SU: number };
+  };
+
+  interface PluginMessage {
+    type: string;
+    payload?: any;
+  }
+
+  function createPill(text: string, fillColor: RGB, textColor: RGB): FrameNode {
+    const pill = figma.createFrame();
+    pill.layoutMode = 'HORIZONTAL';
+    pill.counterAxisSizingMode = 'AUTO';
+    pill.primaryAxisSizingMode = 'AUTO';
+    pill.paddingLeft = pill.paddingRight = 12;
+    pill.paddingTop = pill.paddingBottom = 4;
+    pill.cornerRadius = 12;
+    pill.fills = [{ type: 'SOLID', color: fillColor }];
+    pill.strokes = [];
+    pill.name = 'Pill';
+    const txt = figma.createText();
+    txt.characters = text;
+    txt.fontSize = 13;
+    txt.fontName = { family: "Inter", style: "Bold" };
+    txt.fills = [{ type: 'SOLID', color: textColor }];
+    txt.textAutoResize = 'WIDTH_AND_HEIGHT';
+    pill.appendChild(txt);
+    return pill;
+  }
+
   figma.showUI(__html__, { width: 520, height: 800, title: 'Growthlab Flow Builder' });
 
   figma.ui.onmessage = async (msg: PluginMessage) => {
-    if (msg.type === 'create-flow' && msg.payload) {
-      const {
-        experimentName: _experimentName,
-        roundNumber: _roundNumber,
-        entryLabel: _entryLabel,
-        exitLabel: _exitLabel,
-        variants: _variants
-      } = msg.payload;
-          const txt = figma.createText();
-          txt.characters = text;
-          txt.fontSize = 13;
-          txt.fontName = { family: "Inter", style: "Bold" };
-          txt.fills = [{ type: 'SOLID', color: textColor }];
-          txt.textAutoResize = 'WIDTH_AND_HEIGHT';
-          pill.appendChild(txt);
-          return pill;
-        }
+    // ...existing code...
 
         function createMetricChip(label: string, value: number): FrameNode {
           const chip = figma.createFrame();

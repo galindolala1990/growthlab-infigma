@@ -1,4 +1,4 @@
-## Experiment Flow Builder Figma Plugin
+## Growthlab Flow Builder Figma Plugin
 
 This plugin helps you quickly create clean, Growth Labs–style experiment flows in Figma.
 
