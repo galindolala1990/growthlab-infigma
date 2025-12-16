@@ -18,6 +18,10 @@ interface PluginMessage {
   payload?: any;
 }
 
+
+
+
+
 if (figma.editorType === 'figma') {
 
   function createPill(text: string, fillColor: RGB, textColor: RGB): FrameNode {
@@ -420,6 +424,7 @@ if (figma.editorType === 'figma') {
     }
   };
 
+
         function connectNodes(fromNode: SceneNode, toNode: SceneNode, options?: { winner?: boolean, label?: string }): ConnectorNode {
           const connector = figma.createConnector();
           connector.connectorStart = { endpointNodeId: fromNode.id, magnet: 'AUTO' };
@@ -428,7 +433,43 @@ if (figma.editorType === 'figma') {
           connector.strokeAlign = 'CENTER';
           connector.strokes = [{ type: 'SOLID', color: options?.winner ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 } }];
           connector.connectorLineType = 'ELBOWED';
-          // Arrowheads not supported in Figma Plugin API as of now
+
+          // --- Custom Arrowhead ---
+          // Calculate the end position of the connector (center of toNode)
+          const from = fromNode.absoluteTransform;
+          const to = toNode.absoluteTransform;
+          const fromX = from[0][2] + fromNode.width / 2;
+          const fromY = from[1][2] + fromNode.height / 2;
+          const toX = to[0][2] + toNode.width / 2;
+          const toY = to[1][2] + toNode.height / 2;
+          // Arrowhead size
+          const size = 18;
+          // Calculate angle
+          const angle = Math.atan2(toY - fromY, toX - fromX);
+          // Arrowhead points (triangle)
+          const arrowPoints = [
+            { x: 0, y: 0 },
+            { x: -size * 0.6, y: -size * 0.4 },
+            { x: -size * 0.6, y: size * 0.4 }
+          ];
+          // Rotate and translate points to toX, toY
+          const rotatedPoints = arrowPoints.map(pt => {
+            const x = pt.x * Math.cos(angle) - pt.y * Math.sin(angle);
+            const y = pt.x * Math.sin(angle) + pt.y * Math.cos(angle);
+            return { x: x + toX, y: y + toY };
+          });
+          // Create vector arrowhead
+          const arrow = figma.createVector();
+          arrow.vectorPaths = [{
+            windingRule: "NONZERO",
+            data: `M ${rotatedPoints[0].x} ${rotatedPoints[0].y} L ${rotatedPoints[1].x} ${rotatedPoints[1].y} L ${rotatedPoints[2].x} ${rotatedPoints[2].y} Z`,
+          }];
+          arrow.fills = [{ type: 'SOLID', color: options?.winner ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 } }];
+          arrow.strokes = [];
+          arrow.name = 'Arrowhead';
+          arrow.x = 0;
+          arrow.y = 0;
+          figma.currentPage.appendChild(arrow);
 
           // Label (traffic %)
           if (options?.label) {
@@ -439,13 +480,6 @@ if (figma.editorType === 'figma') {
             label.textAutoResize = 'WIDTH_AND_HEIGHT';
             label.characters = options.label;
             // Place label near the midpoint (approximate, offset for clarity)
-            const from = fromNode.absoluteTransform;
-            const to = toNode.absoluteTransform;
-            // Use the center of fromNode and toNode
-            const fromX = from[0][2] + fromNode.width / 2;
-            const fromY = from[1][2] + fromNode.height / 2;
-            const toX = to[0][2] + toNode.width / 2;
-            const toY = to[1][2] + toNode.height / 2;
             label.x = (fromX + toX) / 2 + 24;
             label.y = (fromY + toY) / 2 - 12;
             figma.currentPage.appendChild(label);
