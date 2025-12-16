@@ -267,17 +267,35 @@ if (figma.editorType === 'figma') {
 
       await loadFonts();
 
-      // --- Experiment Info Card ---
-      const infoCardName = `Experiment Info — ${experimentName}`;
+
+      // --- Stable naming helpers ---
+      function slugify(str: string): string {
+        return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      }
+      const slug = slugify(experimentName);
+      const flowFrameName = `Experiment Flow — ${slug} — Round ${roundNumber}`;
+      const infoCardName = `Experiment Info — ${slug}`;
+
+      // --- Remove existing flow frame if present ---
+      const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
+      if (existingFlow) existingFlow.remove();
+
+      // --- Find or create info card ---
       let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
       if (!infoCard) {
         infoCard = await createExperimentInfoCard(experimentName);
-        // Positioning will be handled after Entry node is created
+      } else {
+        // Optionally update info card text if experimentName changed (title row)
+        const titleRow = infoCard.findOne(n => n.type === 'FRAME' && n.name === 'Title Row') as FrameNode | undefined;
+        if (titleRow) {
+          const titleText = titleRow.findOne(n => n.type === 'TEXT') as TextNode | undefined;
+          if (titleText) titleText.characters = experimentName;
+        }
       }
 
-      // --- Main Frame ---
+      // --- Main Flow Frame ---
       const flowFrame = figma.createFrame();
-      flowFrame.name = `Experiment Flow: ${experimentName}`;
+      flowFrame.name = flowFrameName;
       flowFrame.layoutMode = 'HORIZONTAL';
       flowFrame.counterAxisSizingMode = 'AUTO';
       flowFrame.primaryAxisSizingMode = 'AUTO';
@@ -338,24 +356,24 @@ if (figma.editorType === 'figma') {
       // Will append in correct order below
 
 
+
       // --- Place in viewport center ---
       // Append children in strict order: Entry, Variants, Exit
       flowFrame.appendChild(entryCard);
       flowFrame.appendChild(variantsContainer);
       flowFrame.appendChild(exitCard);
 
+      // Center flowFrame in viewport
       const center = figma.viewport.center;
-      flowFrame.x = center.x - 600;
-      flowFrame.y = center.y - 200;
+      flowFrame.x = center.x - flowFrame.width / 2;
+      flowFrame.y = center.y - flowFrame.height / 2;
       figma.currentPage.appendChild(flowFrame);
 
-      // --- Place Experiment Info card to the left of Entry node ---
-      if (infoCard.parent == null) {
-        // Vertically center with Entry node, left of flow
-        infoCard.x = flowFrame.x - infoCard.width - 64;
-        infoCard.y = flowFrame.y + entryCard.y + (entryCard.height / 2) - (infoCard.height / 2);
-        figma.currentPage.appendChild(infoCard);
-      }
+      // Place infoCard to the left of flowFrame, vertically centered with Entry node
+      infoCard.x = flowFrame.x - infoCard.width - 64;
+      // Find entryCard's y relative to flowFrame
+      infoCard.y = flowFrame.y + entryCard.y + (entryCard.height / 2) - (infoCard.height / 2);
+      if (infoCard.parent == null) figma.currentPage.appendChild(infoCard);
 
       figma.currentPage.selection = [flowFrame];
       figma.viewport.scrollAndZoomIntoView([flowFrame]);

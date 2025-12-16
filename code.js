@@ -460,6 +460,10 @@ if (figma.editorType === "figma") {
   });
   figma.ui.onmessage = (msg) => __async(null, null, function* () {
     if (msg.type === "create-flow" && msg.payload) {
+      let slugify2 = function(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      };
+      var slugify = slugify2;
       const {
         experimentName,
         roundNumber,
@@ -468,13 +472,23 @@ if (figma.editorType === "figma") {
       } = msg.payload;
       const variants = msg.payload.variants;
       yield loadFonts2();
-      const infoCardName = `Experiment Info \u2014 ${experimentName}`;
+      const slug = slugify2(experimentName);
+      const flowFrameName = `Experiment Flow \u2014 ${slug} \u2014 Round ${roundNumber}`;
+      const infoCardName = `Experiment Info \u2014 ${slug}`;
+      const existingFlow = figma.currentPage.findOne((n) => n.type === "FRAME" && n.name === flowFrameName);
+      if (existingFlow) existingFlow.remove();
       let infoCard = figma.currentPage.findOne((n) => n.type === "FRAME" && n.name === infoCardName);
       if (!infoCard) {
         infoCard = yield createExperimentInfoCard(experimentName);
+      } else {
+        const titleRow = infoCard.findOne((n) => n.type === "FRAME" && n.name === "Title Row");
+        if (titleRow) {
+          const titleText = titleRow.findOne((n) => n.type === "TEXT");
+          if (titleText) titleText.characters = experimentName;
+        }
       }
       const flowFrame = figma.createFrame();
-      flowFrame.name = `Experiment Flow: ${experimentName}`;
+      flowFrame.name = flowFrameName;
       flowFrame.layoutMode = "HORIZONTAL";
       flowFrame.counterAxisSizingMode = "AUTO";
       flowFrame.primaryAxisSizingMode = "AUTO";
@@ -520,14 +534,12 @@ if (figma.editorType === "figma") {
       flowFrame.appendChild(variantsContainer);
       flowFrame.appendChild(exitCard);
       const center = figma.viewport.center;
-      flowFrame.x = center.x - 600;
-      flowFrame.y = center.y - 200;
+      flowFrame.x = center.x - flowFrame.width / 2;
+      flowFrame.y = center.y - flowFrame.height / 2;
       figma.currentPage.appendChild(flowFrame);
-      if (infoCard.parent == null) {
-        infoCard.x = flowFrame.x - infoCard.width - 64;
-        infoCard.y = flowFrame.y + entryCard.y + entryCard.height / 2 - infoCard.height / 2;
-        figma.currentPage.appendChild(infoCard);
-      }
+      infoCard.x = flowFrame.x - infoCard.width - 64;
+      infoCard.y = flowFrame.y + entryCard.y + entryCard.height / 2 - infoCard.height / 2;
+      if (infoCard.parent == null) figma.currentPage.appendChild(infoCard);
       figma.currentPage.selection = [flowFrame];
       figma.viewport.scrollAndZoomIntoView([flowFrame]);
       for (let i = 0; i < variantNodes.length; i++) {
