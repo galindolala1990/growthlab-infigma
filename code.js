@@ -260,7 +260,7 @@ function createLinkChip(label, url) {
   txt.fontSize = 16;
   txt.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.2, b: 0.25 } }];
   txt.textAutoResize = "WIDTH_AND_HEIGHT";
-  txt.characters = ` ${label} project name`;
+  txt.characters = url ? ` ${url}` : ` ${label}`;
   chip.appendChild(txt);
   return chip;
 }

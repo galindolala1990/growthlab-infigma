@@ -239,13 +239,13 @@ function createLinkChip(label: string, url?: string): FrameNode {
   icon.textAutoResize = "WIDTH_AND_HEIGHT";
   icon.characters = label === 'Figma' ? '🟠' : label === 'Jira' ? '🟦' : label === 'Miro' ? '🟨' : '🔗';
   chip.appendChild(icon);
-  // Label
+  // Label: show the url or label
   const txt = figma.createText();
   txt.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
   txt.fontSize = 16;
   txt.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.20, b: 0.25 } }];
   txt.textAutoResize = "WIDTH_AND_HEIGHT";
-  txt.characters = ` ${label} project name`;
+  txt.characters = url ? ` ${url}` : ` ${label}`;
   chip.appendChild(txt);
   // Figma plugin API does not support setting hyperlinks on FrameNode directly.
   // If hyperlink support is added in the future, add it here.
