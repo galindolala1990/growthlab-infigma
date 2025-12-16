@@ -3,6 +3,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
+html {
+  font-size: 14px; /* 1rem = 14px instead of 16px */
+}
 /* Force Figtree font everywhere */
 body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5, h6, .app {
   font-family: "Figtree", Arial, sans-serif;
@@ -54,6 +57,7 @@ body {
 
 .app {
   min-height: 100%;
+  width: 450px;
   padding: 24px;
   box-sizing: border-box;
   background: #FFFFFF;
@@ -82,7 +86,7 @@ form {
 .variants-table th, .variants-table td {
   padding: 4px 6px;
   text-align: left;
-  font-size: 0.97em;
+  font-size: 0.875em;
 }
 .variants-table th {
   font-weight: 500;
@@ -129,7 +133,7 @@ form {
   margin-top: 10px;
 }
 input[type="text"], input[type="number"] {
-  font-size: 1em;
+  font-size: 1rem;
   padding: 4px 7px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -140,7 +144,7 @@ input[type="number"] {
   max-width: 70px;
 }
 button {
-  font-size: 1em;
+  font-size: 1rem;
   padding: 6px 16px;
   border-radius: 6px;
   border: none;
@@ -149,6 +153,9 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
+}
+label, select {
+  font-size: 1rem;
 }
 button:active {
   background: #18304d;
@@ -163,19 +170,19 @@ button.secondary {
   <h2>Growthlab Flow Builder</h2>
   <form id="exp-form" autocomplete="off">
   <div class="row">
-    <label style="min-width:110px;">Experiment name</label>
+    <label style="min-width:110px;">Name</label>
     <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
   </div>
   <div class="row">
-    <label style="min-width:110px;">Round number</label>
+    <label style="min-width:110px;">Round</label>
     <input type="number" id="roundNumber" min="1" value="1" required>
   </div>
   <div class="row">
-    <label style="min-width:110px;">Entry node label</label>
+    <label style="min-width:110px;">Entry node</label>
     <input type="text" id="entryLabel" value="Login" required>
   </div>
   <div class="row">
-    <label style="min-width:110px;">Exit node label</label>
+    <label style="min-width:110px;">Exit node</label>
     <input type="text" id="exitLabel" value="Welcome" required>
   </div>
   <div>
