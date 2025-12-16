@@ -316,12 +316,21 @@ if (figma.editorType === "figma") {
     card.layoutMode = "VERTICAL";
     card.counterAxisSizingMode = "AUTO";
     card.primaryAxisSizingMode = "AUTO";
-    card.paddingLeft = card.paddingRight = 20;
-    card.paddingTop = card.paddingBottom = 16;
+    card.paddingLeft = card.paddingRight = 12;
+    card.paddingTop = card.paddingBottom = 12;
     card.cornerRadius = 16;
-    card.fills = [{ type: "SOLID", color: { r: 0.97, g: 0.98, b: 1 } }];
-    card.strokes = [{ type: "SOLID", color: { r: 0.85, g: 0.9, b: 1 } }];
-    card.strokeWeight = 1;
+    card.fills = [{ type: "SOLID", color: { r: 0.87, g: 0.9, b: 1 } }];
+    card.strokes = [{ type: "SOLID", color: { r: 0.06, g: 0.09, b: 0.16 } }];
+    card.strokeWeight = 0;
+    card.effects = [{
+      type: "DROP_SHADOW",
+      color: { r: 0, g: 0, b: 0, a: 0.05 },
+      offset: { x: 0, y: 1 },
+      radius: 2,
+      spread: 0,
+      visible: true,
+      blendMode: "NORMAL"
+    }];
     card.name = `Variant: ${variant.name}`;
     const topRow = figma.createFrame();
     topRow.layoutMode = "HORIZONTAL";
@@ -362,11 +371,12 @@ if (figma.editorType === "figma") {
     }
     card.appendChild(topRow);
     const thumb = figma.createFrame();
-    thumb.resize(240, 140);
+    thumb.layoutGrow = 1;
+    thumb.layoutAlign = "STRETCH";
     thumb.cornerRadius = 12;
-    thumb.fills = [{ type: "SOLID", color: { r: 0.93, g: 0.95, b: 0.99 } }];
-    thumb.strokes = [{ type: "SOLID", color: { r: 0.85, g: 0.9, b: 1 } }];
-    thumb.strokeWeight = 1;
+    thumb.fills = [{ type: "SOLID", color: { r: 0.83, g: 0.84, b: 0.86 } }];
+    thumb.strokes = [];
+    thumb.strokeWeight = 0;
     thumb.name = "Thumbnail";
     card.appendChild(thumb);
     const metricsRow = figma.createFrame();

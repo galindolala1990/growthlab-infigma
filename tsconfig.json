@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["es6"],
+    "lib": ["es6", "dom", "es2016", "esnext"],
     "strict": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["react", "react-dom", "jest", "@testing-library/jest-dom"],
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"

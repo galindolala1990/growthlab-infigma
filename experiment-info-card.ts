@@ -1,3 +1,4 @@
+/// <reference types="@figma/plugin-typings" />
 import { loadFonts, getLoadedFigtreeSemibold } from "./load-fonts";
 
 export async function createExperimentInfoCard(

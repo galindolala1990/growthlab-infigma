@@ -1,3 +1,4 @@
+/// <reference types="@figma/plugin-typings" />
 // This file holds the main code for plugins. Code in this file has access to
 // the *figma document* via the figma global object.
 // You can access browser APIs in the <script> tag inside "ui.html" which has a
