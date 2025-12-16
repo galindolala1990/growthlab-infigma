@@ -1,8 +1,59 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+<style>
+  .traffic-input-group {
+    display: inline-flex;
+    align-items: center;
+    background: #eaf7f0;
+    border: 1.5px solid #b6e2c6;
+    border-radius: 7px;
+    padding: 0 4px 0 0;
+    margin-left: 8px;
+    height: 32px;
+  }
+  .variant-traffic-input {
+    width: 54px;
+    border: none;
+    background: transparent;
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: #217a4d;
+    outline: none;
+    text-align: right;
+    padding: 2px 0 2px 8px;
+  }
+  .traffic-percent {
+    font-size: 1.08rem;
+    color: #217a4d;
+    font-weight: 600;
+    margin-left: 2px;
+    margin-right: 6px;
+  }
+  .variant-card {
+    background: #fff;
+    border: 1.5px solid #e6eaf2;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+    padding: 20px 20px 18px 20px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: box-shadow 0.18s, border 0.18s;
+  }
+</style>
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
+  .flow-setup .flow-inline-row {
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
 html {
   font-size: 14px; /* 1rem = 14px instead of 16px */
 }
@@ -11,6 +62,105 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   font-family: "Figtree", system-ui, Arial, sans-serif;
   font-optical-sizing: auto;
 }
+/* Card-based layout and visual hierarchy */
+.flow-builder-card {
+  background: #f7fafd;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
+  padding: 32px 32px 24px 32px;
+  margin-bottom: 32px;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+  min-width: 0;
+}
+.flow-builder-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.flow-icon {
+  font-size: 1.5em;
+  background: #2a4d7a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flow-title {
+  font-size: 1.18em;
+  font-weight: 700;
+  color: #1a2330;
+}
+.section-label {
+  font-size: 1.18em;
+  font-weight: 800;
+  color: #1a2330;
+  margin-bottom: 18px;
+  margin-top: 0;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.variants-section.emphasized {
+  background: #f5f8fd;
+    border: 1.5px solid #b7c6e0;
+  border-radius: 18px;
+    box-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
+  padding: 32px 32px 24px 32px;
+  margin-bottom: 32px;
+  margin-top: 16px;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+.meta-card {
+  background: #f9fbfd;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
+  padding: 20px 24px 16px 24px;
+  margin-bottom: 32px;
+  margin-top: 16px;
+  transition: box-shadow 0.2s;
+}
+.meta-summary {
+  font-size: 1.32em;
+  font-weight: 900;
+  color: #18305a;
+  margin-bottom: 22px;
+}
+  letter-spacing: 0.01em;
+  text-transform: none;
+  line-height: 1.2;
+  font-size: 1.18em;
+  font-weight: 800;
+  color: #1a2330;
+  margin-bottom: 14px;
+  outline: none;
+}
+.meta-card[open] {
+  padding-top: 0;
+}
+.flow-setup .row {
+  margin-bottom: 10px;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+.flow-setup label {
+  min-width: 110px;
+  color: #6b7a90;
+  font-weight: 500;
+}
+.flow-setup input {
+  flex: 1 1 120px;
+}
+.actions-footer {
+  margin-top: 0;
+}
 </style>
 <div id="container"></div>
 <script src="ui.js"></script>
@@ -18,20 +168,23 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 .variant-cards-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 8px;
+  gap: 24px;
+  margin-top: 12px;
+  min-height: 100px;
+  padding-bottom: 12px;
 }
 .variant-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   background: #f7fafd;
-  border: 1px solid #e6eaf2;
-  border-radius: 16px;
-  padding: 16px 16px 16px 16px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.04);
+  border: 1.5px solid #e6eaf2;
+  border-radius: 14px;
+  padding: 20px 20px 18px 20px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
   position: relative;
   font-family: "Figtree", system-ui, Arial, sans-serif;
+  min-width: 0;
 }
 .variant-card-header {
   display: flex;
@@ -171,57 +324,76 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   box-sizing: border-box;
 }
 </style>
+
 <div class="app" id="container">
-  <h2>Growthlab Flow Builder</h2>
+  <header class="main-header" style="margin-bottom: 1.2em;">
+    <h2 style="margin-bottom: 0.1em; font-size: 1.45em; font-weight: 800; color: #1a2330;">Growthlab Flow Builder</h2>
+    <div class="subtitle" style="font-size: 1.05em; color: #4a5a70; font-weight: 400; margin-top: 0;">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
+  </header>
   <form id="exp-form" autocomplete="off">
-    <!-- Flow setup section -->
-    <section class="flow-setup">
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Name</label>
-        <input type="text" id="experimentName" required placeholder="e.g. Button Color Test">
+    <div class="flow-setup-group">
+      <div class="row row-name" style="margin-bottom: 8px;">
+        <label style="flex:0 0 90px;">Name</label>
+        <input type="text" id="experimentName" required placeholder="e.g. Button Color Test" style="flex:1;">
       </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Description</label>
-        <input type="text" id="experimentDescription" placeholder="Short description (optional)">
+      <div class="row row-flow" style="gap:10px; align-items:center; margin-bottom: 0;">
+        <label style="flex:0 0 60px;">Round</label>
+        <input type="number" id="roundNumber" min="1" value="1" required style="width:60px; flex:0 0 60px;">
+        <label style="flex:0 0 80px; margin-left:12px;">Entry node</label>
+        <input type="text" id="entryLabel" value="Login" required style="flex:1; min-width:80px;">
+        <span class="arrow-icon" style="margin:0 10px; font-size:1.2em; color:#b0b8c9;">&#8594;</span>
+        <label style="flex:0 0 70px;">Exit node</label>
+        <input type="text" id="exitLabel" value="Welcome" required style="flex:1; min-width:80px;">
       </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Round</label>
-        <input type="number" id="roundNumber" min="1" value="1" required>
+    </div>
+    <details class="meta-card" style="margin-bottom: 18px;">
+      <style>
+      .flow-setup-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 8px;
+      }
+      .row-name {
+        margin-bottom: 6px !important;
+      }
+      .row-flow {
+        margin-bottom: 0 !important;
+        gap: 10px !important;
+      }
+      .arrow-icon {
+        font-size: 1.2em;
+        color: #b0b8c9;
+        margin: 0 10px;
+        user-select: none;
+      }
+      </style>
+      <summary class="meta-summary">Experiment details</summary>
+      <section class="flow-setup">
+        <div class="row"><label>Description</label><input type="text" id="experimentDescription" placeholder="Short description (optional)"></div>
+        <div class="row"><label>Figma link</label><input type="url" id="figmaLink" class="integration-input" placeholder="https://www.figma.com/file/..." ></div>
+        <div class="row"><label>Jira link</label><input type="url" id="jiraLink" class="integration-input" placeholder="https://jira.company.com/browse/..." ></div>
+        <div class="row"><label>Miro link</label><input type="url" id="miroLink" class="integration-input" placeholder="https://miro.com/app/board/..." ></div>
+      </section>
+    </details>
+    <div class="flow-builder-card">
+      <div class="flow-builder-header">
+        <span class="flow-icon">🧩</span>
+        <span class="flow-title">Build your flow</span>
       </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Entry node</label>
-        <input type="text" id="entryLabel" value="Login" required>
-      </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Exit node</label>
-        <input type="text" id="exitLabel" value="Welcome" required>
-      </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Figma link</label>
-        <input type="url" id="figmaLink" class="integration-input" placeholder="https://www.figma.com/file/...">
-      </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Jira link</label>
-        <input type="url" id="jiraLink" class="integration-input" placeholder="https://jira.company.com/browse/...">
-      </div>
-      <div class="row" style="margin-bottom: 16px; gap: 8px;">
-        <label style="min-width:110px;">Miro link</label>
-        <input type="url" id="miroLink" class="integration-input" placeholder="https://miro.com/app/board/...">
-      </div>
-      </div>
-    </section>
-    <!-- Variants section -->
-    <section class="variants-section">
-      <label>Variants</label>
-      <div class="variant-cards-list" id="variantsCardsList">
-        <!-- Cards inserted by JS -->
-      </div>
-    </section>
-    <!-- Sticky action footer -->
+      <section class="variants-section emphasized">
+        <div class="section-label">Variants</div>
+        <div class="variant-cards-list" id="variantsCardsList">
+          <!-- Cards inserted by JS -->
+        </div>
+      </section>
+    </div>
     <footer class="actions-footer">
+      <div class="footer-helper" style="font-size:0.98em; color:#4a5a70; margin-bottom:8px;">
+        <span>“Create flow” will generate and display your experiment as a visual flow on the canvas.</span>
+      </div>
       <div class="actions">
         <button type="submit">Create flow</button>
-        <!-- <button class="secondary" type="button" id="createFromSelection">Create from selection</button> -->
         <button class="secondary" type="button" id="cancel">Cancel</button>
       </div>
     </footer>
