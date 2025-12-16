@@ -103,12 +103,21 @@ if (figma.editorType === 'figma') {
     card.layoutMode = 'VERTICAL';
     card.counterAxisSizingMode = 'AUTO';
     card.primaryAxisSizingMode = 'AUTO';
-    card.paddingLeft = card.paddingRight = 20;
-    card.paddingTop = card.paddingBottom = 16;
-    card.cornerRadius = 16;
-    card.fills = [{ type: 'SOLID', color: { r: 0.97, g: 0.98, b: 1 } }];
-    card.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-    card.strokeWeight = 1;
+    card.paddingLeft = card.paddingRight = 12; // 0.75rem ≈ 12px
+    card.paddingTop = card.paddingBottom = 12; // 0.75rem ≈ 12px
+    card.cornerRadius = 16; // 1rem ≈ 16px
+    card.fills = [{ type: 'SOLID', color: { r: 0.87, g: 0.90, b: 1 } }]; // #DEE6FF
+    card.strokes = [{ type: 'SOLID', color: { r: 0.06, g: 0.09, b: 0.16 } }]; // #0F1729
+    card.strokeWeight = 0; // border: 0 solid
+    card.effects = [{
+      type: 'DROP_SHADOW',
+      color: { r: 0, g: 0, b: 0, a: 0.05 },
+      offset: { x: 0, y: 1 },
+      radius: 2,
+      spread: 0,
+      visible: true,
+      blendMode: 'NORMAL',
+    }];
     card.name = `Variant: ${variant.name}`;
 
     // --- Top row: Key circle, name, badge ---
@@ -160,14 +169,19 @@ if (figma.editorType === 'figma') {
     }
     card.appendChild(topRow);
 
-    // --- Thumbnail rectangle (placeholder for now) ---
+    // --- Thumbnail rectangle (image style) ---
     const thumb = figma.createFrame();
-    thumb.resize(240, 140);
+    thumb.layoutGrow = 1; // flex: 1 0 0
+    thumb.layoutAlign = 'STRETCH'; // align-self: stretch
     thumb.cornerRadius = 12;
-    thumb.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.95, b: 0.99 } }];
-    thumb.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-    thumb.strokeWeight = 1;
+    // Figma plugin API does not support background images directly, so we use a solid fill as placeholder
+    // To use an image, you would need to create a rectangle and set its fills to an image paint
+    // Example placeholder: light gray
+    thumb.fills = [{ type: 'SOLID', color: { r: 0.83, g: 0.84, b: 0.86 } }]; // lightgray
+    thumb.strokes = [];
+    thumb.strokeWeight = 0;
     thumb.name = 'Thumbnail';
+    // To set an image, use figma.createImage and set thumb.fills = [{ type: 'IMAGE', ... }]
     card.appendChild(thumb);
 
     // --- Bottom row: metrics chips ---
