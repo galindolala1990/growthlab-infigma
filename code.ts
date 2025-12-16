@@ -4,13 +4,22 @@
 // full browser environment (See https://www.figma.com/plugin-docs/how-plugins-run).
 // Runs this code if the plugin is run in Figma
 
+
 // --- Type and helper declarations ---
+type VariantStatus = "running" | "winner" | "none";
+
+type VariantMetrics = {
+  ctr: number;
+  cr: number;
+  su: number;
+};
+
 type Variant = {
-  key: string;
-  name: string;
-  status: string;
-  traffic: number;
-  metrics: { CTR: number; CR: number; SU: number };
+  key: string;        // "A", "B", "C"
+  name: string;       // "Black btn"
+  traffic: number;    // 50, 25, etc
+  status: VariantStatus;
+  metrics: VariantMetrics;
 };
 
 interface PluginMessage {
@@ -21,6 +30,9 @@ interface PluginMessage {
 
 
 
+
+// Toggle this flag to control plugin close behavior
+const KEEP_OPEN = true;
 
 if (figma.editorType === 'figma') {
 
@@ -133,10 +145,12 @@ if (figma.editorType === 'figma') {
     nameText.characters = variant.name;
     topRow.appendChild(nameText);
 
-    // Badge (Winner/Running)
-    if (variant.status === 'Winner' || variant.status === 'Running') {
-      const badgeColor = variant.status === 'Winner' ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 };
-      const badge = createPill(variant.status, badgeColor, { r: 1, g: 1, b: 1 });
+    // Badge (winner/running)
+    if (variant.status === 'winner' || variant.status === 'running') {
+      const badgeColor = variant.status === 'winner' ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 };
+      // Capitalize for display
+      const badgeLabel = variant.status.charAt(0).toUpperCase() + variant.status.slice(1);
+      const badge = createPill(badgeLabel, badgeColor, { r: 1, g: 1, b: 1 });
       badge.name = 'Status Badge';
       topRow.appendChild(badge);
     }
@@ -161,10 +175,10 @@ if (figma.editorType === 'figma') {
     metricsRow.fills = [];
     metricsRow.strokes = [];
     metricsRow.name = 'Metrics Row';
-    // CTR, CR, SU chips with up arrow and %
-    metricsRow.appendChild(createMetricChip('CTR', variant.metrics.CTR));
-    metricsRow.appendChild(createMetricChip('CR', variant.metrics.CR));
-    metricsRow.appendChild(createMetricChip('SU', variant.metrics.SU));
+    // ctr, cr, su chips with up arrow and %
+    metricsRow.appendChild(createMetricChip('CTR', variant.metrics.ctr));
+    metricsRow.appendChild(createMetricChip('CR', variant.metrics.cr));
+    metricsRow.appendChild(createMetricChip('SU', variant.metrics.su));
     card.appendChild(metricsRow);
 
     return card;
@@ -237,13 +251,14 @@ if (figma.editorType === 'figma') {
   figma.ui.onmessage = async (msg: PluginMessage) => {
     if (msg.type === 'create-flow' && msg.payload) {
       // ...existing code for create-flow...
+
       const {
         experimentName,
         roundNumber,
         entryLabel,
         exitLabel,
-        variants
       } = msg.payload;
+      const variants: Variant[] = msg.payload.variants;
 
       await loadFonts();
 
@@ -253,8 +268,9 @@ if (figma.editorType === 'figma') {
       flowFrame.layoutMode = 'HORIZONTAL';
       flowFrame.counterAxisSizingMode = 'AUTO';
       flowFrame.primaryAxisSizingMode = 'AUTO';
-      flowFrame.itemSpacing = 32;
-      flowFrame.paddingLeft = flowFrame.paddingRight = 32;
+      flowFrame.itemSpacing = 64;
+      flowFrame.paddingLeft = 48;
+      flowFrame.paddingRight = 48;
       flowFrame.paddingTop = flowFrame.paddingBottom = 32;
       flowFrame.fills = [];
       flowFrame.cornerRadius = 24;
@@ -267,38 +283,53 @@ if (figma.editorType === 'figma') {
       // --- Entry node card ---
       const entryCard = createNodeCard(entryLabel, undefined, '100%');
       entryCard.name = 'Entry Node';
-      flowFrame.appendChild(entryCard);
+      // Will append in correct order below
 
       // --- Round 1 variants container ---
-      const roundContainer = figma.createFrame();
-      roundContainer.name = 'Round 1 Variants';
-      roundContainer.layoutMode = 'VERTICAL';
-      roundContainer.counterAxisSizingMode = 'AUTO';
-      roundContainer.primaryAxisSizingMode = 'AUTO';
-      roundContainer.itemSpacing = 20;
-      roundContainer.paddingLeft = roundContainer.paddingRight = 24;
-      roundContainer.paddingTop = roundContainer.paddingBottom = 24;
-      roundContainer.cornerRadius = 24;
-      roundContainer.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }];
-      roundContainer.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-      roundContainer.strokeWeight = 1;
+        // IMPORTANT:
+        // Variants MUST be stacked vertically inside a round.
+        // Do NOT change variantsContainer.layoutMode to HORIZONTAL.
+      const variantsContainer = figma.createFrame();
+      variantsContainer.name = 'Round 1 Variants';
+      variantsContainer.layoutMode = 'VERTICAL';
+      variantsContainer.primaryAxisSizingMode = 'AUTO';
+      variantsContainer.counterAxisSizingMode = 'AUTO';
+      variantsContainer.itemSpacing = 24;
+      variantsContainer.paddingTop = 24;
+      variantsContainer.paddingBottom = 24;
+      variantsContainer.paddingLeft = 24;
+      variantsContainer.paddingRight = 24;
+      variantsContainer.cornerRadius = 24;
+      variantsContainer.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }];
+      variantsContainer.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
+      variantsContainer.strokeWeight = 1;
 
       // --- Variant cards ---
       const variantNodes: FrameNode[] = [];
-      for (let i = 0; i < variants.length; i++) {
-        const v = variants[i];
-        const card = createVariantCard(v);
-        roundContainer.appendChild(card);
+      variants.forEach((variant: Variant, index: number) => {
+        const card = createVariantCard(variant);
+        variantsContainer.appendChild(card);
         variantNodes.push(card);
-      }
-      flowFrame.appendChild(roundContainer);
+
+        connectNodes(entryCard, card, {
+          label: `${variant.traffic}%`,
+          winner: variant.status === "winner",
+          index,
+        });
+      });
+      // Will append in correct order below
 
       // --- Exit node card ---
       const exitCard = createNodeCard(exitLabel);
       exitCard.name = 'Exit Node';
-      flowFrame.appendChild(exitCard);
+      // Will append in correct order below
 
       // --- Place in viewport center ---
+      // Append children in strict order: Entry, Variants, Exit
+      flowFrame.appendChild(entryCard);
+      flowFrame.appendChild(variantsContainer);
+      flowFrame.appendChild(exitCard);
+
       const center = figma.viewport.center;
       flowFrame.x = center.x - 600;
       flowFrame.y = center.y - 200;
@@ -310,28 +341,33 @@ if (figma.editorType === 'figma') {
       // Entry → each variant
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(entryCard, variantNodes[i], {
-          winner: variants[i].status === 'Winner',
-          label: `${variants[i].traffic}%`
+          winner: variants[i].status === 'winner',
+          label: `${variants[i].traffic}%`,
+          index: i
         });
       }
       // Each variant → Exit
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(variantNodes[i], exitCard, {
-          winner: variants[i].status === 'Winner'
+          winner: variants[i].status === 'winner',
+          index: i
         });
       }
 
       // --- Done ---
-      figma.closePlugin('Experiment flow created.');
+      figma.notify('Experiment flow created.');
+      // figma.closePlugin('Experiment flow created.');
     } else if (msg.type === 'create-from-selection') {
       // Use up to 3 selected frames as thumbnails for variants A/B/C
       const selection = figma.currentPage.selection.filter(node => node.type === 'FRAME' || node.type === 'GROUP');
       if (selection.length === 0) {
-        figma.closePlugin('Select up to 3 frames to use as variant thumbnails.');
+        figma.notify('Select up to 3 frames to use as variant thumbnails.');
+        // figma.closePlugin('Select up to 3 frames to use as variant thumbnails.');
         return;
       }
       if (!msg.payload) {
-        figma.closePlugin('Please fill the experiment form and click "Create from selection" again.');
+        figma.notify('Please fill the experiment form and click "Create from selection" again.');
+        // figma.closePlugin('Please fill the experiment form and click "Create from selection" again.');
         return;
       }
       const { experimentName, roundNumber, entryLabel, exitLabel, variants } = msg.payload;
@@ -410,91 +446,99 @@ if (figma.editorType === 'figma') {
       // --- Draw connectors ---
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(entryCard, variantNodes[i], {
-          winner: variants[i].status === 'Winner',
-          label: `${variants[i].traffic}%`
+          winner: variants[i].status === 'winner',
+          label: `${variants[i].traffic}%`,
+          index: i
         });
       }
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(variantNodes[i], exitCard, {
-          winner: variants[i].status === 'Winner'
+          winner: variants[i].status === 'winner',
+          index: i
         });
       }
 
-      figma.closePlugin('Experiment flow created from selection.');
+      figma.notify('Experiment flow created from selection.');
+      // figma.closePlugin('Experiment flow created from selection.');
+    } else if (msg.type === 'cancel') {
+      // Explicit cancel action: close the plugin (only if KEEP_OPEN is false)
+      if (!KEEP_OPEN) figma.closePlugin('Plugin closed.');
+      else figma.notify('Canceled');
+      return;
     }
   };
 
 
-        function connectNodes(fromNode: SceneNode, toNode: SceneNode, options?: { winner?: boolean, label?: string }): ConnectorNode {
-          const connector = figma.createConnector();
-          connector.connectorStart = { endpointNodeId: fromNode.id, magnet: 'AUTO' };
-          connector.connectorEnd = { endpointNodeId: toNode.id, magnet: 'AUTO' };
-          connector.strokeWeight = options?.winner ? 7 : 4;
-          connector.strokeAlign = 'CENTER';
-          connector.strokes = [{ type: 'SOLID', color: options?.winner ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 } }];
-          connector.connectorLineType = 'ELBOWED';
 
-          // --- Custom Arrowhead ---
-          // Calculate the end position of the connector (center of toNode)
-          const from = fromNode.absoluteTransform;
-          const to = toNode.absoluteTransform;
-          const fromX = from[0][2] + fromNode.width / 2;
-          const fromY = from[1][2] + fromNode.height / 2;
-          const toX = to[0][2] + toNode.width / 2;
-          const toY = to[1][2] + toNode.height / 2;
-          // Arrowhead size
-          const size = 18;
-          // Calculate angle
-          const angle = Math.atan2(toY - fromY, toX - fromX);
-          // Arrowhead points (triangle)
-          const arrowPoints = [
-            { x: 0, y: 0 },
-            { x: -size * 0.6, y: -size * 0.4 },
-            { x: -size * 0.6, y: size * 0.4 }
-          ];
-          // Rotate and translate points to toX, toY
-          const rotatedPoints = arrowPoints.map(pt => {
-            const x = pt.x * Math.cos(angle) - pt.y * Math.sin(angle);
-            const y = pt.x * Math.sin(angle) + pt.y * Math.cos(angle);
-            return { x: x + toX, y: y + toY };
-          });
-          // Create vector arrowhead
-          const arrow = figma.createVector();
-          arrow.vectorPaths = [{
-            windingRule: "NONZERO",
-            data: `M ${rotatedPoints[0].x} ${rotatedPoints[0].y} L ${rotatedPoints[1].x} ${rotatedPoints[1].y} L ${rotatedPoints[2].x} ${rotatedPoints[2].y} Z`,
-          }];
-          arrow.fills = [{ type: 'SOLID', color: options?.winner ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 } }];
-          arrow.strokes = [];
-          arrow.name = 'Arrowhead';
-          arrow.x = 0;
-          arrow.y = 0;
-          // Insert arrow just above the flowFrame (background)
-          const flowFrameIndex = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
-          const insertIndex = flowFrameIndex >= 0 ? flowFrameIndex + 1 : 0;
-          figma.currentPage.insertChild(insertIndex, arrow);
-
-          // Label (traffic %)
-          if (options?.label) {
-            const label = figma.createText();
-            label.fontName = { family: "Figtree", style: "Bold" };
-            label.fontSize = 13;
-            label.fills = [{ type: 'SOLID', color: options?.winner ? { r: 0.22, g: 0.7, b: 0.36 } : { r: 0.18, g: 0.45, b: 0.85 } }];
-            label.textAutoResize = 'WIDTH_AND_HEIGHT';
-            label.characters = options.label;
-            // Place label near the midpoint (approximate, offset for clarity)
-            label.x = (fromX + toX) / 2 + 24;
-            label.y = (fromY + toY) / 2 - 12;
-            if (options?.label) {
-              const flowFrameIndex = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
-              const insertIndex = flowFrameIndex >= 0 ? flowFrameIndex + 1 : 0;
-              figma.currentPage.insertChild(insertIndex, label);
-            }
+        function connectNodes(
+          fromNode: SceneNode,
+          toNode: SceneNode,
+          options?: {
+            winner?: boolean;
+            label?: string;
+            index?: number;
           }
-          const flowFrameIndex2 = figma.currentPage.children.findIndex(n => n.name && n.name.startsWith('Experiment Flow:'));
-          const insertIndex2 = flowFrameIndex2 >= 0 ? flowFrameIndex2 + 1 : 0;
-          figma.currentPage.insertChild(insertIndex2, connector);
-          return connector;
+        ): SceneNode | null {
+          const color = options?.winner
+            ? { r: 0.22, g: 0.7, b: 0.36 }
+            : { r: 0.18, g: 0.45, b: 0.85 };
+
+          const strokeWeight = options?.winner ? 7 : 4;
+
+          // Absolute bounds helpers
+          const fx = fromNode.absoluteTransform[0][2];
+          const fy = fromNode.absoluteTransform[1][2];
+          const tx = toNode.absoluteTransform[0][2];
+          const ty = toNode.absoluteTransform[1][2];
+
+          // Anchor points: right-middle -> left-middle
+          const startX = fx + fromNode.width;
+          const startY = fy + fromNode.height / 2;
+          const endX = tx;
+          const endY = ty + toNode.height / 2;
+
+
+          // Restore simple vertical connector routing
+          const index = options?.index ?? 0; // 0, 1, 2 for A/B/C
+          const midX = startX + 96 + index * 12;
+
+          // Build elbow path: start -> midX -> end
+          const pathData = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+
+          // Draw line (vector stroke)
+          const line = figma.createVector();
+          line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+          line.strokes = [{ type: "SOLID", color }];
+          line.strokeWeight = strokeWeight;
+          line.strokeAlign = "CENTER";
+          line.name = "Flow Line";
+          figma.currentPage.appendChild(line);
+
+          // Optional label pill near first segment
+          if (options?.label) {
+            const pill = createPill(options.label, { r: 1, g: 1, b: 1 }, color);
+            pill.strokes = [{ type: "SOLID", color }];
+            pill.strokeWeight = 1;
+            pill.x = midX + 6; // slightly right of the vertical segment
+            pill.y = startY - pill.height / 2;
+            figma.currentPage.appendChild(pill);
+          }
+
+          // Optional arrowhead at end (pointing right)
+          const arrow = figma.createVector();
+          const size = 10;
+          arrow.vectorPaths = [
+            {
+              windingRule: "NONZERO",
+              data: `M ${endX} ${endY} L ${endX - size} ${endY - size / 2} L ${endX - size} ${endY + size / 2} Z`,
+            },
+          ];
+          arrow.fills = [{ type: "SOLID", color }];
+          arrow.strokes = [];
+          arrow.name = "Arrowhead";
+          figma.currentPage.appendChild(arrow);
+
+          return line;
         }
 
 
