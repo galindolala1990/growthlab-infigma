@@ -1,5 +1,11 @@
-/* design-tokens.css */
+@import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
+
+/* ui.css */
+/*
+  Consolidated :root block for all CSS variables and base font size.
+*/
 :root {
+  --font-size-body: 12px;
   --section-bg: var(--background-muted);
   --section-border: var(--border);
   --section-radius: var(--radius-xl);
@@ -82,6 +88,14 @@
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
 }
+
+html, body {
+  font-size: var(--font-size-body, 14px);
+}
+
+input, button, select, textarea {
+  font: inherit;
+}
 .Stack {
   display: flex;
   flex-direction: column;
@@ -106,8 +120,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-/* ui.css */
 .variant-card.running {
   border-color: var(--border-success);
   background: var(--accent-success-bg);
@@ -128,29 +140,29 @@
   opacity: 0.7;
 }
 .typography-h1 {
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-h1, 2.25rem);
+  font-weight: var(--font-weight-bold, 700);
   color: var(--text);
   margin-bottom: var(--space-16);
   line-height: 1.15;
 }
 .typography-h2 {
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-h2, 1.5rem);
+  font-weight: var(--font-weight-semibold, 600);
   color: var(--text);
   margin-bottom: var(--space-12, 12px);
   line-height: 1.2;
 }
 .typography-h3 {
-  font-size: var(--font-size-h3);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-h3, 1.15rem);
+  font-weight: var(--font-weight-semibold, 600);
   color: var(--text-secondary);
   margin-bottom: var(--space-8);
   line-height: 1.2;
 }
 .typography-meta {
-  font-size: var(--font-size-meta);
-  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-meta, 1rem);
+  font-weight: var(--font-weight-normal, 400);
   color: var(--text-muted);
   margin-bottom: 0;
   letter-spacing: 0.01em;
@@ -181,7 +193,7 @@
 .Button {
   border-radius: 8px;
   padding: 9px 24px;
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-base, 12px);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -244,8 +256,6 @@ body {
   min-height: 100vh;
   min-width: 100vw;
 }
-@import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
-
 html {
   font-size: var(--font-size-base);
 }
