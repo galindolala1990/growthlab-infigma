@@ -93,10 +93,10 @@
   /* Typography */
   --font-family: "Figtree", system-ui, Arial, sans-serif;
   --font-size-base: 12px; /* 12px base for rem scaling */
-  --font-size-h1: calc(var(--font-size-base) * 2.25); /* 27px on 12px base */
-  --font-size-h2: calc(var(--font-size-base) * 1.5);  /* 18px on 12px base */
-  --font-size-h3: calc(var(--font-size-base) * 1.15); /* 13.8px on 12px base */
-  --font-size-meta: var(--font-size-base);            /* 12px on 12px base */
+  --font-size-h1: 2.25rem; /* 27px on 12px base */
+  --font-size-h2: 1.5rem;  /* 18px on 12px base */
+  --font-size-h3: 1.15rem; /* 13.8px on 12px base */
+  --font-size-meta: 1rem;  /* 12px on 12px base */
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
