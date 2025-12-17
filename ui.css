@@ -19,30 +19,31 @@
   opacity: 0.7;
 }
 .typography-h1 {
-  font-size: 1.5em;
-  font-weight: 600;
-  color: #1a2233;
-  margin-bottom: 18px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #18305a;
+  margin-bottom: var(--space-16);
   line-height: 1.15;
 }
 .typography-h2 {
-  font-size: 1.22em;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #1a2233;
-  margin-bottom: 12px;
+  color: #18305a;
+  margin-bottom: var(--space-12, 12px);
   line-height: 1.2;
 }
 .typography-h3 {
-  font-size: 1.12em;
+  font-size: 1.18rem;
   font-weight: 600;
-  color: #2a3140;
-  margin-bottom: 8px;
+  color: #1a2330;
+  margin-bottom: var(--space-8);
   line-height: 1.2;
 }
 .typography-meta {
-  font-size: 0.98em;
+  font-size: 1rem;
   font-weight: 400;
-  color: #7a869a;
+  color: #4a5a70;
+  margin-bottom: 0;
   letter-spacing: 0.01em;
 }
 .Card {
