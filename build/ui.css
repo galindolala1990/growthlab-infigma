@@ -82,7 +82,7 @@
 .variant-card.launched {
   border-color: var(--accent-success);
   background: var(--accent-success-bg);
-
+  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.none {
   border-color: var(--border);
