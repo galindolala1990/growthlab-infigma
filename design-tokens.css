@@ -6,6 +6,31 @@
 */
 
 :root {
+
+  /* === Background Palette === */
+  --background: #FFFFFF; /* Main canvas */
+  --background-subtle: #F9FAFB; /* Page bg, secondary panels */
+  --background-surface: #FFFFFF; /* Cards, modals, popovers */
+  --background-muted: #F3F4F6; /* Disabled, receding areas */
+
+  /* === Text Palette === */
+  --foreground: #0F172A; /* Primary text */
+  --text: var(--foreground); /* Alias for primary text */
+  --text-secondary: #374151; /* Secondary text, subtitles */
+  --text-muted: #6B7280; /* Muted/tertiary text, labels */
+  --text-subtle: #D1D5DB; /* Placeholder, disabled text */
+  --muted-foreground: var(--text-secondary); /* Alias for secondary/muted text */
+
+  /* === Border Palette === */
+  --border: #e6eaf2;
+  --border-strong: #b7c6e0;
+  --border-success: #b6e2c6;
+
+  /* === Accent Palette === */
+  --accent-success: #217a4d;
+  --accent-success-bg: #eaf7f0;
+  --accent-primary: #2a4d7a;
+  --accent-primary-dark: #18305a;
   /* Spacing scale (8px system) */
   --space-0: 0;
   --space-4: 4px;
@@ -23,21 +48,7 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  /* Color palette */
-  --color-bg: #f7fafd;
-  --color-bg-card: #fff;
-  --color-bg-emphasis: #f5f8fd;
-  --color-border: #e6eaf2;
-  --color-border-strong: #b7c6e0;
-  --color-border-success: #b6e2c6;
-  --color-success: #217a4d;
-  --color-success-bg: #eaf7f0;
-  --color-primary: #2a4d7a;
-  --color-primary-dark: #18305a;
-  --color-text: #1a2330;
-  --color-text-meta: #4a5a70;
-  --color-text-label: #6b7a90;
-  --color-text-muted: #b0b6c3;
+
 
   /* Typography */
   --font-family: "Figtree", system-ui, Arial, sans-serif;
@@ -64,8 +75,8 @@
   gap: var(--space-8);
 }
 .Card {
-  background: var(--color-bg-card);
-  border: 1.5px solid var(--color-border);
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
   padding: var(--space-24);

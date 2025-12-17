@@ -4,59 +4,59 @@
   Do not add ad-hoc colors, spacing, or radii. */
 @import url('./design-tokens.css');
 .variant-card.running {
-  border-color: #b6e2c6;
-  background: #f6fcf8;
+  border-color: var(--border-success);
+  background: var(--accent-success-bg);
 }
 .variant-card.winner {
-  border-color: #217a4d;
-  background: #eaf7f0;
+  border-color: var(--accent-success);
+  background: var(--accent-success-bg);
   box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.launched {
-  border-color: #217a4d;
-  background: #eaf7f0;
+  border-color: var(--accent-success);
+  background: var(--accent-success-bg);
   box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.none {
-  border-color: #e6eaf2;
-  background: #f7fafd;
+  border-color: var(--border);
+  background: var(--background-muted);
   opacity: 0.7;
 }
 .typography-h1 {
   font-size: var(--font-size-h1);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary-dark);
+  color: var(--text);
   margin-bottom: var(--space-16);
   line-height: 1.15;
 }
 .typography-h2 {
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-dark);
+  color: var(--text);
   margin-bottom: var(--space-12, 12px);
   line-height: 1.2;
 }
 .typography-h3 {
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
+  color: var(--text-secondary);
   margin-bottom: var(--space-8);
   line-height: 1.2;
 }
 .typography-meta {
   font-size: var(--font-size-meta);
   font-weight: var(--font-weight-normal);
-  color: var(--color-text-meta);
+  color: var(--text-muted);
   margin-bottom: 0;
   letter-spacing: 0.01em;
 }
 .Card {
-  background: #fff;
+  background: var(--background-surface);
   border-radius: 12px;
   box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
   padding: 24px;
   margin-bottom: 32px;
-  border: 1.5px solid #e6eaf2;
+  border: 1.5px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -87,23 +87,23 @@
   outline: none;
 }
 .Button.primary {
-  background: #217a4d;
+  background: var(--accent-success);
   color: #fff;
   box-shadow: 0 1px 2px 0 rgba(33, 122, 77, 0.08);
 }
 .Button.primary:focus {
-  box-shadow: 0 0 0 2px #b6e2c6;
+  box-shadow: 0 0 0 2px var(--border-success);
 }
 .Button.secondary {
-  background: #f3f4f7;
-  color: #2a3140;
+  background: var(--background-muted);
+  color: var(--text-secondary);
 }
 .Button.secondary:focus {
-  box-shadow: 0 0 0 2px #dbeafe;
+  box-shadow: 0 0 0 2px var(--border-strong);
 }
 .Button.cancel {
   background: none;
-  color: #b0b6c3;
+  color: var(--text-subtle);
 }
 .row {
   display: flex;
@@ -121,7 +121,7 @@
   --space-40: 40px;
 }
 body {
-  background: #f7fafd !important;
+  background: var(--background-subtle) !important;
   min-height: 100vh;
   min-width: 100vw;
 }
@@ -152,9 +152,8 @@ h6,
     sans-serif;
   font-optical-sizing: auto;
 }
-.app,
-#container {
-  background: #f7fafd;
+.app {
+  background: var(--background-subtle);
   min-height: 100vh;
   min-width: 100vw;
   max-width: 670px;
@@ -174,8 +173,8 @@ h6,
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  background: #fff;
-  border: 1.5px solid #e6eaf2;
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
   border-radius: 14px;
   padding: 20px 20px 14px 20px;
   box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
@@ -203,8 +202,8 @@ h6,
   background:
     linear-gradient(
       135deg,
-      #2a4d7a 60%,
-      #217a4d 100%);
+      var(--accent-primary) 60%,
+      var(--accent-success) 100%);
   color: #fff;
   font-weight: 600;
   font-size: 1.18em;
@@ -226,15 +225,15 @@ h6,
   min-width: 120px;
   flex: 1 1 120px;
   outline: none;
-  color: #1a2330;
+  color: var(--text-secondary);
 }
 .variant-traffic-input {
   width: 64px;
   font-size: 1.08rem;
   font-weight: 600;
-  color: #217a4d;
-  background: #eaf7f0;
-  border: 1.5px solid #b6e2c6;
+  color: var(--accent-success);
+  background: var(--accent-success-bg);
+  border: 1.5px solid var(--border-success);
   border-radius: var(--space-8);
   padding: var(--space-4) var(--space-8);
   margin-left: var(--space-8);
@@ -252,8 +251,8 @@ h6,
   font-size: 0.98rem;
   padding: var(--space-4) var(--space-8);
   border-radius: var(--space-8);
-  border: 1px solid #dbe3ef;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--background-surface);
 }
 .variant-status-pill {
   font-size: 1em;
@@ -261,9 +260,9 @@ h6,
   border-radius: 8px;
   margin-left: 8px;
   font-weight: 600;
-  background: #eaf7f0;
-  color: #217a4d;
-  border: 1.5px solid #b6e2c6;
+  background: var(--accent-success-bg);
+  color: var(--accent-success);
+  border: 1.5px solid var(--border-success);
   pointer-events: none;
   box-shadow: none;
   cursor: default;
@@ -283,7 +282,7 @@ h6,
   margin-left: 8px;
   margin-top: 8px;
   padding: 6px 0 0 0;
-  border-top: 1px solid #e6eaf2;
+  border-top: 1px solid var(--border);
   transition: opacity 0.15s;
 }
 .variant-metrics.hidden {
@@ -292,7 +291,7 @@ h6,
 .actions-footer {
   position: sticky;
   bottom: 0;
-  background: #fff;
+  background: var(--background-surface);
   box-shadow: 0 -2px var(--space-16) 0 rgba(40, 60, 90, 0.04);
   padding: var(--space-16) var(--space-24) var(--space-16) var(--space-24);
   margin-left: auto;
@@ -304,7 +303,7 @@ h6,
 .integration-input {
   font-size: 1rem;
   padding: var(--space-4) var(--space-8);
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: var(--space-8);
   width: 100%;
   box-sizing: border-box;
