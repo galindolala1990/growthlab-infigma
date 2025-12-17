@@ -3,66 +3,74 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
+html, :root {
+  font-size: var(--font-size-base);
+}
+/* --- Spacing scale: 4, 8, 12, 16, 24, 32px --- */
 .Stack {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: 16px;
 }
 .Row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: var(--space-8);
+  gap: 8px;
 }
 .Section {
-  margin-bottom: var(--space-32);
+  margin-bottom: 32px;
 }
 .Card {
-  background: var(--background-surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 12px;
   box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  padding: var(--space-24);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
+  gap: 24px;
 }
 .Card:last-child {
   margin-bottom: 0;
 }
+
 .typography-h1 {
   font-size: var(--font-size-h1);
   font-weight: var(--font-weight-bold);
-  color: var(--text);
+  color: var(--typography-h1-color);
   line-height: 1.15;
   margin: 0 0 var(--space-16) 0;
 }
 .typography-h2 {
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
-  color: var(--text);
+  color: var(--typography-h2-color);
   line-height: 1.2;
   margin: 0 0 var(--space-12) 0;
 }
 .typography-h3 {
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  color: var(--typography-h3-color);
   line-height: 1.2;
   margin: 0 0 var(--space-8) 0;
 }
 .typography-meta {
   font-size: var(--font-size-meta);
-  color: var(--text-muted);
+  color: var(--typography-meta-color);
   font-weight: var(--font-weight-normal);
   margin: 0;
 }
+
+
+/* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
 .Input {
-  font-size: var(--font-size-base);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--background-surface);
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dbe3ef;
+  background: #fff;
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
@@ -72,9 +80,9 @@
 }
 .Label {
   min-width: 120px;
-  color: var(--text-muted);
-  font-weight: var(--font-weight-semibold);
-  margin-right: var(--space-8);
+  color: #6b7a90;
+  font-weight: 600;
+  margin-right: 8px;
   text-align: left;
 }
 .ButtonGroup {
@@ -136,7 +144,7 @@
     margin-bottom: 10px;
   }
 html {
-  font-size: 12px; /* 1rem = 12px instead of 16px */
+  font-size: var(--font-size-base);
 }
 /* Force Figtree font everywhere */
 body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5, h6, .app {

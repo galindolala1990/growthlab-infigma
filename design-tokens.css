@@ -6,6 +6,39 @@
 */
 
 :root {
+  /* === UI HTML Section/Legacy Tokens (unified) === */
+  --section-bg: var(--background-muted); /* Card/section backgrounds */
+  --section-border: var(--border);
+  --section-radius: var(--radius-xl);
+  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
+  --emphasized-bg: #f5f8fd; /* Accent section bg */
+  --emphasized-border: var(--border-strong);
+  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
+  --meta-bg: #f9fbfd;
+  --meta-border: var(--border);
+  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
+  --input-bg: var(--background-surface);
+  --input-border: 1px solid #dbe3ef;
+  --input-radius: var(--radius-sm);
+  --input-height: 40px;
+  --label-color: #6b7a90;
+  --label-weight: 600;
+  --variant-card-bg: var(--background-muted);
+  --variant-card-border: var(--border);
+  --variant-card-radius: var(--radius-lg);
+  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  --variant-key-badge-bg: var(--accent-primary);
+  --variant-key-badge-color: var(--primary-foreground);
+  --variant-key-badge-radius: 50%;
+  --variant-key-badge-size: 28px;
+  --variant-traffic-bg: var(--accent-success-bg);
+  --variant-traffic-border: var(--border-success);
+  --variant-traffic-radius: var(--radius-sm);
+  --variant-traffic-color: var(--accent-success);
+  --typography-h1-color: var(--accent-primary-dark);
+  --typography-h2-color: var(--accent-primary-dark);
+  --typography-h3-color: var(--text-secondary);
+  --typography-meta-color: #4a5a70;
   /* === Primary Brand Palette === */
   --primary: #6F4CFF; /* Default brand color */
   --primary-foreground: #FFFFFF; /* Text on primary */
@@ -59,11 +92,11 @@
 
   /* Typography */
   --font-family: "Figtree", system-ui, Arial, sans-serif;
-  --font-size-base: 1rem; /* 12px */
-  --font-size-h1: 2.2rem;
-  --font-size-h2: 1.5rem;
-  --font-size-h3: 1.18rem;
-  --font-size-meta: 1rem;
+  --font-size-base: 12px; /* 12px base for rem scaling */
+  --font-size-h1: calc(var(--font-size-base) * 2.25); /* 27px on 12px base */
+  --font-size-h2: calc(var(--font-size-base) * 1.5);  /* 18px on 12px base */
+  --font-size-h3: calc(var(--font-size-base) * 1.15); /* 13.8px on 12px base */
+  --font-size-meta: var(--font-size-base);            /* 12px on 12px base */
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
