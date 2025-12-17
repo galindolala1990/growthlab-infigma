@@ -18,7 +18,7 @@ export interface FlowSetupProps {
 export function FlowSetup({ form, onChange }: FlowSetupProps) {
   return (
     <section className="Section Card Stack">
-      <span className="SectionLabel typography-h2">Experiment Setup</span>
+      <span className="typography-h2">Experiment Setup</span>
       <div className="Stack" style={{ gap: 8 }}>
         <div className="Row">
           <label className="Label typography-h3" htmlFor="experimentName">Name</label>

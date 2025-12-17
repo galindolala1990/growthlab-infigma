@@ -30,14 +30,36 @@
 .Card:last-child {
   margin-bottom: 0;
 }
-.SectionLabel {
-  font-size: 1.32em;
-  font-weight: 900;
+.typography-h1 {
+  font-size: 2.1em;
+  font-weight: 700;
   color: #18305a;
-  margin-bottom: 16px;
-  margin-top: 0;
-  line-height: 1.2;
+  line-height: 1.15;
+  margin: 0 0 18px 0;
 }
+.typography-h2 {
+  font-size: 1.32em;
+  font-weight: 600;
+  color: #18305a;
+  line-height: 1.2;
+  margin: 0 0 16px 0;
+}
+.typography-h3 {
+  font-size: 1.18em;
+  font-weight: 600;
+  color: #1a2330;
+  line-height: 1.2;
+  margin: 0 0 12px 0;
+}
+.typography-meta {
+  font-size: 1em;
+  color: #4a5a70;
+  font-weight: 400;
+  margin: 0;
+}
+
+
+/* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
 .Input {
   font-size: 1rem;
   padding: 8px 12px;
@@ -154,20 +176,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   align-items: center;
   justify-content: center;
 }
-.flow-title {
-  font-size: 1.18em;
-  font-weight: 700;
-  color: #1a2330;
-}
-.section-label {
-  font-size: 1.18em;
-  font-weight: 800;
-  color: #1a2330;
-  margin-bottom: 18px;
-  margin-top: 0;
-  letter-spacing: 0.01em;
-  text-transform: none;
-}
+/* Removed .flow-title and .section-label (use .typography-h2 or .typography-h3) */
 .variants-section.emphasized {
   background: #f5f8fd;
     border: 1.5px solid #b7c6e0;
@@ -188,12 +197,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   margin-top: 16px;
   transition: box-shadow 0.2s;
 }
-  .meta-summary {
-    font-size: 1.32em;
-    font-weight: 900;
-    color: #18305a;
-    margin-bottom: 22px;
-  }
+  /* Removed .meta-summary (use .typography-h2) */
 .meta-card[open] {
   padding-top: 0;
 }
@@ -254,7 +258,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   border-radius: 50%;
   background: #2a4d7a;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1rem;
   margin-right: 0;
   flex-shrink: 0;
@@ -327,7 +331,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   border-radius: 50%;
   background: #2a4d7a;
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1.1rem;
   margin-right: 4px;
   flex-shrink: 0;
@@ -378,14 +382,14 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 }
 </style>
 
-<div class="app" id="container">
+<div class="app" id="container" style="max-width:670px;margin:0 auto;">
   <header class="main-header Section Stack" style="gap:8px;">
-    <h2 class="SectionLabel" style="margin:0;">Growthlab Flow Builder</h2>
-    <div class="subtitle" style="font-size:1.05em; color:#4a5a70; font-weight:400; margin:0;">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
+    <h1 class="typography-h1">Growthlab Flow Builder</h1>
+    <div class="typography-meta">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
   </header>
   <form id="exp-form" autocomplete="off" class="Stack" style="gap:32px;">
     <section class="Card Stack Section" aria-labelledby="exp-setup-label">
-      <h3 id="exp-setup-label" class="SectionLabel" style="margin-bottom:0;">Experiment Setup</h3>
+      <h2 id="exp-setup-label" class="typography-h2" style="margin-bottom:0;">Experiment Setup</h2>
       <div class="Row">
         <label class="Label" for="experimentName">Name</label>
         <input class="Input" type="text" id="experimentName" required placeholder="e.g. Button Color Test">
@@ -404,7 +408,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
       </div>
     </section>
     <details class="Card Section Stack" aria-labelledby="exp-details-label">
-      <summary class="meta-summary SectionLabel" id="exp-details-label">Experiment details</summary>
+      <summary class="typography-h2" id="exp-details-label">Experiment details</summary>
       <div class="Row">
         <label class="Label" for="experimentDescription">Description</label>
         <input class="Input" type="text" id="experimentDescription" placeholder="Short description (optional)">
@@ -423,7 +427,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
       </div>
     </details>
     <section class="Card Section Stack" aria-labelledby="variants-label">
-      <h3 id="variants-label" class="SectionLabel" style="margin-bottom:0;">Variants</h3>
+      <h2 id="variants-label" class="typography-h2" style="margin-bottom:0;">Variants</h2>
       <div class="variant-cards-list Stack" id="variantsCardsList" style="gap:24px;">
         <!-- Cards inserted by JS -->
       </div>

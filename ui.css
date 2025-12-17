@@ -1,3 +1,4 @@
+/* ui.css */
 .variant-card.running {
   border-color: #b6e2c6;
   background: #f6fcf8;
@@ -5,35 +6,34 @@
 .variant-card.winner {
   border-color: #217a4d;
   background: #eaf7f0;
-  box-shadow: 0 2px 12px 0 rgba(33,122,77,0.10);
+  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.launched {
   border-color: #217a4d;
   background: #eaf7f0;
-  box-shadow: 0 2px 12px 0 rgba(33,122,77,0.10);
+  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.none {
   border-color: #e6eaf2;
   background: #f7fafd;
   opacity: 0.7;
 }
-/* --- Typography system: 4 levels --- */
 .typography-h1 {
   font-size: 1.5em;
-  font-weight: 800;
+  font-weight: 600;
   color: #1a2233;
   margin-bottom: 18px;
   line-height: 1.15;
 }
 .typography-h2 {
   font-size: 1.22em;
-  font-weight: 700;
+  font-weight: 600;
   color: #1a2233;
   margin-bottom: 12px;
   line-height: 1.2;
 }
 .typography-h3 {
-  font-size: 1.08em;
+  font-size: 1.12em;
   font-weight: 600;
   color: #2a3140;
   margin-bottom: 8px;
@@ -45,43 +45,29 @@
   color: #7a869a;
   letter-spacing: 0.01em;
 }
-
-/* Section heading: Level 2 */
-.SectionLabel {
-  font-size: 1.32em;
-  font-weight: 900;
-  color: #18305a;
-  margin-bottom: 16px;
-  margin-top: 0;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-}
-
-/* Card container: strong separation, soft shadow, clear padding */
 .Card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
   padding: 24px;
   margin-bottom: 32px;
   border: 1.5px solid #e6eaf2;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .Card:last-child {
   margin-bottom: 0;
 }
-
-/* ButtonGroup: action emphasis, spacing */
 .ButtonGroup {
   display: flex;
   flex-direction: row;
   gap: 12px;
   margin-top: 16px;
 }
-
-/* Button: primary/secondary/cancel hierarchy */
 .Button {
   border-radius: 8px;
   padding: 9px 24px;
@@ -89,13 +75,16 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+  transition:
+    background 0.13s,
+    color 0.13s,
+    box-shadow 0.13s;
   outline: none;
 }
 .Button.primary {
   background: #217a4d;
   color: #fff;
-  box-shadow: 0 1px 2px 0 rgba(33,122,77,0.08);
+  box-shadow: 0 1px 2px 0 rgba(33, 122, 77, 0.08);
 }
 .Button.primary:focus {
   box-shadow: 0 0 0 2px #b6e2c6;
@@ -111,14 +100,12 @@
   background: none;
   color: #b0b6c3;
 }
-/* Standard row spacing for form fields */
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-8);
   margin-bottom: var(--space-16);
 }
-/* ui.css */
 :root {
   --space-0: 0;
   --space-4: 4px;
@@ -165,12 +152,18 @@ h6,
   background: #f7fafd;
   min-height: 100vh;
   min-width: 100vw;
+  max-width: 670px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .variant-cards-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
   margin-top: var(--space-8);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .variant-card {
   display: flex;
@@ -180,9 +173,13 @@ h6,
   border: 1.5px solid #e6eaf2;
   border-radius: 14px;
   padding: 20px 20px 14px 20px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
   position: relative;
-  font-family: "Figtree", system-ui, Arial, sans-serif;
+  font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
   transition: box-shadow 0.15s, border 0.15s;
 }
 .variant-card-header {
@@ -198,13 +195,17 @@ h6,
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2a4d7a 60%, #217a4d 100%);
+  background:
+    linear-gradient(
+      135deg,
+      #2a4d7a 60%,
+      #217a4d 100%);
   color: #fff;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 1.18em;
   margin-right: var(--space-8);
   flex-shrink: 0;
-  box-shadow: 0 1px 4px 0 rgba(40,60,90,0.10);
+  box-shadow: 0 1px 4px 0 rgba(40, 60, 90, 0.10);
 }
 .variant-title-group {
   display: flex;
@@ -254,7 +255,7 @@ h6,
   padding: 4px 16px;
   border-radius: 8px;
   margin-left: 8px;
-  font-weight: 700;
+  font-weight: 600;
   background: #eaf7f0;
   color: #217a4d;
   border: 1.5px solid #b6e2c6;
@@ -289,8 +290,10 @@ h6,
   background: #fff;
   box-shadow: 0 -2px var(--space-16) 0 rgba(40, 60, 90, 0.04);
   padding: var(--space-16) var(--space-24) var(--space-16) var(--space-24);
-  margin-left: calc(-1 * var(--space-24));
-  margin-right: calc(-1 * var(--space-24));
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 670px;
+  width: 100%;
   z-index: 10;
 }
 .integration-input {

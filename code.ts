@@ -63,7 +63,7 @@ if (figma.editorType === 'figma') {
   }
 
   figma.showUI(__html__, {
-    width: 450,
+    width: 670,
     height: 720,
     title: 'Growthlab Flow Builder',
     themeColors: true,

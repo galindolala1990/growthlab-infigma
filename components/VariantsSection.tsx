@@ -9,7 +9,7 @@ export interface VariantsSectionProps {
 export function VariantsSection({ variants, onChange }: VariantsSectionProps) {
   return (
     <section className="Section Card Stack">
-      <span className="SectionLabel typography-h2">Variants</span>
+      <span className="typography-h2">Variants</span>
       <div className="variant-cards-list Stack" id="variantsCardsList" style={{ gap: 24 }}>
         {variants.map((v, i) => (
           <VariantCard key={v.key} variant={v} idx={i} onChange={onChange} />
