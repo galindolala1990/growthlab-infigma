@@ -1,5 +1,4 @@
 <link rel="stylesheet" href="ui.css">
-<link rel="stylesheet" href="build/design-tokens.css">
 <style>
   html, body {
   font-size: var(--font-size-base, 12px);
@@ -19,14 +18,14 @@
   margin-bottom: 32px;
 }
 .Card {
-  background: #fff;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  padding: 24px;
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--section-shadow);
+  padding: var(--space-24);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-24);
 }
 .Card:last-child {
   margin-bottom: 0;
@@ -61,22 +60,22 @@
 /* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
 .Input {
   font-size: var(--font-size-base);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #dbe3ef;
-  background: #fff;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--input-radius);
+  border: var(--input-border);
+  background: var(--input-bg);
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-  height: 40px;
+  height: var(--input-height);
   display: flex;
   align-items: center;
 }
 .Label {
   min-width: 120px;
-  color: #6b7a90;
-  font-weight: 600;
-  margin-right: 8px;
+  color: var(--label-color);
+  font-weight: var(--label-weight);
+  margin-right: var(--space-8);
   text-align: left;
 }
 .ButtonGroup {
