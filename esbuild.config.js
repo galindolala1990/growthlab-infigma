@@ -4,7 +4,7 @@ const esbuild = require('esbuild');
 esbuild.build({
   entryPoints: ['code.ts'],
   bundle: true,
-  outfile: 'code.js',
+  outfile: 'build/code.js',
   platform: 'node',
   target: ['es6'],
   format: 'cjs',
@@ -17,7 +17,7 @@ esbuild.build({
 esbuild.build({
   entryPoints: ['ui.tsx'],
   bundle: true,
-  outfile: 'ui.js',
+  outfile: 'build/ui.js',
   platform: 'browser',
   target: ['es6'],
   format: 'iife',

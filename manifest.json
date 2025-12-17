@@ -2,7 +2,7 @@
   "name": "Growthlab Flow Builder",
   "id": "1579196395853602242",
   "api": "1.0.0",
-  "main": "code.js",
+  "main": "build/code.js",
   "capabilities": [],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
@@ -12,7 +12,7 @@
     "slides",
     "buzz"
   ],
-  "ui": "ui.html",
+  "ui": "build/ui.html",
   "networkAccess": {
     "allowedDomains": [
       "https://fonts.googleapis.com",

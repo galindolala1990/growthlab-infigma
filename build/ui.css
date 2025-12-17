@@ -1,7 +1,9 @@
 @import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
 
 /* ui.css */
+/* Design Tokens */
 :root {
+  --font-size-base: 12px;
   --font-size-body: 12px;
   --section-bg: var(--background-muted);
   --section-border: var(--border);
@@ -71,67 +73,16 @@
   --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 18px;
-  --font-family:
-    "Figtree",
-    system-ui,
-    Arial,
-    sans-serif;
-  --font-size-base: 12px;
-  --font-size-h1: 2.25rem;
-  --font-size-h2: 1.5rem;
-  --font-size-h3: 1.15rem;
-  --font-size-meta: 1rem;
+  --font-family: "Figtree", system-ui, Arial, sans-serif;
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
 }
-html,
-body {
-  font-size: var(--font-size-body, 14px);
-}
-input,
-button,
-select,
-textarea {
-  font: inherit;
-}
-.Stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-}
-.Row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: var(--space-8);
-}
-.Card {
-  background: var(--background-surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
-  padding: var(--space-24);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-  max-width: 670px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.variant-card.running {
-  border-color: var(--border-success);
-  background: var(--accent-success-bg);
-}
-.variant-card.winner {
-  border-color: var(--accent-success);
-  background: var(--accent-success-bg);
-  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
 }
 .variant-card.launched {
   border-color: var(--accent-success);
   background: var(--accent-success-bg);
-  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
+
 }
 .variant-card.none {
   border-color: var(--border);
@@ -241,22 +192,14 @@ textarea {
   gap: var(--space-8);
   margin-bottom: var(--space-16);
 }
-:root {
-  --space-0: 0;
-  --space-4: 4px;
-  --space-8: 8px;
-  --space-16: 16px;
-  --space-24: 24px;
-  --space-32: 32px;
-  --space-40: 40px;
-}
+
 body {
   background: var(--background-subtle) !important;
   min-height: 100vh;
   min-width: 100vw;
 }
 html {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-base, 12px);
 }
 body,
 input,
