@@ -7,9 +7,9 @@ export interface ActionsFooterProps {
 export function ActionsFooter({ onCancel }: ActionsFooterProps) {
   return (
     <footer className="actions-footer">
-      <div className="actions">
-        <button type="submit">Create flow</button>
-        <button className="secondary" type="button" id="cancel" onClick={onCancel}>Cancel</button>
+      <div className="ButtonGroup">
+        <button className="Button primary" type="submit">Create flow</button>
+        <button className="Button secondary" type="button" id="cancel" onClick={onCancel}>Cancel</button>
       </div>
     </footer>
   );

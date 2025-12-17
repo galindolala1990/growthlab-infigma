@@ -74,10 +74,26 @@ function App(): React.ReactElement {
 
   return (
     <div className="app" id="container">
-      <h2>Growthlab Flow Builder</h2>
-      <form id="exp-form" autoComplete="off" onSubmit={handleSubmit}>
-        <FlowSetup form={form} onChange={handleFormChange} />
-        <VariantsSection variants={variants} onChange={handleVariantChange} />
+      <h2 className="typography-h1">Growthlab Flow Builder</h2>
+      <form
+        id="exp-form"
+        autoComplete="off"
+        onSubmit={handleSubmit}
+        style={{
+          background: '#f7fafd',
+          borderRadius: 16,
+          margin: '0 auto',
+          maxWidth: 600,
+          padding: '24px 0',
+          boxShadow: '0 2px 16px 0 rgba(40,60,90,0.04)',
+        }}
+      >
+        <div style={{ marginBottom: 32 }}>
+          <FlowSetup form={form} onChange={handleFormChange} />
+        </div>
+        <div style={{ marginBottom: 32 }}>
+          <VariantsSection variants={variants} onChange={handleVariantChange} />
+        </div>
         <ActionsFooter onCancel={handleCancel} />
       </form>
     </div>

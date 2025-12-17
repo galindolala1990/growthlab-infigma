@@ -10,7 +10,7 @@ export interface RowProps {
 export function Row({ label, id, children }: RowProps) {
   return (
     <div className="Row">
-      <label className="Label" htmlFor={id}>{label}</label>
+      <label className="Label typography-h3" htmlFor={id}>{label}</label>
       {children}
     </div>
   );
