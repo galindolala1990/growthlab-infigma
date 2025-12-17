@@ -1,9 +1,6 @@
 @import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
 
 /* ui.css */
-/*
-  Consolidated :root block for all CSS variables and base font size.
-*/
 :root {
   --font-size-body: 12px;
   --section-bg: var(--background-muted);
@@ -88,12 +85,14 @@
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
 }
-
-html, body {
+html,
+body {
   font-size: var(--font-size-body, 14px);
 }
-
-input, button, select, textarea {
+input,
+button,
+select,
+textarea {
   font: inherit;
 }
 .Stack {
