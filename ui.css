@@ -1,8 +1,113 @@
-/* ui.css
-  Main UI styles for Growthlab Figma Plugin
-  Only use variables and utilities from design-tokens.css
-  Do not add ad-hoc colors, spacing, or radii. */
-@import url('./design-tokens.css');
+/* design-tokens.css */
+:root {
+  --section-bg: var(--background-muted);
+  --section-border: var(--border);
+  --section-radius: var(--radius-xl);
+  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
+  --emphasized-bg: #f5f8fd;
+  --emphasized-border: var(--border-strong);
+  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
+  --meta-bg: #f9fbfd;
+  --meta-border: var(--border);
+  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
+  --input-bg: var(--background-surface);
+  --input-border: 1px solid #dbe3ef;
+  --input-radius: var(--radius-sm);
+  --input-height: 40px;
+  --label-color: #6b7a90;
+  --label-weight: 600;
+  --variant-card-bg: var(--background-muted);
+  --variant-card-border: var(--border);
+  --variant-card-radius: var(--radius-lg);
+  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  --variant-key-badge-bg: var(--accent-primary);
+  --variant-key-badge-color: var(--primary-foreground);
+  --variant-key-badge-radius: 50%;
+  --variant-key-badge-size: 28px;
+  --variant-traffic-bg: var(--accent-success-bg);
+  --variant-traffic-border: var(--border-success);
+  --variant-traffic-radius: var(--radius-sm);
+  --variant-traffic-color: var(--accent-success);
+  --typography-h1-color: var(--accent-primary-dark);
+  --typography-h2-color: var(--accent-primary-dark);
+  --typography-h3-color: var(--text-secondary);
+  --typography-meta-color: #4a5a70;
+  --primary: #6F4CFF;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #5F3DE6;
+  --primary-active: #4C2FCC;
+  --primary-soft: #F0EBFF;
+  --primary-soft-foreground: #5F3DE6;
+  --background: #FFFFFF;
+  --background-subtle: #F9FAFB;
+  --background-surface: #FFFFFF;
+  --background-muted: #F3F4F6;
+  --foreground: #0F172A;
+  --text: var(--foreground);
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --text-subtle: #D1D5DB;
+  --muted-foreground: var(--text-secondary);
+  --border: #e6eaf2;
+  --border-strong: #b7c6e0;
+  --border-success: #b6e2c6;
+  --accent-success: #217a4d;
+  --accent-success-bg: #eaf7f0;
+  --accent-primary: #2a4d7a;
+  --accent-primary-dark: #18305a;
+  --space-0: 0;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  --font-size-base: 12px;
+  --font-size-h1: 2.25rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h3: 1.15rem;
+  --font-size-meta: 1rem;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-normal: 400;
+}
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+.Card {
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ui.css */
 .variant-card.running {
   border-color: var(--border-success);
   background: var(--accent-success-bg);
@@ -76,7 +181,7 @@
 .Button {
   border-radius: 8px;
   padding: 9px 24px;
-  font-size: 1.06em;
+  font-size: var(--font-size-base);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -104,7 +209,7 @@
   box-shadow: 0 0 0 2px var(--primary-soft-foreground);
 }
 .Button.primary:disabled,
-.Button.primary[aria-disabled="true"] {
+.Button.primary[aria-disabled=true] {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -140,8 +245,9 @@ body {
   min-width: 100vw;
 }
 @import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
+
 html {
-  font-size: 12px;
+  font-size: var(--font-size-base);
 }
 body,
 input,
@@ -220,7 +326,7 @@ h6,
       var(--accent-success) 100%);
   color: #fff;
   font-weight: 600;
-  font-size: 1.18em;
+  font-size: var(--font-size-h3);
   margin-right: var(--space-8);
   flex-shrink: 0;
   box-shadow: 0 1px 4px 0 rgba(40, 60, 90, 0.10);
@@ -231,7 +337,7 @@ h6,
   gap: var(--space-8);
 }
 .variant-name-input {
-  font-size: 1.08rem;
+  font-size: var(--font-size-h3);
   font-weight: 600;
   border: none;
   background: transparent;
@@ -243,7 +349,7 @@ h6,
 }
 .variant-traffic-input {
   width: 64px;
-  font-size: 1.08rem;
+  font-size: var(--font-size-h3);
   font-weight: 600;
   color: var(--accent-success);
   background: var(--accent-success-bg);
@@ -262,14 +368,14 @@ h6,
 }
 .variant-status-select {
   min-width: 96px;
-  font-size: 0.98rem;
+  font-size: var(--font-size-meta);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--space-8);
   border: 1px solid var(--border);
   background: var(--background-surface);
 }
 .variant-status-pill {
-  font-size: 1em;
+  font-size: var(--font-size-base);
   padding: 4px 16px;
   border-radius: 8px;
   margin-left: 8px;
@@ -315,7 +421,7 @@ h6,
   z-index: 10;
 }
 .integration-input {
-  font-size: 1rem;
+  font-size: var(--font-size-meta);
   padding: var(--space-4) var(--space-8);
   border: 1px solid var(--border);
   border-radius: var(--space-8);

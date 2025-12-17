@@ -1,9 +1,137 @@
+
+<link rel="stylesheet" href="design-tokens.css">
 <link rel="stylesheet" href="ui.css">
+<style>
+html {
+  font-size: var(--font-size-base);
+}
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.Section {
+  margin-bottom: 32px;
+}
+.Card {
+  background: #fff;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.Card:last-child {
+  margin-bottom: 0;
+}
+.typography-h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  color: var(--typography-h1-color);
+  line-height: 1.15;
+  margin: 0 0 var(--space-16) 0;
+}
+.typography-h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--typography-h2-color);
+  line-height: 1.2;
+  margin: 0 0 var(--space-12) 0;
+}
+.typography-h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--typography-h3-color);
+  line-height: 1.2;
+  margin: 0 0 var(--space-8) 0;
+}
+.typography-meta {
+  font-size: var(--font-size-meta);
+  color: var(--typography-meta-color);
+  font-weight: var(--font-weight-normal);
+  margin: 0;
+}
+/* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
+.Input {
+  font-size: var(--font-size-base);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+.Label {
+  min-width: 120px;
+  color: #6b7a90;
+  font-weight: 600;
+  margin-right: 8px;
+  text-align: left;
+}
+.ButtonGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-top: 16px;
+}
+.traffic-input-group {
+  display: inline-flex;
+  align-items: center;
+  background: #eaf7f0;
+  border: 1.5px solid #b6e2c6;
+  border-radius: 8px;
+  padding: 0 4px 0 0;
+  margin-left: 8px;
+  height: 32px;
+}
+.variant-traffic-input {
+  width: 54px;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: #217a4d;
+  outline: none;
+  text-align: right;
+  padding: 2px 0 2px 8px;
+}
+.traffic-percent {
+  font-size: var(--font-size-base);
+  color: #217a4d;
+  font-weight: 600;
+  margin-left: 2px;
+  margin-right: 6px;
+}
+.variant-card {
+  background: #fff;
+  border: 1.5px solid #e6eaf2;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  padding: 24px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: box-shadow 0.18s, border 0.18s;
+}
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <style>
-html, :root {
+html {
   font-size: var(--font-size-base);
 }
 /* --- Spacing scale: 4, 8, 12, 16, 24, 32px --- */
@@ -66,7 +194,7 @@ html, :root {
 
 /* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
 .Input {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #dbe3ef;
@@ -105,7 +233,7 @@ html, :root {
   width: 54px;
   border: none;
   background: transparent;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: #217a4d;
   outline: none;
@@ -113,7 +241,7 @@ html, :root {
   padding: 2px 0 2px 8px;
 }
 .traffic-percent {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: #217a4d;
   font-weight: 600;
   margin-left: 2px;
@@ -274,7 +402,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   gap: 10px;
 }
 .variant-name-input {
-  font-size: 1.08rem;
+  font-size: calc(var(--font-size-base) * 1.08);
   font-weight: 600;
   border: none;
   background: transparent;
@@ -286,7 +414,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 }
 .variant-traffic-input {
   width: 54px;
-  font-size: 1.08rem;
+  font-size: calc(var(--font-size-base) * 1.08);
   font-weight: 600;
   color: #217a4d;
   background: #eaf7f0;
@@ -305,7 +433,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
 }
 .variant-status-select {
   min-width: 90px;
-  font-size: 0.98rem;
+  font-size: calc(var(--font-size-base) * 0.98);
   padding: 2px 8px;
   border-radius: 6px;
   border: 1px solid #dbe3ef;
@@ -337,7 +465,7 @@ body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5,
   background: #2a4d7a;
   color: #fff;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: calc(var(--font-size-base) * 1.1);
   margin-right: 4px;
   flex-shrink: 0;
 }
