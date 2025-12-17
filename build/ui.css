@@ -1,0 +1,440 @@
+@import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
+
+/* ui.css */
+:root {
+  --font-size-body: 12px;
+  --section-bg: var(--background-muted);
+  --section-border: var(--border);
+  --section-radius: var(--radius-xl);
+  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
+  --emphasized-bg: #f5f8fd;
+  --emphasized-border: var(--border-strong);
+  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
+  --meta-bg: #f9fbfd;
+  --meta-border: var(--border);
+  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
+  --input-bg: var(--background-surface);
+  --input-border: 1px solid #dbe3ef;
+  --input-radius: var(--radius-sm);
+  --input-height: 40px;
+  --label-color: #6b7a90;
+  --label-weight: 600;
+  --variant-card-bg: var(--background-muted);
+  --variant-card-border: var(--border);
+  --variant-card-radius: var(--radius-lg);
+  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  --variant-key-badge-bg: var(--accent-primary);
+  --variant-key-badge-color: var(--primary-foreground);
+  --variant-key-badge-radius: 50%;
+  --variant-key-badge-size: 28px;
+  --variant-traffic-bg: var(--accent-success-bg);
+  --variant-traffic-border: var(--border-success);
+  --variant-traffic-radius: var(--radius-sm);
+  --variant-traffic-color: var(--accent-success);
+  --typography-h1-color: var(--accent-primary-dark);
+  --typography-h2-color: var(--accent-primary-dark);
+  --typography-h3-color: var(--text-secondary);
+  --typography-meta-color: #4a5a70;
+  --primary: #6F4CFF;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #5F3DE6;
+  --primary-active: #4C2FCC;
+  --primary-soft: #F0EBFF;
+  --primary-soft-foreground: #5F3DE6;
+  --background: #FFFFFF;
+  --background-subtle: #F9FAFB;
+  --background-surface: #FFFFFF;
+  --background-muted: #F3F4F6;
+  --foreground: #0F172A;
+  --text: var(--foreground);
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --text-subtle: #D1D5DB;
+  --muted-foreground: var(--text-secondary);
+  --border: #e6eaf2;
+  --border-strong: #b7c6e0;
+  --border-success: #b6e2c6;
+  --accent-success: #217a4d;
+  --accent-success-bg: #eaf7f0;
+  --accent-primary: #2a4d7a;
+  --accent-primary-dark: #18305a;
+  --space-0: 0;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  --font-size-base: 12px;
+  --font-size-h1: 2.25rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h3: 1.15rem;
+  --font-size-meta: 1rem;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-normal: 400;
+}
+html,
+body {
+  font-size: var(--font-size-body, 14px);
+}
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+.Card {
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.variant-card.running {
+  border-color: var(--border-success);
+  background: var(--accent-success-bg);
+}
+.variant-card.winner {
+  border-color: var(--accent-success);
+  background: var(--accent-success-bg);
+  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
+}
+.variant-card.launched {
+  border-color: var(--accent-success);
+  background: var(--accent-success-bg);
+  box-shadow: 0 2px 12px 0 rgba(33, 122, 77, 0.10);
+}
+.variant-card.none {
+  border-color: var(--border);
+  background: var(--background-muted);
+  opacity: 0.7;
+}
+.typography-h1 {
+  font-size: var(--font-size-h1, 2.25rem);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--text);
+  margin-bottom: var(--space-16);
+  line-height: 1.15;
+}
+.typography-h2 {
+  font-size: var(--font-size-h2, 1.5rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text);
+  margin-bottom: var(--space-12, 12px);
+  line-height: 1.2;
+}
+.typography-h3 {
+  font-size: var(--font-size-h3, 1.15rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+  line-height: 1.2;
+}
+.typography-meta {
+  font-size: var(--font-size-meta, 1rem);
+  font-weight: var(--font-weight-normal, 400);
+  color: var(--text-muted);
+  margin-bottom: 0;
+  letter-spacing: 0.01em;
+}
+.Card {
+  background: var(--background-surface);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
+  padding: 24px;
+  margin-bottom: 32px;
+  border: 1.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.Card:last-child {
+  margin-bottom: 0;
+}
+.ButtonGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin-top: 16px;
+}
+.Button {
+  border-radius: 8px;
+  padding: 9px 24px;
+  font-size: var(--font-size-base, 12px);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.13s,
+    color 0.13s,
+    box-shadow 0.13s;
+  outline: none;
+}
+.Button.primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px 0 rgba(111, 76, 255, 0.08);
+}
+.Button.primary:hover {
+  background: var(--primary-hover);
+  color: var(--primary-foreground);
+  cursor: pointer;
+}
+.Button.primary:active {
+  background: var(--primary-active);
+  color: var(--primary-foreground);
+}
+.Button.primary:focus {
+  box-shadow: 0 0 0 2px var(--primary-soft-foreground);
+}
+.Button.primary:disabled,
+.Button.primary[aria-disabled=true] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.Button.secondary {
+  background: var(--background-muted);
+  color: var(--text-secondary);
+}
+.Button.secondary:focus {
+  box-shadow: 0 0 0 2px var(--border-strong);
+}
+.Button.cancel {
+  background: none;
+  color: var(--text-subtle);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+:root {
+  --space-0: 0;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+}
+body {
+  background: var(--background-subtle) !important;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+html {
+  font-size: var(--font-size-base);
+}
+body,
+input,
+button,
+select,
+textarea,
+table,
+th,
+td,
+label,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.app {
+  font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  font-optical-sizing: auto;
+}
+.app {
+  background: var(--background-subtle);
+  min-height: 100vh;
+  min-width: 100vw;
+  max-width: 670px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.variant-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-top: var(--space-8);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.variant-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 20px 14px 20px;
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
+  position: relative;
+  font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  transition: box-shadow 0.15s, border 0.15s;
+}
+.variant-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-0);
+}
+.variant-key-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background:
+    linear-gradient(
+      135deg,
+      var(--accent-primary) 60%,
+      var(--accent-success) 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: var(--font-size-h3);
+  margin-right: var(--space-8);
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px 0 rgba(40, 60, 90, 0.10);
+}
+.variant-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+.variant-name-input {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  padding: var(--space-0) var(--space-0) var(--space-4) var(--space-0);
+  min-width: 120px;
+  flex: 1 1 120px;
+  outline: none;
+  color: var(--text-secondary);
+}
+.variant-traffic-input {
+  width: 64px;
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--accent-success);
+  background: var(--accent-success-bg);
+  border: 1.5px solid var(--border-success);
+  border-radius: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  margin-left: var(--space-8);
+  margin-right: var(--space-0);
+  text-align: right;
+}
+.variant-status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: var(--space-0);
+}
+.variant-status-select {
+  min-width: 96px;
+  font-size: var(--font-size-meta);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--space-8);
+  border: 1px solid var(--border);
+  background: var(--background-surface);
+}
+.variant-status-pill {
+  font-size: var(--font-size-base);
+  padding: 4px 16px;
+  border-radius: 8px;
+  margin-left: 8px;
+  font-weight: 600;
+  background: var(--accent-success-bg);
+  color: var(--accent-success);
+  border: 1.5px solid var(--border-success);
+  pointer-events: none;
+  box-shadow: none;
+  cursor: default;
+  user-select: text;
+  opacity: 1;
+}
+.variant-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: center;
+  flex: 1;
+}
+.variant-metrics {
+  display: flex;
+  gap: 14px;
+  margin-left: 8px;
+  margin-top: 8px;
+  padding: 6px 0 0 0;
+  border-top: 1px solid var(--border);
+  transition: opacity 0.15s;
+}
+.variant-metrics.hidden {
+  display: none !important;
+}
+.actions-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--background-surface);
+  box-shadow: 0 -2px var(--space-16) 0 rgba(40, 60, 90, 0.04);
+  padding: var(--space-16) var(--space-24) var(--space-16) var(--space-24);
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 670px;
+  width: 100%;
+  z-index: 10;
+}
+.integration-input {
+  font-size: var(--font-size-meta);
+  padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: var(--space-8);
+  width: 100%;
+  box-sizing: border-box;
+}
+/*# sourceMappingURL=ui.css.map */

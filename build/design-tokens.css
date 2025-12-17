@@ -1,10 +1,17 @@
-/* design-tokens.css */
+/*
+  design-tokens.css
+  -----------------
+  Centralized design tokens for Growthlab Figma Plugin UI
+  Use only these variables and utility classes for all styling.
+*/
+
 :root {
-  --section-bg: var(--background-muted);
+  /* === UI HTML Section/Legacy Tokens (unified) === */
+  --section-bg: var(--background-muted); /* Card/section backgrounds */
   --section-border: var(--border);
   --section-radius: var(--radius-xl);
   --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-  --emphasized-bg: #f5f8fd;
+  --emphasized-bg: #f5f8fd; /* Accent section bg */
   --emphasized-border: var(--border-strong);
   --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
   --meta-bg: #f9fbfd;
@@ -33,28 +40,32 @@
   --typography-h3-color: var(--text-secondary);
   --typography-meta-color: #4a5a70;
   /* === Primary Brand Palette === */
-  --primary: #6F4CFF;
-  --primary-foreground: #FFFFFF;
-  --primary-hover: #5F3DE6;
-  --primary-active: #4C2FCC;
-  --primary-soft: #F0EBFF;
-  --primary-soft-foreground: #5F3DE6;
+  --primary: #6F4CFF; /* Default brand color */
+  --primary-foreground: #FFFFFF; /* Text on primary */
+  --primary-hover: #5F3DE6; /* Hover state */
+  --primary-active: #4C2FCC; /* Active/pressed */
+  --primary-soft: #F0EBFF; /* Soft backgrounds */
+  --primary-soft-foreground: #5F3DE6; /* Text on soft bg */
+
   /* === Background Palette === */
-  --background: #FFFFFF;
-  --background-subtle: #F9FAFB;
-  --background-surface: #FFFFFF;
-  --background-muted: #F3F4F6;
+  --background: #FFFFFF; /* Main canvas */
+  --background-subtle: #F9FAFB; /* Page bg, secondary panels */
+  --background-surface: #FFFFFF; /* Cards, modals, popovers */
+  --background-muted: #F3F4F6; /* Disabled, receding areas */
+
   /* === Text Palette === */
-  --foreground: #0F172A;
-  --text: var(--foreground);
-  --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --text-subtle: #D1D5DB;
-  --muted-foreground: var(--text-secondary);
+  --foreground: #0F172A; /* Primary text */
+  --text: var(--foreground); /* Alias for primary text */
+  --text-secondary: #374151; /* Secondary text, subtitles */
+  --text-muted: #6B7280; /* Muted/tertiary text, labels */
+  --text-subtle: #D1D5DB; /* Placeholder, disabled text */
+  --muted-foreground: var(--text-secondary); /* Alias for secondary/muted text */
+
   /* === Border Palette === */
   --border: #e6eaf2;
   --border-strong: #b7c6e0;
   --border-success: #b6e2c6;
+
   /* === Accent Palette === */
   --accent-success: #217a4d;
   --accent-success-bg: #eaf7f0;
@@ -69,20 +80,50 @@
   --space-24: 24px;
   --space-32: 32px;
   --space-40: 40px;
+
   /* Border radius */
   --radius-xs: 5px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+
+
+
   /* Typography */
   --font-family: "Figtree", system-ui, Arial, sans-serif;
-  --font-size-base: 12px;
-  --font-size-h1: 2.25rem;
-  --font-size-h2: 1.5rem;
-  --font-size-h3: 1.15rem;
-  --font-size-meta: 1rem;
+  --font-size-base: 12px; /* 12px base for rem scaling */
+  --font-size-h1: 2.25rem; /* 27px if base is 12px */
+  --font-size-h2: 1.5rem;  /* 18px if base is 12px */
+  --font-size-h3: 1.15rem; /* 13.8px if base is 12px */
+  --font-size-meta: 1rem;  /* 12px if base is 12px */
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
+}
+
+/* Utility classes (import in your main CSS) */
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+.Card {
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
 }
