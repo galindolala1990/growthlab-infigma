@@ -6,6 +6,13 @@
 */
 
 :root {
+  /* === Primary Brand Palette === */
+  --primary: #6F4CFF; /* Default brand color */
+  --primary-foreground: #FFFFFF; /* Text on primary */
+  --primary-hover: #5F3DE6; /* Hover state */
+  --primary-active: #4C2FCC; /* Active/pressed */
+  --primary-soft: #F0EBFF; /* Soft backgrounds */
+  --primary-soft-foreground: #5F3DE6; /* Text on soft bg */
 
   /* === Background Palette === */
   --background: #FFFFFF; /* Main canvas */

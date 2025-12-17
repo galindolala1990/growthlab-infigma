@@ -1,8 +1,81 @@
-/* ui.css
-  Main UI styles for Growthlab Figma Plugin
-  Only use variables and utilities from design-tokens.css
-  Do not add ad-hoc colors, spacing, or radii. */
-@import url('./design-tokens.css');
+/* design-tokens.css */
+:root {
+  --primary: #6F4CFF;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #5F3DE6;
+  --primary-active: #4C2FCC;
+  --primary-soft: #F0EBFF;
+  --primary-soft-foreground: #5F3DE6;
+  --background: #FFFFFF;
+  --background-subtle: #F9FAFB;
+  --background-surface: #FFFFFF;
+  --background-muted: #F3F4F6;
+  --foreground: #0F172A;
+  --text: var(--foreground);
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --text-subtle: #D1D5DB;
+  --muted-foreground: var(--text-secondary);
+  --border: #e6eaf2;
+  --border-strong: #b7c6e0;
+  --border-success: #b6e2c6;
+  --accent-success: #217a4d;
+  --accent-success-bg: #eaf7f0;
+  --accent-primary: #2a4d7a;
+  --accent-primary-dark: #18305a;
+  --space-0: 0;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --font-family:
+    "Figtree",
+    system-ui,
+    Arial,
+    sans-serif;
+  --font-size-base: 1rem;
+  --font-size-h1: 2.2rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h3: 1.18rem;
+  --font-size-meta: 1rem;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-normal: 400;
+}
+.Stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.Row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+.Card {
+  background: var(--background-surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px 0 rgba(40, 60, 90, 0.06);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 670px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ui.css */
 .variant-card.running {
   border-color: var(--border-success);
   background: var(--accent-success-bg);
@@ -87,12 +160,26 @@
   outline: none;
 }
 .Button.primary {
-  background: var(--accent-success);
-  color: #fff;
-  box-shadow: 0 1px 2px 0 rgba(33, 122, 77, 0.08);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px 0 rgba(111, 76, 255, 0.08);
+}
+.Button.primary:hover {
+  background: var(--primary-hover);
+  color: var(--primary-foreground);
+  cursor: pointer;
+}
+.Button.primary:active {
+  background: var(--primary-active);
+  color: var(--primary-foreground);
 }
 .Button.primary:focus {
-  box-shadow: 0 0 0 2px var(--border-success);
+  box-shadow: 0 0 0 2px var(--primary-soft-foreground);
+}
+.Button.primary:disabled,
+.Button.primary[aria-disabled=true] {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .Button.secondary {
   background: var(--background-muted);
