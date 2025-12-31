@@ -134,7 +134,7 @@ export async function createExperimentInfoCard(
   return card;
 }
 
-async function createSection(label: string, value: string, muted: boolean = false): Promise<FrameNode> {
+async function createSection(label: string, value: string, _muted: boolean = false): Promise<FrameNode> {
   await loadFonts();
   const section = figma.createFrame();
   section.layoutMode = "VERTICAL";

@@ -4,3 +4,4 @@ ui.js
 experiment-info-card.js
 load-fonts.js
 *.js.map
+node_modules

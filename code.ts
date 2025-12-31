@@ -1,4 +1,5 @@
 /// <reference types="@figma/plugin-typings" />
+/* eslint-disable no-inner-declarations */
 // This file holds the main code for plugins. Code in this file has access to
 // the *figma document* via the figma global object.
 // You can access browser APIs in the <script> tag inside "ui.html" which has a
@@ -25,7 +26,7 @@ type Variant = {
 
 interface PluginMessage {
   type: string;
-  payload?: any;
+  payload?: unknown;
 }
 
 
@@ -37,7 +38,6 @@ const KEEP_OPEN = true;
 
 
 import { createExperimentInfoCard } from './experiment-info-card';
-import { loadFonts } from './load-fonts';
 
 if (figma.editorType === 'figma') {
 
