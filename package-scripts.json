@@ -1,6 +1,0 @@
-{
-  "scripts": {
-    "build": "esbuild --config esbuild.config.js",
-    "build:tsc": "tsc -p tsconfig.json"
-  }
-}

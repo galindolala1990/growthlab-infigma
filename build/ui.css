@@ -77,7 +77,8 @@
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
   --font-weight-normal: 400;
-.variant-card.launched {
+}
+
 .variant-card.launched {
   border-color: var(--accent-success);
   background: var(--accent-success-bg);

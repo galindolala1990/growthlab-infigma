@@ -2,34 +2,34 @@
 
 ## Project Overview
 - **Purpose:** Figma plugin to visually build and manage experiment flows (entry/exit nodes, variants, metrics, integrations).
-- **UI:** Modern React (TSX) UI in `ui.tsx` and `components/` (bundled to `build/ui.js`), styled with `ui.css` and `design-tokens.css`.
+- **UI:** Vanilla HTML/CSS/JavaScript in `ui.html` with inline scripts, styled with `ui.css` and `design-tokens.css`.
 - **Plugin Logic:** Main Figma plugin logic in `code.ts` (bundled to `build/code.js`). Handles Figma API, node creation, and communication with UI.
 
 ## Architecture & Data Flow
 - **UI ↔ Plugin Communication:**
   - Uses `figma.showUI` and `figma.ui.onmessage` for message passing between UI and plugin logic.
-  - UI form submits experiment data; plugin script generates Figma nodes accordingly.
+  - UI form submits experiment data via `parent.postMessage`; plugin script generates Figma nodes accordingly.
 - **Component Structure:**
-  - All UI logic/components in `ui.tsx` and `components/` (e.g., `VariantCard`, `FlowSetup`).
-  - Data types (e.g., `Variant`) are shared between UI and plugin logic.
+  - All UI markup and logic in single `ui.html` file with embedded JavaScript.
+  - Variant cards dynamically rendered via `renderVariants()` function.
+  - Form data collected on submit and sent to plugin via message passing.
 - **Design Tokens:**
-  - Centralized in `design-tokens.css` for consistent styling.
+  - Centralized in `design-tokens.css` for consistent styling across UI and generated Figma nodes.
 - **Font:**
   - Uses [Figtree](https://fonts.google.com/specimen/Figtree) for all UI and generated nodes. Ensure it's available in Figma.
 
 ## Developer Workflows
 - **Install dependencies:** `npm install`
-- **Build plugin:** `npm run build` (bundles TS/TSX to `build/`)
+- **Build plugin:** `npm run build` (bundles TypeScript and copies static files to `build/`)
 - **Watch mode:** `npm run watch` (auto-rebuild on save)
 - **Lint:** `npm run lint` / `npm run lint:fix`
-- **Test:** (if present) `npm test` (see `setupTests.ts` and `*.test.tsx`)
 
 ## Conventions & Patterns
-- **TypeScript everywhere:** All logic and UI in TS/TSX.
-- **React for UI:** Use functional components, hooks, and colocate styles with components when possible.
+- **TypeScript for plugin logic:** `code.ts` uses TypeScript for type safety.
+- **Vanilla JS for UI:** Simple, performant HTML/CSS/JS without framework overhead.
 - **Figma API:** All Figma node creation/manipulation in `code.ts`.
 - **UI/Plugin contract:** Message types and payloads must be kept in sync between UI and plugin logic.
-- **No direct DOM manipulation:** All UI changes via React state.
+- **Direct DOM manipulation:** UI uses native DOM APIs (`getElementById`, `addEventListener`, etc.).
 - **Auto Layout:** All generated Figma frames/cards use Auto Layout for flexibility.
 
 ## Integration Points
@@ -38,16 +38,21 @@
 
 ## Key Files
 - `code.ts` — Figma plugin entry, node creation, message handling
-- `ui.tsx` — Main UI entry, React root
-- `components/` — UI components (cards, forms, sections)
-- `esbuild.config.js` — Build config for bundling plugin and UI
+- `ui.html` — Complete UI with HTML, CSS, and JavaScript
+- `ui.css` — Additional UI styles
 - `design-tokens.css` — Design tokens for consistent styling
-- `setupTests.ts` — Test setup (if tests are present)
+- `esbuild.config.js` — Build config for bundling plugin code
+- `manifest.json` — Figma plugin manifest
 
 ## Example: UI to Plugin Message
-```ts
-// In ui.tsx
-figma.ui.postMessage({ type: 'create-flow', payload: { experimentName, variants, ... } });
+```js
+// In ui.html
+parent.postMessage({ 
+  pluginMessage: { 
+    type: 'create-flow', 
+    payload: { experimentName, variants, ... } 
+  } 
+}, '*');
 
 // In code.ts
 figma.ui.onmessage = (msg) => {
