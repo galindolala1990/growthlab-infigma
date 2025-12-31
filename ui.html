@@ -170,17 +170,14 @@
     .app {
       background: var(--background-subtle);
       min-height: 100vh;
-      padding: var(--space-16);
     }
 
     /* Section Header (from Figma: padding=16px, spacing=16px) */
     .section-header {
       background: var(--background-surface);
       border: 1px solid var(--border);
-      border-radius: var(--section-radius);
       padding: var(--section-padding);
       margin-bottom: var(--section-gap);
-      box-shadow: var(--section-shadow);
     }
 
     .header-content {
@@ -193,7 +190,7 @@
     .header-inputs {
       display: flex;
       flex-direction: column;
-      gap: var(--space-12);
+      gap: var(--space-16);
     }
 
     /* Form Inputs */
@@ -231,9 +228,7 @@
     .section-events {
       background: var(--background-surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
       padding: var(--space-16);
-      box-shadow: var(--variant-card-shadow);
     }
 
     .metrics-header,
@@ -521,6 +516,181 @@
       width: 12px;
       height: 12px;
     }
+    /* ============================================
+     * LINKS SECTION
+     * External links: Figma, Jira, Miro
+     * ============================================ */
+    
+    .section-links {
+      background: var(--background-surface);
+      border: 1px solid var(--border);
+      padding: var(--space-16);
+    }
+
+    /* Links subsection inside events section */
+    .links-subsection {
+      margin-top: var(--space-16);
+      padding-top: var(--space-16);
+    }
+
+    .links-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin-bottom: var(--space-12);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .links-header:hover {
+      opacity: 0.8;
+    }
+
+    .links-header__label {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 9px;
+      font-weight: 500;
+      line-height: 100%;
+      letter-spacing: 0.09px;
+      color: var(--input-field-text-color);
+      padding: 3px 0;
+    }
+
+    .links-header__chevron {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 12px;
+      height: 12px;
+      color: var(--input-field-text-color);
+      transition: transform 0.2s ease;
+    }
+
+    .links-header__chevron svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Collapsed state */
+    .links-subsection.collapsed .links-header__chevron {
+      transform: rotate(-90deg);
+    }
+
+    .links-subsection.collapsed .links-list {
+      display: none;
+    }
+
+    .links-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--background-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      font-size: var(--body-sm-size);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .link-chip:hover {
+      background: var(--background-subtle);
+      border-color: var(--border-dark);
+    }
+
+    .link-chip__text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link-chip__remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .link-chip__remove:hover {
+      background: var(--border);
+      color: var(--foreground);
+    }
+
+    .link-add-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: transparent;
+      border: 1px dashed var(--border-dark);
+      border-radius: var(--radius-xs);
+      font-size: var(--body-sm-size);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .link-add-btn:hover {
+      background: var(--background-muted);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .link-add-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Link icon as InputField label (horizontal variant) */
+    .InputField__label.link-icon {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: var(--radius-xs);
+      padding: 0;
+    }
+
+    .InputField__label.link-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .InputField__label.link-icon.figma {
+      background: #FFF0ED;
+      color: #F24E1E;
+    }
+
+    .InputField__label.link-icon.jira {
+      background: #E9F2FF;
+      color: #2684FF;
+    }
+
+    .InputField__label.link-icon.miro {
+      background: #FFF8E1;
+      color: #FFD02F;
+    }
   </style>
 </head>
 <body>
@@ -529,7 +699,7 @@
     <section class="section-header">
       <div class="header-content">
         <h1>Create experiment</h1>
-        <p class="body-md">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</p>
+        <p class="body-md">Group design variants and streamline your growth experiments.</p>
       </div>
       <div class="header-inputs">
         <!-- InputField Component: Vertical variant, default state -->
@@ -555,6 +725,69 @@
             <input class="InputField__input" type="text" id="experimentDescription" placeholder="Add description">
             <span class="InputField__suffix hidden"></span>
             <span class="InputField__icon hidden"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links subsection -->
+      <div class="links-subsection" id="linksSubsection">
+        <div class="links-header" id="linksHeader">
+          <span class="links-header__chevron">
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="links-header__label">Links</span>
+        </div>
+        <div class="links-list" id="linksList">
+          <!-- Figma Link - InputField Component: Horizontal variant with icon -->
+          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+            <label class="InputField__label link-icon figma" aria-label="Figma">
+              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 24C10.208 24 12 22.208 12 20V16H8C5.792 16 4 17.792 4 20C4 22.208 5.792 24 8 24Z"/>
+                <path d="M4 12C4 9.792 5.792 8 8 8H12V16H8C5.792 16 4 14.208 4 12Z"/>
+                <path d="M4 4C4 1.792 5.792 0 8 0H12V8H8C5.792 8 4 6.208 4 4Z"/>
+                <path d="M12 0H16C18.208 0 20 1.792 20 4C20 6.208 18.208 8 16 8H12V0Z"/>
+                <path d="M20 12C20 14.208 18.208 16 16 16C13.792 16 12 14.208 12 12C12 9.792 13.792 8 16 8C18.208 8 20 9.792 20 12Z"/>
+              </svg>
+            </label>
+            <div class="InputField__wrapper">
+              <span class="InputField__prefix hidden"></span>
+              <input class="InputField__input" type="url" id="figmaLink" placeholder="Paste Figma link...">
+              <span class="InputField__suffix hidden"></span>
+              <span class="InputField__icon hidden"></span>
+            </div>
+          </div>
+
+          <!-- Jira Link - InputField Component: Horizontal variant with icon -->
+          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+            <label class="InputField__label link-icon jira" aria-label="Jira">
+              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.571 11.513H0C0 5.171 5.171 0 11.514 0H23.028L11.571 11.513Z"/>
+                <path d="M23.028 0L11.571 11.514L23.028 23.028H11.514C5.171 23.028 0 17.857 0 11.514H11.571L23.028 0Z" opacity="0.5"/>
+              </svg>
+            </label>
+            <div class="InputField__wrapper">
+              <span class="InputField__prefix hidden"></span>
+              <input class="InputField__input" type="url" id="jiraLink" placeholder="Paste Jira ticket link...">
+              <span class="InputField__suffix hidden"></span>
+              <span class="InputField__icon hidden"></span>
+            </div>
+          </div>
+
+          <!-- Miro Link - InputField Component: Horizontal variant with icon -->
+          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+            <label class="InputField__label link-icon miro" aria-label="Miro">
+              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.392 0H13.9L17 4.8L10.1 0H6.608L10.5 6.4L3 0H0L7 12L0 24H3L10.5 17.6L6.608 24H10.1L17 19.2L13.9 24H17.392L24 12L17.392 0Z"/>
+              </svg>
+            </label>
+            <div class="InputField__wrapper">
+              <span class="InputField__prefix hidden"></span>
+              <input class="InputField__input" type="url" id="miroLink" placeholder="Paste Miro board link...">
+              <span class="InputField__suffix hidden"></span>
+              <span class="InputField__icon hidden"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -795,11 +1028,17 @@
       e.preventDefault();
       const experimentName = document.getElementById('experimentName').value.trim();
       const experimentDescription = document.getElementById('experimentDescription').value.trim();
+      const figmaLink = document.getElementById('figmaLink').value.trim();
+      const jiraLink = document.getElementById('jiraLink').value.trim();
+      const miroLink = document.getElementById('miroLink').value.trim();
       parent.postMessage({ pluginMessage: {
         type: 'create-flow',
         payload: {
           experimentName,
           experimentDescription,
+          figmaLink,
+          jiraLink,
+          miroLink,
           metrics: JSON.parse(JSON.stringify(metrics)),
           events: JSON.parse(JSON.stringify(events))
         }
@@ -814,6 +1053,12 @@
       e.preventDefault();
       metrics.push({ name: 'New metric', status: 'add button', value: 0 });
       renderMetrics(metrics);
+    };
+
+    // Links section expand/collapse
+    document.getElementById('linksHeader').onclick = () => {
+      const subsection = document.getElementById('linksSubsection');
+      subsection.classList.toggle('collapsed');
     };
   </script>
 </body>
