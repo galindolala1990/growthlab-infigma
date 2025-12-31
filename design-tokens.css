@@ -73,48 +73,7 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  /* Typography - Font Family */
-  --font-family: "Figtree", system-ui, Arial, sans-serif;
   --font-size-base: 12px; /* Base reference for rem calculations */
-  
-  /* Typography - Font Weights */
-  --font-weight-bold: 700;
-  --font-weight-semibold: 600;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-
-  /* Typography - Body Styles (Semantic Sizing) */
-  /* Based on Figma design extraction: */
-  /* Title: 12px, 600 weight, 83% line-height */
-  /* Subtitle: 11px, 400 weight, 108% line-height */
-  /* Body: 11px, 400 weight, 76% line-height */
-  /* Label: 9px, 500 weight, 83% line-height */
-  
-  --text-lg-size: 12px;
-  --text-lg-weight: 600;
-  --text-lg-line-height: 1.4; /* Heading */
-  --text-lg-letter-spacing: 0;
-
-  --text-md-size: 11px;
-  --text-md-weight: 400;
-  --text-md-line-height: 1.45; /* Body text */
-  --text-md-letter-spacing: 0;
-
-  --text-sm-size: 11px;
-  --text-sm-weight: 500;
-  --text-sm-line-height: 1.45; /* Secondary */
-  --text-sm-letter-spacing: 0;
-
-  --text-xs-size: 9px;
-  --text-xs-weight: 500;
-  --text-xs-line-height: 1.33; /* Label */
-  --text-xs-letter-spacing: 0;
-
-  /* Typography - Bold Style */
-  --text-bold-size: 12px;
-  --text-bold-weight: 700;
-  --text-bold-line-height: 1.4;
-  --text-bold-letter-spacing: 0;
 
   /* === Component-Specific Variables === */
 
