@@ -88,6 +88,23 @@
       --variant-traffic-bg: #eaf7f0;
       --variant-traffic-border: #b6e2c6;
       --variant-traffic-color: #126930;
+
+      /* === Input Field Component (from Figma node 353-7322) === */
+      --input-field-bg: rgba(34, 39, 47, 0.05);
+      --input-field-border-color: rgba(34, 39, 47, 0.1);
+      --input-field-border: 1px solid rgba(34, 39, 47, 0.1);
+      --input-field-radius: 4px;
+      --input-field-padding-x: 9px;
+      --input-field-padding-y: 7px;
+      --input-field-gap: 8px;
+      --input-field-label-gap: 5px;
+      --input-field-horizontal-gap: 12px;
+      --input-field-text-color: #3f4c5f;
+      --input-field-placeholder-opacity: 0.8;
+      --input-field-hover-bg: rgba(34, 39, 47, 0.08);
+      --input-field-hover-border: rgba(34, 39, 47, 0.15);
+      --input-field-focus-border: #6F4CFF;
+      --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
     }
 
     /* 
@@ -364,6 +381,146 @@
       background: var(--background-muted);
       border-color: var(--border-dark);
     }
+
+    /* ============================================
+     * INPUT FIELD COMPONENT (from Figma 353-7322)
+     * Props: label, showLabel, showRText, showRIcon, showLText, smallText, help, text
+     * Variants: state (default/entered), variant (vertical/horizontal), hover (no/yes)
+     * ============================================ */
+    
+    /* Base Input Field Container */
+    .InputField {
+      display: flex;
+      flex-direction: column;
+      gap: var(--input-field-label-gap);
+      width: 100%;
+    }
+
+    /* Horizontal variant */
+    .InputField.horizontal {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--input-field-horizontal-gap);
+    }
+
+    .InputField.horizontal .InputField__label {
+      flex-shrink: 0;
+      min-width: fit-content;
+    }
+
+    .InputField.horizontal .InputField__wrapper {
+      flex: 1;
+    }
+
+    /* Label */
+    .InputField__label {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 9px;
+      font-weight: 500;
+      line-height: 100%;
+      letter-spacing: 0.09px;
+      color: var(--input-field-text-color);
+      padding: 3px 0;
+    }
+
+    .InputField__label.hidden {
+      display: none;
+    }
+
+    /* Input wrapper (the actual input box) */
+    .InputField__wrapper {
+      display: flex;
+      align-items: center;
+      gap: var(--input-field-gap);
+      background: var(--input-field-bg);
+      border: var(--input-field-border);
+      border-radius: var(--input-field-radius);
+      padding: var(--input-field-padding-y) var(--input-field-padding-x);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    /* Hover state */
+    .InputField__wrapper:hover,
+    .InputField.hover .InputField__wrapper {
+      background: var(--input-field-hover-bg);
+      border-color: var(--input-field-hover-border);
+    }
+
+    /* Focus state */
+    .InputField__wrapper:focus-within {
+      border-color: var(--input-field-focus-border);
+      box-shadow: var(--input-field-focus-shadow);
+    }
+
+    /* Left text (prefix like "(CR)") */
+    .InputField__prefix {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 100%;
+      color: var(--input-field-text-color);
+      flex-shrink: 0;
+    }
+
+    .InputField__prefix.hidden {
+      display: none;
+    }
+
+    /* The actual input element */
+    .InputField__input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 10px;
+      color: var(--foreground);
+      min-width: 0;
+    }
+
+    .InputField__input::placeholder {
+      color: var(--input-field-text-color);
+      opacity: var(--input-field-placeholder-opacity);
+    }
+
+    /* State: entered - placeholder hidden, value shown */
+    .InputField.entered .InputField__input::placeholder {
+      opacity: 0;
+    }
+
+    /* Right text (suffix) */
+    .InputField__suffix {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 100%;
+      color: var(--input-field-text-color);
+      flex-shrink: 0;
+    }
+
+    .InputField__suffix.hidden {
+      display: none;
+    }
+
+    /* Right icon (dropdown arrow) */
+    .InputField__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--foreground);
+    }
+
+    .InputField__icon.hidden {
+      display: none;
+    }
+
+    .InputField__icon svg {
+      width: 12px;
+      height: 12px;
+    }
   </style>
 </head>
 <body>
@@ -375,8 +532,31 @@
         <p class="body-md">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</p>
       </div>
       <div class="header-inputs">
-        <input class="Input" type="text" id="experimentName" placeholder="Untitled experiment">
-        <input class="Input" type="text" id="experimentDescription" placeholder="Add description">
+        <!-- InputField Component: Vertical variant, default state -->
+        <div class="InputField" data-state="default" data-variant="vertical">
+          <label class="InputField__label">Experiment name</label>
+          <div class="InputField__wrapper">
+            <span class="InputField__prefix hidden">(CR)</span>
+            <input class="InputField__input" type="text" id="experimentName" placeholder="Untitled experiment">
+            <span class="InputField__suffix hidden"></span>
+            <span class="InputField__icon hidden">
+              <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- InputField Component: Vertical variant, default state -->
+        <div class="InputField" data-state="default" data-variant="vertical">
+          <label class="InputField__label">Description</label>
+          <div class="InputField__wrapper">
+            <span class="InputField__prefix hidden"></span>
+            <input class="InputField__input" type="text" id="experimentDescription" placeholder="Add description">
+            <span class="InputField__suffix hidden"></span>
+            <span class="InputField__icon hidden"></span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -412,6 +592,131 @@
   </div>
 
   <script>
+    /**
+     * InputField Component Factory
+     * Creates an input field component with all Figma props and variants
+     * 
+     * @param {Object} props - Component properties
+     * @param {string} props.id - Input element ID
+     * @param {string} props.label - Label text (default: "Label")
+     * @param {boolean} props.showLabel - Show/hide label (default: true)
+     * @param {boolean} props.showRText - Show right suffix text (default: false)
+     * @param {boolean} props.showRIcon - Show dropdown icon (default: false)
+     * @param {boolean} props.showLText - Show left prefix text (default: false)
+     * @param {string} props.smallText - Prefix text like "(CR)" (default: "(CR)")
+     * @param {string} props.help - Placeholder text (default: "Enter input")
+     * @param {string} props.text - Input value (default: "")
+     * @param {string} props.suffix - Suffix text (default: "")
+     * @param {string} props.state - "default" or "entered" (default: "default")
+     * @param {string} props.variant - "vertical" or "horizontal" (default: "vertical")
+     * @param {Function} props.onChange - Change handler
+     * @returns {HTMLElement} The InputField container element
+     */
+    function createInputField(props = {}) {
+      const {
+        id = 'input-' + Math.random().toString(36).substr(2, 9),
+        label = 'Label',
+        showLabel = true,
+        showRText = false,
+        showRIcon = false,
+        showLText = false,
+        smallText = '(CR)',
+        help = 'Enter input',
+        text = '',
+        suffix = '',
+        state = 'default',
+        variant = 'vertical',
+        onChange = null
+      } = props;
+
+      // Create container
+      const container = document.createElement('div');
+      container.className = `InputField ${variant}`;
+      container.dataset.state = state;
+      container.dataset.variant = variant;
+      if (text) container.classList.add('entered');
+
+      // Create label
+      const labelEl = document.createElement('label');
+      labelEl.className = `InputField__label${showLabel ? '' : ' hidden'}`;
+      labelEl.textContent = label;
+      labelEl.htmlFor = id;
+
+      // Create wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'InputField__wrapper';
+
+      // Create prefix
+      const prefix = document.createElement('span');
+      prefix.className = `InputField__prefix${showLText ? '' : ' hidden'}`;
+      prefix.textContent = smallText;
+
+      // Create input
+      const input = document.createElement('input');
+      input.className = 'InputField__input';
+      input.type = 'text';
+      input.id = id;
+      input.placeholder = help;
+      input.value = text;
+
+      // Create suffix
+      const suffixEl = document.createElement('span');
+      suffixEl.className = `InputField__suffix${showRText ? '' : ' hidden'}`;
+      suffixEl.textContent = suffix;
+
+      // Create icon
+      const icon = document.createElement('span');
+      icon.className = `InputField__icon${showRIcon ? '' : ' hidden'}`;
+      icon.innerHTML = `<svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+
+      // Handle state changes
+      input.addEventListener('input', (e) => {
+        if (e.target.value) {
+          container.classList.add('entered');
+          container.dataset.state = 'entered';
+        } else {
+          container.classList.remove('entered');
+          container.dataset.state = 'default';
+        }
+        if (onChange) onChange(e.target.value);
+      });
+
+      // Assemble
+      wrapper.appendChild(prefix);
+      wrapper.appendChild(input);
+      wrapper.appendChild(suffixEl);
+      wrapper.appendChild(icon);
+      container.appendChild(labelEl);
+      container.appendChild(wrapper);
+
+      return container;
+    }
+
+    // Initialize existing InputFields to handle state changes
+    document.querySelectorAll('.InputField').forEach(field => {
+      const input = field.querySelector('.InputField__input');
+      if (input) {
+        // Set initial state based on value
+        if (input.value) {
+          field.classList.add('entered');
+          field.dataset.state = 'entered';
+        }
+        
+        // Handle input changes
+        input.addEventListener('input', (e) => {
+          if (e.target.value) {
+            field.classList.add('entered');
+            field.dataset.state = 'entered';
+          } else {
+            field.classList.remove('entered');
+            field.dataset.state = 'default';
+          }
+        });
+      }
+    });
+
     // Sample data for metrics
     const defaultMetrics = [
       { name: 'CTR', status: 'add button', value: 0 },
