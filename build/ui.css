@@ -1,83 +1,7 @@
 @import "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap";
+@import "design-tokens.css";
 
-/* ui.css */
-/* Design Tokens */
-:root {
-  --font-size-base: 12px;
-  --font-size-body: 12px;
-  --section-bg: var(--background-muted);
-  --section-border: var(--border);
-  --section-radius: var(--radius-xl);
-  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-  --emphasized-bg: #f5f8fd;
-  --emphasized-border: var(--border-strong);
-  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
-  --meta-bg: #f9fbfd;
-  --meta-border: var(--border);
-  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
-  --input-bg: var(--background-surface);
-  --input-border: 1px solid #dbe3ef;
-  --input-radius: var(--radius-sm);
-  --input-height: 40px;
-  --label-color: #6b7a90;
-  --label-weight: 600;
-  --variant-card-bg: var(--background-muted);
-  --variant-card-border: var(--border);
-  --variant-card-radius: var(--radius-lg);
-  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  --variant-key-badge-bg: var(--accent-primary);
-  --variant-key-badge-color: var(--primary-foreground);
-  --variant-key-badge-radius: 50%;
-  --variant-key-badge-size: 28px;
-  --variant-traffic-bg: var(--accent-success-bg);
-  --variant-traffic-border: var(--border-success);
-  --variant-traffic-radius: var(--radius-sm);
-  --variant-traffic-color: var(--accent-success);
-  --typography-h1-color: var(--accent-primary-dark);
-  --typography-h2-color: var(--accent-primary-dark);
-  --typography-h3-color: var(--text-secondary);
-  --typography-meta-color: #4a5a70;
-  --primary: #6F4CFF;
-  --primary-foreground: #FFFFFF;
-  --primary-hover: #5F3DE6;
-  --primary-active: #4C2FCC;
-  --primary-soft: #F0EBFF;
-  --primary-soft-foreground: #5F3DE6;
-  --background: #FFFFFF;
-  --background-subtle: #F9FAFB;
-  --background-surface: #FFFFFF;
-  --background-muted: #F3F4F6;
-  --foreground: #0F172A;
-  --text: var(--foreground);
-  --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --text-subtle: #D1D5DB;
-  --muted-foreground: var(--text-secondary);
-  --border: #e6eaf2;
-  --border-strong: #b7c6e0;
-  --border-success: #b6e2c6;
-  --accent-success: #217a4d;
-  --accent-success-bg: #eaf7f0;
-  --accent-primary: #2a4d7a;
-  --accent-primary-dark: #18305a;
-  --space-0: 0;
-  --space-4: 4px;
-  --space-8: 8px;
-  --space-12: 12px;
-  --space-16: 16px;
-  --space-24: 24px;
-  --space-32: 32px;
-  --space-40: 40px;
-  --radius-xs: 5px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --font-family: "Figtree", system-ui, Arial, sans-serif;
-  --font-weight-bold: 700;
-  --font-weight-semibold: 600;
-  --font-weight-normal: 400;
-}
+/* ui.css - Component styles using design tokens from design-tokens.css */
 
 .variant-card.launched {
   border-color: var(--accent-success);
@@ -89,34 +13,44 @@
   background: var(--background-muted);
   opacity: 0.7;
 }
-.typography-h1 {
-  font-size: var(--font-size-h1, 2.25rem);
-  font-weight: var(--font-weight-bold, 700);
-  color: var(--text);
-  margin-bottom: var(--space-16);
-  line-height: 1.15;
+/* Semantic Typography Styles */
+/* Based on Figma typography extracted from node 480:44035 */
+.text-lg {
+  font-size: var(--text-lg-size);
+  font-weight: var(--text-lg-weight);
+  line-height: var(--text-lg-line-height);
+  letter-spacing: var(--text-lg-letter-spacing);
+  font-family: var(--font-family);
 }
-.typography-h2 {
-  font-size: var(--font-size-h2, 1.5rem);
-  font-weight: var(--font-weight-semibold, 600);
-  color: var(--text);
-  margin-bottom: var(--space-12, 12px);
-  line-height: 1.2;
+.text-md {
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  line-height: var(--text-md-line-height);
+  letter-spacing: var(--text-md-letter-spacing);
+  font-family: var(--font-family);
 }
-.typography-h3 {
-  font-size: var(--font-size-h3, 1.15rem);
-  font-weight: var(--font-weight-semibold, 600);
-  color: var(--text-secondary);
-  margin-bottom: var(--space-8);
-  line-height: 1.2;
+.text-sm {
+  font-size: var(--text-sm-size);
+  font-weight: var(--text-sm-weight);
+  line-height: var(--text-sm-line-height);
+  letter-spacing: var(--text-sm-letter-spacing);
+  font-family: var(--font-family);
 }
-.typography-meta {
-  font-size: var(--font-size-meta, 1rem);
-  font-weight: var(--font-weight-normal, 400);
-  color: var(--text-muted);
-  margin-bottom: 0;
-  letter-spacing: 0.01em;
+.text-xs {
+  font-size: var(--text-xs-size);
+  font-weight: var(--text-xs-weight);
+  line-height: var(--text-xs-line-height);
+  letter-spacing: var(--text-xs-letter-spacing);
+  font-family: var(--font-family);
 }
+.text-bold {
+  font-size: var(--text-bold-size);
+  font-weight: var(--text-bold-weight);
+  line-height: var(--text-bold-line-height);
+  letter-spacing: var(--text-bold-letter-spacing);
+  font-family: var(--font-family);
+}
+
 .Card {
   background: var(--background-surface);
   border-radius: 12px;
@@ -143,7 +77,7 @@
 .Button {
   border-radius: 8px;
   padding: 9px 24px;
-  font-size: var(--font-size-base, 12px);
+  font-size: var(--text-md-size);
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -199,7 +133,7 @@ body {
   min-width: 100vw;
 }
 html {
-  font-size: var(--font-size-base, 12px);
+  font-size: var(--font-size-base);
 }
 body,
 input,
@@ -278,7 +212,7 @@ h6,
       var(--accent-success) 100%);
   color: #fff;
   font-weight: 600;
-  font-size: var(--font-size-h3);
+  font-size: var(--text-sm-size);
   margin-right: var(--space-8);
   flex-shrink: 0;
   box-shadow: 0 1px 4px 0 rgba(40, 60, 90, 0.10);
@@ -289,7 +223,7 @@ h6,
   gap: var(--space-8);
 }
 .variant-name-input {
-  font-size: var(--font-size-h3);
+  font-size: var(--text-sm-size);
   font-weight: 600;
   border: none;
   background: transparent;
@@ -301,7 +235,7 @@ h6,
 }
 .variant-traffic-input {
   width: 64px;
-  font-size: var(--font-size-h3);
+  font-size: var(--text-sm-size);
   font-weight: 600;
   color: var(--accent-success);
   background: var(--accent-success-bg);
@@ -320,14 +254,14 @@ h6,
 }
 .variant-status-select {
   min-width: 96px;
-  font-size: var(--font-size-meta);
+  font-size: var(--text-xs-size);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--space-8);
   border: 1px solid var(--border);
   background: var(--background-surface);
 }
 .variant-status-pill {
-  font-size: var(--font-size-base);
+  font-size: var(--text-md-size);
   padding: 4px 16px;
   border-radius: 8px;
   margin-left: 8px;
@@ -373,12 +307,308 @@ h6,
   z-index: 10;
 }
 .integration-input {
-  font-size: var(--font-size-meta);
+  font-size: var(--text-xs-size);
   padding: var(--space-4) var(--space-8);
   border: 1px solid var(--border);
   border-radius: var(--space-8);
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Base HTML Styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Figtree", system-ui, Arial, sans-serif;
+  font-optical-sizing: auto;
+}
+
+body {
+  padding: 16px;
+  font-size: var(--font-size-base);
+  background: var(--background);
+}
+
+/* App Container */
+.app {
+  max-width: 670px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header Section */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-content h1 {
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  color: var(--foreground);
+}
+
+.header-content p {
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-xs-size);
+  font-weight: var(--text-xs-weight);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.header-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-inputs .Input {
+  font-size: var(--text-md-size);
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--background-surface);
+  height: 40px;
+}
+
+/* Form Container */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Metrics Section */
+.section-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--background-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.metrics-header h2 {
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  color: var(--foreground);
+}
+
+.btn-add-metric {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.btn-add-metric:hover {
+  color: var(--foreground);
+}
+
+.metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--background-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.metric-name {
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  color: var(--foreground);
+}
+
+.metric-rate {
+  font-size: var(--text-md-size);
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+/* Events Section */
+.section-events {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--background-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.events-header h2 {
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  color: var(--foreground);
+}
+
+.events-count {
+  font-size: var(--text-xs-size);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--background-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.event-row-event {
+  border-left: 3px solid var(--accent-primary);
+}
+
+.event-row-variant {
+  border-left: 3px solid var(--accent-success);
+}
+
+.event-name {
+  font-size: var(--text-md-size);
+  font-weight: var(--text-md-weight);
+  color: var(--foreground);
+  flex: 1;
+}
+
+.event-variants {
+  font-size: var(--text-md-size);
+  font-weight: 600;
+  color: var(--accent-success);
+  padding: 4px 8px;
+  background: var(--accent-success-bg);
+  border-radius: 4px;
+}
+
+/* Footer Section */
+.section-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+/* Typography defaults */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+}
+
+/* Input, button, and form defaults */
+input, button, select, textarea, table, th, td, label {
+  font-family: "Figtree", system-ui, Arial, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Footer helper text styling */
+.footer-helper {
+  font-size: 0.98em;
+  color: #4a5a70;
+  margin-bottom: 8px;
+}
+
+/* Section margins */
+.Section {
+  margin-bottom: 32px;
+}
+
+.Section:last-child {
+  margin-bottom: 0;
+}
+
+/* Status pill styling */
+.variant-status-pill.running {
+  background: #e0e7ef;
+  color: #2a4d7a;
+  border-color: #e0e7ef;
+}
+
+.variant-status-pill.winner {
+  background: #d4edda;
+  color: #155724;
+  border-color: #d4edda;
+}
+
+.variant-status-pill.none {
+  background: #f8f9fa;
+  color: #6c757d;
+  border-color: #f8f9fa;
+}
+
+/* Metrics chip styling */
+.metrics-chip {
+  font-size: 0.85em;
+  padding: 2px 8px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  color: #4a5a70;
+  font-weight: 500;
 }
 
 /*# sourceMappingURL=ui.css.map */

@@ -6,39 +6,12 @@
 */
 
 :root {
-  /* === UI HTML Section/Legacy Tokens (unified) === */
-  --section-bg: var(--background-muted); /* Card/section backgrounds */
-  --section-border: var(--border);
-  --section-radius: var(--radius-xl);
-  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-  --emphasized-bg: #f5f8fd; /* Accent section bg */
-  --emphasized-border: var(--border-strong);
-  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
-  --meta-bg: #f9fbfd;
-  --meta-border: var(--border);
-  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
-  --input-bg: var(--background-surface);
-  --input-border: 1px solid #dbe3ef;
-  --input-radius: var(--radius-sm);
-  --input-height: 40px;
-  --label-color: #6b7a90;
-  --label-weight: 600;
-  --variant-card-bg: var(--background-muted);
-  --variant-card-border: var(--border);
-  --variant-card-radius: var(--radius-lg);
-  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  --variant-key-badge-bg: var(--accent-primary);
-  --variant-key-badge-color: var(--primary-foreground);
-  --variant-key-badge-radius: 50%;
-  --variant-key-badge-size: 28px;
-  --variant-traffic-bg: var(--accent-success-bg);
-  --variant-traffic-border: var(--border-success);
-  --variant-traffic-radius: var(--radius-sm);
-  --variant-traffic-color: var(--accent-success);
+  /* === Text/Typography Colors === */
   --typography-h1-color: var(--accent-primary-dark);
   --typography-h2-color: var(--accent-primary-dark);
   --typography-h3-color: var(--text-secondary);
   --typography-meta-color: #4a5a70;
+  
   /* === Primary Brand Palette === */
   --primary: #6F4CFF; /* Default brand color */
   --primary-foreground: #FFFFFF; /* Text on primary */
@@ -51,26 +24,38 @@
   --background: #FFFFFF; /* Main canvas */
   --background-subtle: #F9FAFB; /* Page bg, secondary panels */
   --background-surface: #FFFFFF; /* Cards, modals, popovers */
-  --background-muted: #F3F4F6; /* Disabled, receding areas */
+  --background-muted: #ECEFF2; /* Disabled, receding areas - rgb(236,239,242) */
 
   /* === Text Palette === */
-  --foreground: #0F172A; /* Primary text */
+  --foreground: #0F1729; /* Primary text */
   --text: var(--foreground); /* Alias for primary text */
-  --text-secondary: #374151; /* Secondary text, subtitles */
-  --text-muted: #6B7280; /* Muted/tertiary text, labels */
+  --text-secondary: #333B47; /* Secondary text rgb(51,59,71) */
+  --text-tertiary: #394453; /* Tertiary text */
+  --text-muted: #3F4C5F; /* Muted text rgb(63,76,95) */
   --text-subtle: #D1D5DB; /* Placeholder, disabled text */
   --muted-foreground: var(--text-secondary); /* Alias for secondary/muted text */
 
   /* === Border Palette === */
-  --border: #e6eaf2;
+  --border: #EDEDF1; /* Light border rgb(237,238,241) */
+  --border-light: #EDEDF1; /* Lighter border */
+  --border-dark: #D8DBDF; /* Darker border */
   --border-strong: #b7c6e0;
-  --border-success: #b6e2c6;
 
-  /* === Accent Palette === */
-  --accent-success: #217a4d;
+  /* === Accent/Status Palette === */
+  --accent-success: #126930; /* Success/Winner green */
+  --accent-success-light: #0ACF83; /* Bright green indicator */
   --accent-success-bg: #eaf7f0;
+  --accent-error: #F24E1E; /* Error red */
+  --accent-warning: #DD7602; /* Warning orange */
+  --accent-info: #2684FF; /* Info blue */
+  --accent-highlight: #1ABCFE; /* Bright cyan */
   --accent-primary: #2a4d7a;
   --accent-primary-dark: #18305a;
+  
+  /* === Status Badge Colors === */
+  --status-variant-a: #2563EB; /* Bright blue */
+  --status-variant-b: #A259FF; /* Bright purple */
+  --status-variant-c: #F24E1E; /* Red/orange */
   /* Spacing scale (8px system) */
   --space-0: 0;
   --space-4: 4px;
@@ -88,18 +73,93 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-
-
-  /* Typography */
+  /* Typography - Font Family */
   --font-family: "Figtree", system-ui, Arial, sans-serif;
-  --font-size-base: 12px; /* 12px base for rem scaling */
-  --font-size-h1: 2.25rem; /* 27px if base is 12px */
-  --font-size-h2: 1.5rem;  /* 18px if base is 12px */
-  --font-size-h3: 1.15rem; /* 13.8px if base is 12px */
-  --font-size-meta: 1rem;  /* 12px if base is 12px */
+  --font-size-base: 12px; /* Base reference for rem calculations */
+  
+  /* Typography - Font Weights */
   --font-weight-bold: 700;
   --font-weight-semibold: 600;
+  --font-weight-medium: 500;
   --font-weight-normal: 400;
+
+  /* Typography - Body Styles (Semantic Sizing) */
+  /* Based on Figma design extraction: */
+  /* Title: 12px, 600 weight, 83% line-height */
+  /* Subtitle: 11px, 400 weight, 108% line-height */
+  /* Body: 11px, 400 weight, 76% line-height */
+  /* Label: 9px, 500 weight, 83% line-height */
+  
+  --text-lg-size: 12px;
+  --text-lg-weight: 600;
+  --text-lg-line-height: 1.4; /* Heading */
+  --text-lg-letter-spacing: 0;
+
+  --text-md-size: 11px;
+  --text-md-weight: 400;
+  --text-md-line-height: 1.45; /* Body text */
+  --text-md-letter-spacing: 0;
+
+  --text-sm-size: 11px;
+  --text-sm-weight: 500;
+  --text-sm-line-height: 1.45; /* Secondary */
+  --text-sm-letter-spacing: 0;
+
+  --text-xs-size: 9px;
+  --text-xs-weight: 500;
+  --text-xs-line-height: 1.33; /* Label */
+  --text-xs-letter-spacing: 0;
+
+  /* Typography - Bold Style */
+  --text-bold-size: 12px;
+  --text-bold-weight: 700;
+  --text-bold-line-height: 1.4;
+  --text-bold-letter-spacing: 0;
+
+  /* === Component-Specific Variables === */
+
+  /* Sections */
+  --section-bg: var(--background-muted);
+  --section-border: var(--border);
+  --section-radius: var(--radius-xl);
+  --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
+
+  /* Emphasized/Meta Areas */
+  --emphasized-bg: #f5f8fd;
+  --emphasized-border: var(--border-strong);
+  --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
+
+  --meta-bg: #f9fbfd;
+  --meta-border: var(--border);
+  --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
+
+  /* Form Inputs */
+  --input-bg: var(--background-surface);
+  --input-border: 1px solid #dbe3ef;
+  --input-radius: var(--radius-sm);
+  --input-height: 40px;
+
+  /* Labels */
+  --label-color: #6b7a90;
+  --label-weight: 600;
+
+  /* Variant Cards */
+  --variant-card-bg: var(--background-muted);
+  --variant-card-border: var(--border);
+  --variant-card-radius: var(--radius-lg);
+  --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
+
+  /* Variant Key Badge */
+  --variant-key-badge-bg: var(--accent-primary);
+  --variant-key-badge-color: var(--primary-foreground);
+  --variant-key-badge-radius: 50%;
+  --variant-key-badge-size: 28px;
+
+  /* Variant Traffic */
+  --variant-traffic-bg: var(--accent-success-bg);
+  --variant-traffic-border: #b6e2c6;
+  --variant-traffic-radius: var(--radius-sm);
+  --variant-traffic-color: var(--accent-success);
 }
 
 /* Utility classes (import in your main CSS) */
@@ -112,7 +172,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-16);
 }
 .Card {
   background: var(--background-surface);

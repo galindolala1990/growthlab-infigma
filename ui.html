@@ -1,696 +1,150 @@
 <link rel="stylesheet" href="./design-tokens.css">
 <link rel="stylesheet" href="./ui.css">
-
-<style>
-  html, body {
-  font-size: var(--font-size-base);
-  }
-.Stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.Row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-}
-.Section {
-  margin-bottom: 32px;
-}
-.Card {
-  background: var(--background-surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--section-shadow);
-  padding: var(--space-24);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-}
-.Card:last-child {
-  margin-bottom: 0;
-}
-.typography-h1 {
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  color: var(--typography-h1-color);
-  line-height: 1.15;
-  margin: 0 0 var(--space-16) 0;
-}
-.typography-h2 {
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-semibold);
-  color: var(--typography-h2-color);
-  line-height: 1.2;
-  margin: 0 0 var(--space-12) 0;
-}
-.typography-h3 {
-  font-size: var(--font-size-h3);
-  font-weight: var(--font-weight-semibold);
-  color: var(--typography-h3-color);
-  line-height: 1.2;
-  margin: 0 0 var(--space-8) 0;
-}
-.typography-meta {
-  font-size: var(--font-size-meta);
-  color: var(--typography-meta-color);
-  font-weight: var(--font-weight-normal);
-  margin: 0;
-}
-/* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
-.Input {
-  font-size: var(--font-size-base);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--input-radius);
-  border: var(--input-border);
-  background: var(--input-bg);
-  flex: 1 1 0;
-  min-width: 0;
-  box-sizing: border-box;
-  height: var(--input-height);
-  display: flex;
-  align-items: center;
-}
-.Label {
-  min-width: 120px;
-  color: var(--label-color);
-  font-weight: var(--label-weight);
-  margin-right: var(--space-8);
-  text-align: left;
-}
-.ButtonGroup {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  margin-top: 16px;
-}
-.traffic-input-group {
-  display: inline-flex;
-  align-items: center;
-  background: #eaf7f0;
-  border: 1.5px solid #b6e2c6;
-  border-radius: 8px;
-  padding: 0 4px 0 0;
-  margin-left: 8px;
-  height: 32px;
-}
-.variant-traffic-input {
-  width: 54px;
-  border: none;
-  background: transparent;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: #217a4d;
-  outline: none;
-  text-align: right;
-  padding: 2px 0 2px 8px;
-}
-.traffic-percent {
-  font-size: var(--font-size-base);
-  color: #217a4d;
-  font-weight: 600;
-  margin-left: 2px;
-  margin-right: 6px;
-}
-.variant-card {
-  background: #fff;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  padding: 24px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  transition: box-shadow 0.18s, border 0.18s;
-}
-</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-<style>
-html {
-  font-size: var(--font-size-base);
-}
-/* --- Spacing scale: 4, 8, 12, 16, 24, 32px --- */
-.Stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.Row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-}
-.Section {
-  margin-bottom: 32px;
-}
-.Card {
-  background: #fff;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.Card:last-child {
-  margin-bottom: 0;
-}
 
-.typography-h1 {
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  color: var(--typography-h1-color);
-  line-height: 1.15;
-  margin: 0 0 var(--space-16) 0;
-}
-.typography-h2 {
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-semibold);
-  color: var(--typography-h2-color);
-  line-height: 1.2;
-  margin: 0 0 var(--space-12) 0;
-}
-.typography-h3 {
-  font-size: var(--font-size-h3);
-  font-weight: var(--font-weight-semibold);
-  color: var(--typography-h3-color);
-  line-height: 1.2;
-  margin: 0 0 var(--space-8) 0;
-}
-.typography-meta {
-  font-size: var(--font-size-meta);
-  color: var(--typography-meta-color);
-  font-weight: var(--font-weight-normal);
-  margin: 0;
-}
+<div class="app" id="container">
+  <!-- Header Section -->
+  <section class="section-header">
+    <div class="header-content">
+      <h1 class="text-md">Create experiment</h1>
+      <p class="text-xs">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</p>
+    </div>
+    <div class="header-inputs">
+      <input class="Input" type="text" id="experimentName" placeholder="Untitled experiment">
+      <input class="Input" type="text" id="experimentDescription" placeholder="Add description">
+    </div>
+  </section>
 
-
-/* Remove legacy SectionLabel, meta-summary, section-label classes (now consolidated) */
-.Input {
-  font-size: var(--font-size-base);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #dbe3ef;
-  background: #fff;
-  flex: 1 1 0;
-  min-width: 0;
-  box-sizing: border-box;
-  height: 40px;
-  display: flex;
-  align-items: center;
-}
-.Label {
-  min-width: 120px;
-  color: #6b7a90;
-  font-weight: 600;
-  margin-right: 8px;
-  text-align: left;
-}
-.ButtonGroup {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  margin-top: 16px;
-}
-.traffic-input-group {
-  display: inline-flex;
-  align-items: center;
-  background: #eaf7f0;
-  border: 1.5px solid #b6e2c6;
-  border-radius: 8px;
-  padding: 0 4px 0 0;
-  margin-left: 8px;
-  height: 32px;
-}
-.variant-traffic-input {
-  width: 54px;
-  border: none;
-  background: transparent;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: #217a4d;
-  outline: none;
-  text-align: right;
-  padding: 2px 0 2px 8px;
-}
-.traffic-percent {
-  font-size: var(--font-size-base);
-  color: #217a4d;
-  font-weight: 600;
-  margin-left: 2px;
-  margin-right: 6px;
-}
-.variant-card {
-  background: #fff;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  padding: 24px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  transition: box-shadow 0.18s, border 0.18s;
-}
-</style>
-
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
-<style>
-  .flow-setup .flow-inline-row {
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-bottom: 10px;
-  }
-html {
-  font-size: var(--font-size-base);
-}
-/* Force Figtree font everywhere */
-body, input, button, select, textarea, table, th, td, label, h1, h2, h3, h4, h5, h6, .app {
-  font-family: "Figtree", system-ui, Arial, sans-serif;
-  font-optical-sizing: auto;
-}
-/* Card-based layout and visual hierarchy */
-.flow-builder-card {
-  background: #f7fafd;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 18px;
-  box-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-  padding: 32px 32px 24px 32px;
-  margin-bottom: 32px;
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5em;
-  min-width: 0;
-}
-.flow-builder-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.flow-icon {
-  font-size: 1.5em;
-  background: #2a4d7a;
-  color: #fff;
-  border-radius: 8px;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-/* Removed .flow-title and .section-label (use .typography-h2 or .typography-h3) */
-.variants-section.emphasized {
-  background: #f5f8fd;
-    border: 1.5px solid #b7c6e0;
-  border-radius: 18px;
-    box-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
-  padding: 32px 32px 24px 32px;
-  margin-bottom: 32px;
-  margin-top: 16px;
-  transition: box-shadow 0.2s, border 0.2s;
-}
-.meta-card {
-  background: #f9fbfd;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
-  padding: 24px;
-  margin-bottom: 32px;
-  margin-top: 16px;
-  transition: box-shadow 0.2s;
-}
-  /* Removed .meta-summary (use .typography-h2) */
-.meta-card[open] {
-  padding-top: 0;
-}
-.flow-setup .row {
-  margin-bottom: 10px;
-  gap: 8px;
-  display: flex;
-  align-items: center;
-}
-.flow-setup label {
-  min-width: 110px;
-  color: #6b7a90;
-  font-weight: 500;
-}
-.flow-setup input {
-  flex: 1 1 120px;
-}
-.actions-footer {
-  margin-top: 0;
-}
-</style>
-
-<style>
-.variant-cards-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 12px;
-  min-height: 100px;
-  padding-bottom: 12px;
-}
-.variant-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: #f7fafd;
-  border: 1.5px solid #e6eaf2;
-  border-radius: 14px;
-  padding: 20px 20px 18px 20px;
-  box-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
-  position: relative;
-  font-family: "Figtree", system-ui, Arial, sans-serif;
-  min-width: 0;
-}
-.variant-card-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 2px;
-}
-.variant-key-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #2a4d7a;
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-right: 0;
-  flex-shrink: 0;
-}
-.variant-title-group {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-.variant-name-input {
-  font-size: calc(var(--font-size-base) * 1.08);
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  padding: 0 0 2px 0;
-  min-width: 120px;
-  flex: 1 1 120px;
-  outline: none;
-  color: #1a2330;
-}
-.variant-traffic-input {
-  width: 54px;
-  font-size: calc(var(--font-size-base) * 1.08);
-  font-weight: 600;
-  color: #217a4d;
-  background: #eaf7f0;
-  border: 1.5px solid #b6e2c6;
-  border-radius: 7px;
-  padding: 2px 8px;
-  margin-left: 6px;
-  margin-right: 2px;
-  text-align: right;
-}
-.variant-status-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 2px;
-}
-.variant-status-select {
-  min-width: 90px;
-  font-size: calc(var(--font-size-base) * 0.98);
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid #dbe3ef;
-  background: #fff;
-}
-.variant-status-pill {
-  font-size: 0.85em;
-  padding: 1px 10px;
-  border-radius: 10px;
-  margin-left: 0;
-  opacity: 0.6;
-  font-weight: 500;
-  background: #e0e7ef;
-  color: #2a4d7a;
-  border: 1px solid #e0e7ef;
-  pointer-events: none;
-  box-shadow: none;
-  cursor: default;
-  transition: none;
-  user-select: text;
-}
-.variant-key-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #2a4d7a;
-  color: #fff;
-  font-weight: 600;
-  font-size: calc(var(--font-size-base) * 1.1);
-  margin-right: 4px;
-  flex-shrink: 0;
-}
-.variant-fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 16px;
-  align-items: center;
-  flex: 1;
-}
-.variant-name-input {
-  min-width: 120px;
-  flex: 1 1 120px;
-}
-.variant-status-select {
-  min-width: 90px;
-}
-.variant-traffic-input {
-  width: 60px;
-}
-.variant-metrics {
-  display: flex;
-  gap: 8px;
-  margin-left: 8px;
-  transition: opacity 0.15s;
-}
-.variant-metrics.hidden {
-  display: none !important;
-}
-.actions-footer {
-  position: sticky;
-  bottom: 0;
-  background: #fff;
-  box-shadow: 0 -2px 12px 0 rgba(40,60,90,0.04);
-  padding: 20px 24px 16px 24px;
-  margin-left: -24px;
-  margin-right: -24px;
-  z-index: 10;
-}
-.integration-input {
-  font-size: 1rem;
-  padding: 4px 7px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 100%;
-  box-sizing: border-box;
-}
-</style>
-
-<div class="app" id="container" style="max-width:670px;margin:0 auto;">
-  <header class="main-header Section Stack" style="gap:8px;">
-    <h1 class="typography-h1">Create experiment</h1>
-    <div class="typography-meta">Design, configure, and launch experiment flows visually. Group variants, link context, and streamline your growth experiments.</div>
-  </header>
-  <form id="exp-form" autocomplete="off" class="Stack" style="gap:32px;">
-    <section class="Card Stack Section" aria-labelledby="exp-setup-label">
-      <h2 id="exp-setup-label" class="typography-h2" style="margin-bottom:0;">Experiment Setup</h2>
-      <div class="Row">
-        <label class="Label" for="experimentName">Name</label>
-        <input class="Input" type="text" id="experimentName" required placeholder="e.g. Button Color Test">
+  <form id="exp-form" autocomplete="off" class="form-container">
+    <!-- Metrics Section -->
+    <section class="section-metrics">
+      <div class="metrics-header">
+        <h2 class="text-md">Metrics</h2>
+        <button class="btn-add-metric" type="button" aria-label="Add metric">+</button>
       </div>
-      <div class="Row">
-        <label class="Label" for="roundNumber">Round</label>
-        <input class="Input" type="number" id="roundNumber" min="1" value="1" required style="width:60px;">
-      </div>
-      <div class="Row">
-        <label class="Label" for="entryLabel">Entry node</label>
-        <input class="Input" type="text" id="entryLabel" value="Login" required>
-      </div>
-      <div class="Row">
-        <label class="Label" for="exitLabel">Exit node</label>
-        <input class="Input" type="text" id="exitLabel" value="Welcome" required>
+      <div class="metrics-list" id="metricsList">
+        <!-- Metric cards inserted by JS -->
       </div>
     </section>
-    <details class="Card Section Stack" aria-labelledby="exp-details-label">
-      <summary class="typography-h2" id="exp-details-label">Experiment details</summary>
-      <div class="Row">
-        <label class="Label" for="experimentDescription">Description</label>
-        <input class="Input" type="text" id="experimentDescription" placeholder="Short description (optional)">
+
+    <!-- Events Section -->
+    <section class="section-events">
+      <div class="events-header">
+        <h2 class="text-md">Events</h2>
+        <span class="events-count" id="eventsCount">3 events • 3 variants</span>
       </div>
-      <div class="Row">
-        <label class="Label" for="figmaLink">Figma link</label>
-        <input class="Input integration-input" type="url" id="figmaLink" placeholder="https://www.figma.com/file/..." >
-      </div>
-      <div class="Row">
-        <label class="Label" for="jiraLink">Jira link</label>
-        <input class="Input integration-input" type="url" id="jiraLink" placeholder="https://jira.company.com/browse/..." >
-      </div>
-      <div class="Row">
-        <label class="Label" for="miroLink">Miro link</label>
-        <input class="Input integration-input" type="url" id="miroLink" placeholder="https://miro.com/app/board/..." >
-      </div>
-    </details>
-    <section class="Card Section Stack" aria-labelledby="variants-label">
-      <h2 id="variants-label" class="typography-h2" style="margin-bottom:0;">Variants</h2>
-      <div class="variant-cards-list Stack" id="variantsCardsList" style="gap:24px;">
-        <!-- Cards inserted by JS -->
+      <div class="events-list" id="eventsList">
+        <!-- Event rows inserted by JS -->
       </div>
     </section>
-    <footer class="actions-footer Card Stack" style="padding:24px;">
-      <div class="footer-helper" style="font-size:0.98em; color:#4a5a70; margin-bottom:8px;">
-        <span>“Create flow” will generate and display your experiment as a visual flow on the canvas.</span>
-      </div>
-      <div class="ButtonGroup" style="margin-top:16px;">
-        <button type="submit" class="Button primary" data-variant="primary">Create flow</button>
-        <button class="secondary" type="button" id="cancel">Cancel</button>
-      </div>
+
+    <!-- Footer Section -->
+    <footer class="section-footer">
+      <button type="submit" class="Button primary">Create flow</button>
+      <button type="button" id="cancel" class="Button secondary">Cancel</button>
     </footer>
   </form>
 </div>
 
 <script>
-const defaultVariants = [
-  { key: 'A', name: 'Black btn', traffic: 50, status: 'Running', metrics: { CTR: 0, CR: 0, SU: 0 } },
-  { key: 'B', name: 'Blue btn', traffic: 25, status: 'Winner', metrics: { CTR: 1, CR: 1, SU: 31 } },
-  { key: 'C', name: 'Green btn', traffic: 25, status: 'None', metrics: { CTR: 0, CR: 0, SU: 0 } },
+// Sample data for metrics
+const defaultMetrics = [
+  { name: 'CTR', status: 'add button', value: 0 },
+  { name: 'CR', status: 'filled name and rate', value: 2.5 },
+  { name: 'Conversion rate', status: 'filled name and rate', value: 18 },
 ];
 
-const statusOptions = [
-  { value: 'Running', label: 'Running', class: 'running' },
-  { value: 'Winner', label: 'Winner', class: 'winner' },
-  { value: 'None', label: 'None', class: 'none' },
+// Sample data for events
+const defaultEvents = [
+  { type: 'event', name: 'Page viewed', variants: null },
+  { type: 'variant', name: 'Checkout', variants: 3 },
+  { type: 'event', name: 'Order placed', variants: null },
 ];
 
-function renderVariants(variants) {
-  const list = document.getElementById('variantsCardsList');
+function renderMetrics(metrics) {
+  const list = document.getElementById('metricsList');
   list.innerHTML = '';
-  variants.forEach((v, i) => {
+  metrics.forEach((m, i) => {
     const card = document.createElement('div');
-    card.className = 'variant-card';
-    // Determine if metrics should be shown
-    const hasMetrics = v.metrics.CTR || v.metrics.CR || v.metrics.SU;
-    card.innerHTML = `
-      <div class="variant-card-header">
-        <span class="variant-key-badge">${v.key}</span>
-        <div class="variant-title-group">
-          <input type="text" class="variant-name-input" value="${v.name}" placeholder="Variant name" data-idx="${i}" data-field="name">
-          <input type="number" class="variant-traffic-input" value="${v.traffic}" min="0" max="100" data-idx="${i}" data-field="traffic">%
-        </div>
-      </div>
-      <div class="variant-status-row">
-        <select class="variant-status-select" data-idx="${i}" data-field="status">
-          ${statusOptions.map(opt => `<option value="${opt.value}" ${v.status===opt.value?'selected':''}>${opt.label}</option>`).join('')}
-        </select>
-        <span class="variant-status-pill ${v.status.toLowerCase()}" style="pointer-events:none;">${v.status}</span>
-      </div>
-      <div class="variant-metrics${hasMetrics ? '' : ' hidden'}" tabindex="0">
-        <span class="metrics-chip">CTR: ${v.metrics.CTR || 0}</span>
-        <span class="metrics-chip">CR: ${v.metrics.CR || 0}</span>
-        <span class="metrics-chip">SU: ${v.metrics.SU || 0}</span>
-      </div>
-    `;
-    // Reveal metrics on focus
-    const metricsDiv = card.querySelector('.variant-metrics');
-    if (metricsDiv) {
-      card.addEventListener('focusin', () => {
-        metricsDiv.classList.remove('hidden');
-      });
-      card.addEventListener('focusout', () => {
-        if (!(v.metrics.CTR || v.metrics.CR || v.metrics.SU)) {
-          metricsDiv.classList.add('hidden');
-        }
-      });
-    }
+    card.className = 'metric-card';
+    
+    const header = document.createElement('div');
+    header.className = 'metric-header';
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'metric-name';
+    nameSpan.textContent = m.name;
+    
+    const rateSpan = document.createElement('span');
+    rateSpan.className = 'metric-rate';
+    rateSpan.textContent = m.value + '%';
+    
+    header.appendChild(nameSpan);
+    header.appendChild(rateSpan);
+    card.appendChild(header);
     list.appendChild(card);
   });
 }
 
-let variants = JSON.parse(JSON.stringify(defaultVariants));
-renderVariants(variants);
+function renderEvents(events) {
+  const list = document.getElementById('eventsList');
+  const summary = document.getElementById('eventsCount');
+  list.innerHTML = '';
+  
+  const eventCount = events.filter(e => e.type === 'event').length;
+  const variantCount = events.filter(e => e.type === 'variant').length;
+  summary.textContent = `${eventCount} events • ${variantCount} variants`;
+  
+  events.forEach((e, i) => {
+    const row = document.createElement('div');
+    row.className = `event-row event-row-${e.type}`;
+    
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'event-name';
+    nameDiv.textContent = e.name;
+    row.appendChild(nameDiv);
+    
+    if (e.variants) {
+      const variantsDiv = document.createElement('div');
+      variantsDiv.className = 'event-variants';
+      variantsDiv.textContent = e.variants;
+      row.appendChild(variantsDiv);
+    }
+    
+    list.appendChild(row);
+  });
+}
 
-// Listen for changes in the variants table
-document.getElementById('variantsCardsList').addEventListener('input', (e) => {
-  const idx = +e.target.getAttribute('data-idx');
-  const field = e.target.getAttribute('data-field');
-  if (['name', 'traffic'].includes(field)) {
-    variants[idx][field] = field === 'traffic' ? Number(e.target.value) : e.target.value;
-  } else if (['CTR', 'CR', 'SU'].includes(field)) {
-    variants[idx].metrics[field] = Number(e.target.value);
-  }
-  renderVariants(variants);
-});
-document.getElementById('variantsCardsList').addEventListener('change', (e) => {
-  const idx = +e.target.getAttribute('data-idx');
-  const field = e.target.getAttribute('data-field');
-  if (field === 'status') {
-    variants[idx][field] = e.target.value;
-    renderVariants(variants); // re-render to update pill
-  }
-});
+let metrics = JSON.parse(JSON.stringify(defaultMetrics));
+let events = JSON.parse(JSON.stringify(defaultEvents));
 
-// Form submit
+renderMetrics(metrics);
+renderEvents(events);
+
 document.getElementById('exp-form').onsubmit = (e) => {
   e.preventDefault();
   const experimentName = document.getElementById('experimentName').value.trim();
   const experimentDescription = document.getElementById('experimentDescription').value.trim();
-  const roundNumber = Number(document.getElementById('roundNumber').value);
-  const entryLabel = document.getElementById('entryLabel').value.trim();
-  const exitLabel = document.getElementById('exitLabel').value.trim();
-  const figmaLink = document.getElementById('figmaLink').value.trim();
-  const jiraLink = document.getElementById('jiraLink').value.trim();
-  const miroLink = document.getElementById('miroLink').value.trim();
   parent.postMessage({ pluginMessage: {
     type: 'create-flow',
     payload: {
       experimentName,
       experimentDescription,
-      roundNumber,
-      entryLabel,
-      exitLabel,
-      figmaLink,
-      jiraLink,
-      miroLink,
-      variants: JSON.parse(JSON.stringify(variants))
+      metrics: JSON.parse(JSON.stringify(metrics)),
+      events: JSON.parse(JSON.stringify(events))
     }
   } }, '*');
 };
 
-const createFromSelectionBtn = document.getElementById('createFromSelection');
-if (createFromSelectionBtn) {
-  createFromSelectionBtn.onclick = () => {
-    parent.postMessage({ pluginMessage: { type: 'create-from-selection' } }, '*');
-  };
-}
-
 document.getElementById('cancel').onclick = () => {
   parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+};
+
+document.querySelector('.btn-add-metric').onclick = (e) => {
+  e.preventDefault();
+  metrics.push({ name: 'New metric', status: 'add button', value: 0 });
+  renderMetrics(metrics);
 };
 </script>
