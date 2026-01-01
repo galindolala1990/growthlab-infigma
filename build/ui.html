@@ -90,6 +90,7 @@
       /* === Spacing === */
       --space-4: 4px;
       --space-8: 8px;
+      --space-10: 10px;
       --space-12: 12px;
       --space-16: 16px;
       --space-24: 24px;
@@ -299,7 +300,11 @@
     }
 
     .btn-add-event:hover {
-      background: rgba(34, 39, 47, 0.08);
+      background: var(--background-muted);
+    }
+
+     .btn-add-event:active {
+      background: var(--background-subtle);
     }
 
     .btn-add-event svg {
@@ -322,11 +327,11 @@
 
     /* Add Metric Button (from Figma: radius=4px) */
     .btn-add-metric {
-      width: 24px;
+      width: 26px;
       height: 24px;
       border-radius: var(--button-radius);
-      border: 1px solid var(--border);
-      background: var(--background-surface);
+      border: none;
+      background: transparent;
       color: var(--text-secondary);
       cursor: pointer;
       font-size: 14px;
@@ -334,16 +339,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
 
     .btn-add-metric:hover {
       background: var(--background-muted);
-      border-color: var(--border-dark);
     }
 
     .btn-add-metric:active {
       background: var(--background-subtle);
+    }
+    .btn-add-metric svg {
+      width: 14px;
+      height: 14px;
     }
 
     /* Metric Cards */
@@ -507,25 +515,33 @@
 
     .event-row-main {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: var(--space-8);
-      padding-bottom: var(--space-8);
-      padding-top: var(--space-8);
-      border-bottom: 1px dashed transparent;
+      padding-bottom: var(--space-16);
+      padding-top: var(--space-16);
+      border-bottom: 1px dashed var(--border);
     }
 
     .event-row-main:not(:last-child) {
       border-bottom-color: var(--border);
     }
+
+    /* Hide border when variants container follows */
+    .event-row:has(.event-variants-container) .event-row-main {
+      /*border-bottom-color: transparent;*/
+      border: none;
+    }
     
 
     /* Event step number badge */
     .event-step {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2px;
+      justify-content: center;
       width: 22px;
+      flex-shrink: 0;
     }
 
     .event-step-badge {
@@ -539,12 +555,25 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      z-index: 1;
     }
 
     .event-flow-line {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       width: 1px;
       height: 16px;
       border-left: 1px dashed var(--border-dark);
+    }
+
+    .event-flow-line:first-child {
+      bottom: 100%;
+    }
+
+    .event-flow-line:last-child {
+      top: 100%;
     }
 
     /* Event input field container */
@@ -592,6 +621,7 @@
     .event-variants-container {
       display: flex;
       gap: var(--space-8);
+      margin-top: -1px
       /*margin-left: 9px;
       padding-left: var(--space-8);*/
     }
@@ -607,7 +637,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2px;
+      padding: 0px 2px;
       flex-shrink: 0;
       width: 22px
     }
@@ -618,18 +648,31 @@
       flex: 1;
     }
 
-    /* Variant Card */
+    /* Variant Card - States: Default, Entered, onHover, onDrag */
     .variant-card {
       display: flex;
       align-items: flex-start;
       gap: var(--space-8);
       padding: var(--space-12) var(--space-8);
-      background: var(--background-surface);
+      background: transparent;
       border-bottom: 1px dashed var(--border);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
     .variant-card:last-child {
       border-bottom: none;
+    }
+
+    /* Hover state */
+    .variant-card:hover {
+      background: rgba(236, 239, 242, 0.4);
+    }
+
+    /* Dragging state */
+    .variant-card.dragging {
+      background: rgba(236, 239, 242, 0.4);
+      border-top: 0.5px solid var(--text-secondary);
+      box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
     }
 
     /* Variant letter badge */
@@ -661,9 +704,16 @@
       cursor: grab;
       color: var(--text-muted);
       flex-shrink: 0;
+      transition: color 0.15s;
     }
 
     .variant-grip:hover {
+      color: var(--text-secondary);
+    }
+
+    .variant-grip:active,
+    .variant-card.dragging .variant-grip {
+      cursor: grabbing;
       color: var(--text-secondary);
     }
 
@@ -753,6 +803,7 @@
       font-size: 11px;
       font-weight: 500;
       transition: background 0.15s, color 0.15s;
+      min-width: 110px;
     }
 
     .btn-set-winner:hover {
@@ -1296,7 +1347,12 @@
             <h2>Metrics</h2>
             <span class="metrics-count" id="metricsCount"></span>
           </div>
-          <button class="btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">+</button>
+          <button class="btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
         </div>
         <div class="metrics-list" id="metricsList">
           <!-- Metric rows inserted by JS -->
@@ -1677,7 +1733,7 @@
       const nameField = createInputField({
         id: `variant-name-${eventIndex}-${variantIndex}`,
         label: 'Variant name',
-        showLabel: true,
+        showLabel: false,
         help: 'Enter variant name',
         text: variant.name || '',
         variant: 'vertical'
@@ -1689,8 +1745,8 @@
       const trafficField = createInputField({
         id: `variant-traffic-${eventIndex}-${variantIndex}`,
         label: 'Traffic',
-        showLabel: true,
-        showRText: true,
+        showLabel: false,
+        showRText: false,
         suffix: '%',
         help: '50',
         text: variant.traffic !== undefined ? String(variant.traffic) : '',
@@ -1743,7 +1799,7 @@
         <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/>
         <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
       </svg>
-      <span>${variant.isWinner ? 'Winner' : 'Set as winner'}</span>`;
+      <span>${variant.isWinner ? 'Current winner' : 'Set as winner'}</span>`;
       winnerBtn.title = variant.isWinner ? 'Current winner' : 'Set as winner';
       winnerBtn.onclick = () => {
         // Toggle winner status, unset others
@@ -1787,6 +1843,43 @@
       card.appendChild(content);
       card.appendChild(actions);
 
+      // Drag and drop functionality
+      card.draggable = true;
+      card.dataset.eventIndex = eventIndex;
+      card.dataset.variantIndex = variantIndex;
+
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({ eventIndex, variantIndex }));
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+      });
+
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const fromEventIndex = data.eventIndex;
+        const fromVariantIndex = data.variantIndex;
+        const toEventIndex = parseInt(card.dataset.eventIndex);
+        const toVariantIndex = parseInt(card.dataset.variantIndex);
+
+        // Only reorder within the same event
+        if (fromEventIndex === toEventIndex && fromVariantIndex !== toVariantIndex) {
+          const variants = events[fromEventIndex].variants;
+          const [movedVariant] = variants.splice(fromVariantIndex, 1);
+          variants.splice(toVariantIndex, 0, movedVariant);
+          renderEvents(events);
+        }
+      });
+
       return card;
     }
 
@@ -1802,16 +1895,23 @@
       const mainRow = document.createElement('div');
       mainRow.className = 'event-row-main';
 
-      // Step indicator with flow line
+      // Step indicator with flow lines
       const stepDiv = document.createElement('div');
       stepDiv.className = 'event-step';
+      
+      // Flow line above (if not first event)
+      if (eventIndex > 0) {
+        const flowLineAbove = document.createElement('div');
+        flowLineAbove.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineAbove);
+      }
       
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
       stepBadge.textContent = String(eventIndex + 1);
       stepDiv.appendChild(stepBadge);
 
-      // Flow line (if not last event or has variants)
+      // Flow line below (if not last event or has variants)
       if (eventIndex < totalEvents - 1 || event.hasVariants) {
         const flowLine = document.createElement('div');
         flowLine.className = 'event-flow-line';
