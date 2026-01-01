@@ -502,14 +502,22 @@
     .event-row {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      /* gap: var(--space-8);*/
     }
 
     .event-row-main {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: var(--space-8);
+      padding-bottom: var(--space-8);
+      padding-top: var(--space-8);
+      border-bottom: 1px dashed transparent;
     }
+
+    .event-row-main:not(:last-child) {
+      border-bottom-color: var(--border);
+    }
+    
 
     /* Event step number badge */
     .event-step {
@@ -517,6 +525,7 @@
       flex-direction: column;
       align-items: center;
       padding: 2px;
+      width: 22px;
     }
 
     .event-step-badge {
@@ -535,7 +544,7 @@
     .event-flow-line {
       width: 1px;
       height: 16px;
-      background: var(--border-dark);
+      border-left: 1px dashed var(--border-dark);
     }
 
     /* Event input field container */
@@ -583,14 +592,24 @@
     .event-variants-container {
       display: flex;
       gap: var(--space-8);
-      margin-left: 9px;
-      padding-left: var(--space-8);
+      /*margin-left: 9px;
+      padding-left: var(--space-8);*/
     }
 
     .event-variants-line {
       width: 1px;
-      background: var(--border-dark);
+      border-left: 1px dashed var(--border-dark);
+      flex: 1;
       min-height: 40px;
+    }
+
+    .event-variants-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2px;
+      flex-shrink: 0;
+      width: 22px
     }
 
     .variants-list {
@@ -901,6 +920,7 @@
     .InputField__wrapper {
       display: flex;
       align-items: center;
+      max-height: 24px;
       gap: var(--input-field-gap);
       background: var(--input-field-bg);
       border: var(--input-field-border);
@@ -1459,6 +1479,12 @@
       {
         id: 'event-0',
         name: 'Landing page',
+         hasVariants: false,
+        variants: []
+      },
+      {
+        id: 'event-1',
+        name: 'Conversion button',
         hasVariants: true,
         variants: [
           { id: 'var-0-0', name: 'Control', traffic: 50, metrics: { ctr: 0.695, cr: 0.425 }, isWinner: false },
@@ -1466,9 +1492,9 @@
         ]
       },
       {
-        id: 'event-1',
-        name: 'Conversion button',
-        hasVariants: false,
+        id: 'event-2',
+        name: 'Checkout page',
+         hasVariants: false,
         variants: []
       },
     ];
@@ -1850,8 +1876,13 @@
         const variantsContainer = document.createElement('div');
         variantsContainer.className = 'event-variants-container';
 
+        // Step indicator for variants (mirrors event-step structure)
+        const variantsStep = document.createElement('div');
+        variantsStep.className = 'event-variants-step';
+
         const variantsLine = document.createElement('div');
         variantsLine.className = 'event-variants-line';
+        variantsStep.appendChild(variantsLine);
 
         const variantsList = document.createElement('div');
         variantsList.className = 'variants-list';
@@ -1862,7 +1893,7 @@
           variantsList.appendChild(variantCard);
         });
 
-        variantsContainer.appendChild(variantsLine);
+        variantsContainer.appendChild(variantsStep);
         variantsContainer.appendChild(variantsList);
         row.appendChild(variantsContainer);
       }
