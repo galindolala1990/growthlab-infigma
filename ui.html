@@ -149,7 +149,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     
     /* Heading 1 */
@@ -196,6 +196,7 @@
     
     /* Form Elements */
     input, button, select, textarea {
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: var(--body-md-size);
     }
 
@@ -208,9 +209,8 @@
     /* Section Header (from Figma: padding=16px, spacing=16px) */
     .section-header {
       background: var(--background-surface);
-      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       padding: var(--section-padding);
-      margin-bottom: var(--section-gap);
     }
 
     .header-content {
@@ -249,18 +249,17 @@
       box-shadow: 0 0 0 2px var(--primary-soft);
     }
 
-    /* Form Container (from Figma: spacing=4px) */
+    /* Form Container*/
     .form-container {
       display: flex;
       flex-direction: column;
-      gap: var(--container-gap);
     }
 
     /* Section Metrics & Events */
     .section-metrics,
     .section-events {
       background: var(--background-surface);
-      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       padding: var(--space-16);
     }
 
@@ -269,12 +268,56 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: var(--space-12);
+      margin-bottom: var(--space-16);
     }
 
+    .events-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .events-header-left h2 {
+      padding: 4px 0;
+    }
+
+    /* Add Event Button */
+    .btn-add-event {
+      width: 26px;
+      height: 24px;
+      border-radius: var(--button-radius);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-add-event:hover {
+      background: rgba(34, 39, 47, 0.08);
+    }
+
+    .btn-add-event svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .metrics-header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .metrics-count,
     .events-count {
-      font-size: var(--body-sm-size);
-      color: var(--typography-meta-color);
+      font-size: var(--body-md-size);
+      font-weight: 400;
+      color: var(--text-muted);
     }
 
     /* Add Metric Button (from Figma: radius=4px) */
@@ -291,6 +334,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
     }
 
     .btn-add-metric:hover {
@@ -298,68 +342,466 @@
       border-color: var(--border-dark);
     }
 
+    .btn-add-metric:active {
+      background: var(--background-subtle);
+    }
+
     /* Metric Cards */
     .metrics-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      gap: 0;
     }
 
-    .metric-card {
-      background: var(--variant-card-bg);
-      border: 1px solid var(--variant-card-border);
-      border-radius: var(--radius-sm);
-      padding: var(--space-12);
-    }
-
-    .metric-header {
+    .metric-row {
       display: flex;
-      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-8);
+      padding-bottom: var(--space-16);
+      border-bottom: 1px dashed transparent;
+    }
+
+    .metric-row:not(:last-child) {
+      border-bottom-color: var(--border);
+    }
+
+    .metric-row + .metric-row {
+      padding-top: var(--space-16);
+    }
+
+    /* Metric name field (flexible width) */
+    .metric-name-field {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Min/Max range container */
+    .metric-range-container {
+      display: flex;
       align-items: center;
+      gap: var(--space-8);
+      padding-left: var(--space-8);
     }
 
-    .metric-name {
+    .metric-range-field {
+      width: 50px;
+    }
+
+    .metric-range-separator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 44px;
+      padding-bottom: 7px;
+    }
+
+    .metric-range-separator span {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 10px;
+    }
+
+    /* Delete button */
+    .metric-delete-btn {
+      width: 26px;
+      height: 24px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .metric-delete-btn:hover {
+      background: rgba(242, 78, 30, 0.1);
+      color: #f24e1e;
+    }
+
+    .metric-delete-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Empty state */
+    .metrics-empty-state {
+      text-align: center;
+      padding: var(--space-24);
+      color: var(--text-muted);
       font-size: var(--body-md-size);
-      font-weight: 500;
-      color: var(--foreground);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
     }
 
-    .metric-rate {
-      font-size: var(--body-sm-size);
-      font-weight: 600;
-      color: var(--accent-success);
+    .metrics-empty-state.hidden {
+      display: none;
     }
 
-    /* Events List */
+    /* Tooltip styling */
+    [data-tooltip] {
+      position: relative;
+      cursor: help;
+    }
+
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--foreground);
+      color: var(--background-surface);
+      padding: var(--space-8) var(--space-12);
+      border-radius: var(--radius-xs);
+      font-size: 9px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+
+    [data-tooltip]::before {
+      content: '';
+      position: absolute;
+      bottom: 118%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: var(--foreground);
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+
+    [data-tooltip]:hover::after,
+    [data-tooltip]:hover::before {
+      opacity: 1;
+    }
+
+    /* ============================================
+     * FLOW SECTION (Events + Variants)
+     * ============================================ */
+    
+    /* Events List Container */
     .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Individual Event Row */
+    .event-row {
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
     }
 
-    .event-row {
+    .event-row-main {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: var(--space-8) var(--space-12);
-      background: var(--background-muted);
-      border-radius: var(--radius-xs);
+      gap: var(--space-8);
     }
 
-    .event-row-variant {
-      background: var(--variant-traffic-bg);
-      border: 1px solid var(--variant-traffic-border);
+    /* Event step number badge */
+    .event-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2px;
     }
 
-    .event-name {
-      font-size: var(--body-md-size);
-      color: var(--foreground);
-    }
-
-    .event-variants {
-      font-size: var(--body-sm-size);
+    .event-step-badge {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      color: #fff;
+      font-size: 10px;
       font-weight: 600;
-      color: var(--variant-traffic-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .event-flow-line {
+      width: 1px;
+      height: 16px;
+      background: var(--border-dark);
+    }
+
+    /* Event input field container */
+    .event-input-container {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Event action buttons */
+    .event-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .event-action-btn {
+      width: 26px;
+      height: 24px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .event-action-btn:hover {
+      background: rgba(34, 39, 47, 0.08);
+    }
+
+    .event-action-btn.delete:hover {
+      background: rgba(242, 78, 30, 0.1);
+      color: #f24e1e;
+    }
+
+    .event-action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Variants container (nested under event) */
+    .event-variants-container {
+      display: flex;
+      gap: var(--space-8);
+      margin-left: 9px;
+      padding-left: var(--space-8);
+    }
+
+    .event-variants-line {
+      width: 1px;
+      background: var(--border-dark);
+      min-height: 40px;
+    }
+
+    .variants-list {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    /* Variant Card */
+    .variant-card {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-8);
+      padding: var(--space-12) var(--space-8);
+      background: var(--background-surface);
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .variant-card:last-child {
+      border-bottom: none;
+    }
+
+    /* Variant letter badge */
+    .variant-badge {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .variant-badge.variant-a { background: #2563eb; color: #fff; }
+    .variant-badge.variant-b { background: #0eab43; color: #fff; }
+    .variant-badge.variant-c { background: #dd7602; color: #fff; }
+    .variant-badge.variant-d { background: #8b5cf6; color: #fff; }
+    .variant-badge.variant-add { background: var(--border-dark); color: var(--text-secondary); }
+
+    /* Variant grip handle */
+    .variant-grip {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .variant-grip:hover {
+      color: var(--text-secondary);
+    }
+
+    .variant-grip svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Variant content area */
+    .variant-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .variant-row {
+      display: flex;
+      gap: var(--space-8);
+    }
+
+    .variant-name-field {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .variant-traffic-field {
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    /* Variant metrics row */
+    .variant-metrics-row {
+      display: flex;
+      gap: var(--space-16);
+      align-items: flex-end;
+    }
+
+    .variant-metric-field {
+      flex: 1;
+      min-width: 60px;
+    }
+
+    /* Variant winner section */
+    .variant-winner {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    .variant-winner-label {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--input-field-text-color);
+    }
+
+    .variant-winner-checkbox {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      cursor: pointer;
+    }
+
+    .variant-winner-checkbox input {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--primary);
+    }
+
+    .variant-winner-checkbox span {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Set as winner button */
+    .btn-set-winner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: 6px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-set-winner:hover {
+      background: rgba(234, 179, 8, 0.1);
+      color: #ca8a04;
+    }
+
+    .btn-set-winner.is-winner {
+      background: rgba(234, 179, 8, 0.15);
+      color: #ca8a04;
+    }
+
+    .btn-set-winner svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Variant actions */
+    .variant-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+      flex-shrink: 0;
+    }
+
+    .variant-action-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-xs);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .variant-action-btn:hover {
+      background: rgba(34, 39, 47, 0.08);
+    }
+
+    .variant-action-btn.remove:hover {
+      background: rgba(242, 78, 30, 0.1);
+      color: #f24e1e;
+    }
+
+    .variant-action-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Empty state for events */
+    .events-empty-state {
+      text-align: center;
+      padding: var(--space-24);
+      color: var(--text-muted);
+      font-size: var(--body-md-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
+    }
+
+    .events-empty-state.hidden {
+      display: none;
     }
 
     /* Footer Section */
@@ -442,7 +884,7 @@
 
     /* Label */
     .InputField__label {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 500;
       line-height: 100%;
@@ -482,7 +924,7 @@
 
     /* Left text (prefix like "(CR)") */
     .InputField__prefix {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: 100%;
@@ -500,7 +942,7 @@
       border: none;
       background: transparent;
       outline: none;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: 10px;
@@ -520,7 +962,7 @@
 
     /* Right text (suffix) */
     .InputField__suffix {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: 100%;
@@ -580,7 +1022,7 @@
     }
 
     .links-header__label {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 500;
       line-height: 100%;
@@ -728,124 +1170,143 @@
 </head>
 <body>
   <div class="app" id="container">
-    <!-- Header Section -->
-    <section class="section-header">
-      <div class="header-content">
-        <h1>Create experiment</h1>
-        <p class="body-md">Group design variants and streamline your growth experiments.</p>
-      </div>
-      <div class="header-inputs">
-        <!-- InputField Component: Vertical variant, default state -->
-        <div class="InputField" data-state="default" data-variant="vertical">
-          <label class="InputField__label">Experiment name</label>
-          <div class="InputField__wrapper">
-            <span class="InputField__prefix hidden">(CR)</span>
-            <input class="InputField__input" type="text" id="experimentName" placeholder="Untitled experiment">
-            <span class="InputField__suffix hidden"></span>
-            <span class="InputField__icon hidden">
+    <form id="exp-form" autocomplete="off" class="form-container">
+      <!-- Header Section -->
+      <section class="section-header">
+        <div class="header-content">
+          <h1>Create experiment</h1>
+          <p class="body-md">Group design variants and streamline your growth experiments.</p>
+        </div>
+        <div class="header-inputs">
+          <!-- InputField Component: Vertical variant, default state -->
+          <div class="InputField" data-state="default" data-variant="vertical">
+            <label class="InputField__label">Experiment name</label>
+            <div class="InputField__wrapper">
+              <span class="InputField__prefix hidden">(CR)</span>
+              <input class="InputField__input" type="text" id="experimentName" placeholder="Untitled experiment">
+              <span class="InputField__suffix hidden"></span>
+              <span class="InputField__icon hidden">
+                <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- InputField Component: Vertical variant, default state -->
+          <div class="InputField" data-state="default" data-variant="vertical">
+            <label class="InputField__label">Description</label>
+            <div class="InputField__wrapper">
+              <span class="InputField__prefix hidden"></span>
+              <input class="InputField__input" type="text" id="experimentDescription" placeholder="Add description">
+              <span class="InputField__suffix hidden"></span>
+              <span class="InputField__icon hidden"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Links subsection -->
+        <div class="links-subsection" id="linksSubsection">
+          <div class="links-header" id="linksHeader">
+            <span class="links-header__chevron">
               <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
+            <span class="links-header__label">Links</span>
           </div>
-        </div>
-
-        <!-- InputField Component: Vertical variant, default state -->
-        <div class="InputField" data-state="default" data-variant="vertical">
-          <label class="InputField__label">Description</label>
-          <div class="InputField__wrapper">
-            <span class="InputField__prefix hidden"></span>
-            <input class="InputField__input" type="text" id="experimentDescription" placeholder="Add description">
-            <span class="InputField__suffix hidden"></span>
-            <span class="InputField__icon hidden"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Links subsection -->
-      <div class="links-subsection" id="linksSubsection">
-        <div class="links-header" id="linksHeader">
-          <span class="links-header__chevron">
-            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span class="links-header__label">Links</span>
-        </div>
-        <div class="links-list" id="linksList">
-          <!-- Figma Link - InputField Component: Horizontal variant with icon -->
-          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-            <label class="InputField__label link-icon figma" aria-label="Figma">
-              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 24C10.208 24 12 22.208 12 20V16H8C5.792 16 4 17.792 4 20C4 22.208 5.792 24 8 24Z"/>
-                <path d="M4 12C4 9.792 5.792 8 8 8H12V16H8C5.792 16 4 14.208 4 12Z"/>
-                <path d="M4 4C4 1.792 5.792 0 8 0H12V8H8C5.792 8 4 6.208 4 4Z"/>
-                <path d="M12 0H16C18.208 0 20 1.792 20 4C20 6.208 18.208 8 16 8H12V0Z"/>
-                <path d="M20 12C20 14.208 18.208 16 16 16C13.792 16 12 14.208 12 12C12 9.792 13.792 8 16 8C18.208 8 20 9.792 20 12Z"/>
-              </svg>
-            </label>
-            <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden"></span>
-              <input class="InputField__input" type="url" id="figmaLink" placeholder="Paste Figma link...">
-              <span class="InputField__suffix hidden"></span>
-              <span class="InputField__icon hidden"></span>
+          <div class="links-list" id="linksList">
+            <!-- Figma Link - InputField Component: Horizontal variant with icon -->
+            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+              <label class="InputField__label link-icon figma" aria-label="Figma">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 24C10.208 24 12 22.208 12 20V16H8C5.792 16 4 17.792 4 20C4 22.208 5.792 24 8 24Z"/>
+                  <path d="M4 12C4 9.792 5.792 8 8 8H12V16H8C5.792 16 4 14.208 4 12Z"/>
+                  <path d="M4 4C4 1.792 5.792 0 8 0H12V8H8C5.792 8 4 6.208 4 4Z"/>
+                  <path d="M12 0H16C18.208 0 20 1.792 20 4C20 6.208 18.208 8 16 8H12V0Z"/>
+                  <path d="M20 12C20 14.208 18.208 16 16 16C13.792 16 12 14.208 12 12C12 9.792 13.792 8 16 8C18.208 8 20 9.792 20 12Z"/>
+                </svg>
+              </label>
+              <div class="InputField__wrapper">
+                <span class="InputField__prefix hidden"></span>
+                <input class="InputField__input" type="url" id="figmaLink" placeholder="Paste Figma link...">
+                <span class="InputField__suffix hidden"></span>
+                <span class="InputField__icon hidden"></span>
+              </div>
             </div>
-          </div>
 
-          <!-- Jira Link - InputField Component: Horizontal variant with icon -->
-          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-            <label class="InputField__label link-icon jira" aria-label="Jira">
-              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11.571 11.513H0C0 5.171 5.171 0 11.514 0H23.028L11.571 11.513Z"/>
-                <path d="M23.028 0L11.571 11.514L23.028 23.028H11.514C5.171 23.028 0 17.857 0 11.514H11.571L23.028 0Z" opacity="0.5"/>
-              </svg>
-            </label>
-            <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden"></span>
-              <input class="InputField__input" type="url" id="jiraLink" placeholder="Paste Jira ticket link...">
-              <span class="InputField__suffix hidden"></span>
-              <span class="InputField__icon hidden"></span>
+            <!-- Jira Link - InputField Component: Horizontal variant with icon -->
+            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+              <label class="InputField__label link-icon jira" aria-label="Jira">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.571 11.513H0C0 5.171 5.171 0 11.514 0H23.028L11.571 11.513Z"/>
+                  <path d="M23.028 0L11.571 11.514L23.028 23.028H11.514C5.171 23.028 0 17.857 0 11.514H11.571L23.028 0Z" opacity="0.5"/>
+                </svg>
+              </label>
+              <div class="InputField__wrapper">
+                <span class="InputField__prefix hidden"></span>
+                <input class="InputField__input" type="url" id="jiraLink" placeholder="Paste Jira ticket link...">
+                <span class="InputField__suffix hidden"></span>
+                <span class="InputField__icon hidden"></span>
+              </div>
             </div>
-          </div>
 
-          <!-- Miro Link - InputField Component: Horizontal variant with icon -->
-          <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-            <label class="InputField__label link-icon miro" aria-label="Miro">
-              <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.392 0H13.9L17 4.8L10.1 0H6.608L10.5 6.4L3 0H0L7 12L0 24H3L10.5 17.6L6.608 24H10.1L17 19.2L13.9 24H17.392L24 12L17.392 0Z"/>
-              </svg>
-            </label>
-            <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden"></span>
-              <input class="InputField__input" type="url" id="miroLink" placeholder="Paste Miro board link...">
-              <span class="InputField__suffix hidden"></span>
-              <span class="InputField__icon hidden"></span>
+            <!-- Miro Link - InputField Component: Horizontal variant with icon -->
+            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
+              <label class="InputField__label link-icon miro" aria-label="Miro">
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.392 0H13.9L17 4.8L10.1 0H6.608L10.5 6.4L3 0H0L7 12L0 24H3L10.5 17.6L6.608 24H10.1L17 19.2L13.9 24H17.392L24 12L17.392 0Z"/>
+                </svg>
+              </label>
+              <div class="InputField__wrapper">
+                <span class="InputField__prefix hidden"></span>
+                <input class="InputField__input" type="url" id="miroLink" placeholder="Paste Miro board link...">
+                <span class="InputField__suffix hidden"></span>
+                <span class="InputField__icon hidden"></span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <form id="exp-form" autocomplete="off" class="form-container">
+      </section>
+    
       <!-- Metrics Section -->
       <section class="section-metrics">
         <div class="metrics-header">
-          <h2>Metrics</h2>
-          <button class="btn-add-metric" type="button" aria-label="Add metric">+</button>
+          <div class="metrics-header-left">
+            <h2>Metrics</h2>
+            <span class="metrics-count" id="metricsCount"></span>
+          </div>
+          <button class="btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">+</button>
         </div>
         <div class="metrics-list" id="metricsList">
-          <!-- Metric cards inserted by JS -->
+          <!-- Metric rows inserted by JS -->
+        </div>
+        <!-- Empty state placeholder -->
+        <div class="metrics-empty-state" id="metricsEmptyState">
+          <p>No metrics yet. Click the + button to add your first metric.</p>
         </div>
       </section>
 
-      <!-- Events Section -->
+      <!-- Flow Section (Events + Variants) -->
       <section class="section-events">
         <div class="events-header">
-          <h2>Events</h2>
-          <span class="events-count" id="eventsCount">3 events • 3 variants</span>
+          <div class="events-header-left">
+            <h2>Flow</h2>
+            <span class="events-count" id="eventsCount">0 events • 0 variants</span>
+          </div>
+          <button class="btn-add-event" type="button" aria-label="Add event" title="Add a new event">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
         </div>
         <div class="events-list" id="eventsList">
           <!-- Event rows inserted by JS -->
+        </div>
+        <!-- Empty state placeholder -->
+        <div class="events-empty-state" id="eventsEmptyState">
+          <p>No events yet. Click the + button to add your first event.</p>
         </div>
       </section>
 
@@ -983,72 +1444,473 @@
       }
     });
 
-    // Sample data for metrics
+    // Sample data for metrics (matching Figma design)
     const defaultMetrics = [
-      { name: 'CTR', status: 'add button', value: 0 },
-      { name: 'CR', status: 'filled name and rate', value: 2.5 },
-      { name: 'Conversion rate', status: 'filled name and rate', value: 18 },
+      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', min: 0.695, max: 0.925 },
+      { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', min: 0.695, max: 0.925 },
     ];
 
-    // Sample data for events
+    // Variant badge colors
+    const variantColors = ['variant-a', 'variant-b', 'variant-c', 'variant-d'];
+    const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+    // Sample data for events with variants
     const defaultEvents = [
-      { type: 'event', name: 'Page viewed', variants: null },
-      { type: 'variant', name: 'Checkout', variants: 3 },
-      { type: 'event', name: 'Order placed', variants: null },
+      {
+        id: 'event-0',
+        name: 'Landing page',
+        hasVariants: true,
+        variants: [
+          { id: 'var-0-0', name: 'Control', traffic: 50, metrics: { ctr: 0.695, cr: 0.425 }, isWinner: false },
+          { id: 'var-0-1', name: 'Variation A', traffic: 50, metrics: { ctr: 0.725, cr: 0.480 }, isWinner: true },
+        ]
+      },
+      {
+        id: 'event-1',
+        name: 'Conversion button',
+        hasVariants: false,
+        variants: []
+      },
     ];
+
+    /**
+     * Creates a metric row matching the Figma design
+     * Layout: [Metric name input (with abbreviation)] [Min] [-] [Max] [Delete]
+     */
+    function createMetricRow(metric, index) {
+      const row = document.createElement('div');
+      row.className = 'metric-row';
+      row.id = metric.id || `metric-${index}`;
+
+      // Metric name input field (flex: 1)
+      const nameFieldDiv = document.createElement('div');
+      nameFieldDiv.className = 'metric-name-field';
+      const nameField = createInputField({
+        id: `metric-name-${index}`,
+        label: 'Metric',
+        showLabel: true,
+        showRText: true,
+        suffix: metric.abbreviation || '',
+        help: 'Enter metric name',
+        text: metric.name || '',
+        variant: 'vertical'
+      });
+      nameFieldDiv.appendChild(nameField);
+
+      // Min/Max range container
+      const rangeContainer = document.createElement('div');
+      rangeContainer.className = 'metric-range-container';
+
+      // Min field
+      const minFieldDiv = document.createElement('div');
+      minFieldDiv.className = 'metric-range-field';
+      const minField = createInputField({
+        id: `metric-min-${index}`,
+        label: 'Min',
+        showLabel: true,
+        help: '0.00',
+        text: metric.min !== undefined ? String(metric.min) : '',
+        variant: 'vertical'
+      });
+      minFieldDiv.appendChild(minField);
+
+      // Separator (-)
+      const separator = document.createElement('div');
+      separator.className = 'metric-range-separator';
+      separator.innerHTML = '<span>-</span>';
+
+      // Max field
+      const maxFieldDiv = document.createElement('div');
+      maxFieldDiv.className = 'metric-range-field';
+      const maxField = createInputField({
+        id: `metric-max-${index}`,
+        label: 'Max',
+        showLabel: true,
+        help: '1.00',
+        text: metric.max !== undefined ? String(metric.max) : '',
+        variant: 'vertical'
+      });
+      maxFieldDiv.appendChild(maxField);
+
+      rangeContainer.appendChild(minFieldDiv);
+      rangeContainer.appendChild(separator);
+      rangeContainer.appendChild(maxFieldDiv);
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'metric-delete-btn';
+      deleteBtn.type = 'button';
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/>
+        <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        <path d="M10 11v6"/>
+        <path d="M14 11v6"/>
+      </svg>`;
+      deleteBtn.title = 'Delete metric';
+      deleteBtn.onclick = (e) => {
+        e.preventDefault();
+        metrics.splice(metrics.indexOf(metric), 1);
+        renderMetrics(metrics);
+      };
+
+      // Assemble row
+      row.appendChild(nameFieldDiv);
+      row.appendChild(rangeContainer);
+      row.appendChild(deleteBtn);
+
+      // Store references for data sync
+      const nameInput = nameField.querySelector('.InputField__input');
+      const minInput = minField.querySelector('.InputField__input');
+      const maxInput = maxField.querySelector('.InputField__input');
+      const suffixEl = nameField.querySelector('.InputField__suffix');
+
+      // Sync inputs to metric data
+      const syncData = () => {
+        metric.name = nameInput.value.trim();
+        metric.min = parseFloat(minInput.value) || '';
+        metric.max = parseFloat(maxInput.value) || '';
+        // Auto-generate abbreviation from name
+        if (metric.name && !metric.abbreviation) {
+          const words = metric.name.split(' ');
+          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase();
+          suffixEl.textContent = metric.abbreviation;
+          suffixEl.classList.remove('hidden');
+        }
+        updateMetricsCount();
+      };
+
+      nameInput.addEventListener('change', syncData);
+      minInput.addEventListener('change', syncData);
+      maxInput.addEventListener('change', syncData);
+
+      return row;
+    }
+
+    function updateMetricsCount() {
+      const countEl = document.getElementById('metricsCount');
+      const count = metrics.filter(m => m.name).length;
+      countEl.textContent = count > 0 ? `${count} metric${count !== 1 ? 's' : ''}` : '';
+    }
 
     function renderMetrics(metrics) {
       const list = document.getElementById('metricsList');
+      const emptyState = document.getElementById('metricsEmptyState');
       list.innerHTML = '';
-      metrics.forEach((m, i) => {
-        const card = document.createElement('div');
-        card.className = 'metric-card';
-        
-        const header = document.createElement('div');
-        header.className = 'metric-header';
-        
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'metric-name';
-        nameSpan.textContent = m.name;
-        
-        const rateSpan = document.createElement('span');
-        rateSpan.className = 'metric-rate';
-        rateSpan.textContent = m.value + '%';
-        
-        header.appendChild(nameSpan);
-        header.appendChild(rateSpan);
-        card.appendChild(header);
-        list.appendChild(card);
-      });
-    }
 
-    function renderEvents(events) {
-      const list = document.getElementById('eventsList');
-      const summary = document.getElementById('eventsCount');
-      list.innerHTML = '';
-      
-      const eventCount = events.filter(e => e.type === 'event').length;
-      const variantCount = events.filter(e => e.type === 'variant').length;
-      summary.textContent = `${eventCount} events • ${variantCount} variants`;
-      
-      events.forEach((e, i) => {
-        const row = document.createElement('div');
-        row.className = `event-row event-row-${e.type}`;
-        
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'event-name';
-        nameDiv.textContent = e.name;
-        row.appendChild(nameDiv);
-        
-        if (e.variants) {
-          const variantsDiv = document.createElement('div');
-          variantsDiv.className = 'event-variants';
-          variantsDiv.textContent = e.variants;
-          row.appendChild(variantsDiv);
-        }
-        
+      if (!metrics || metrics.length === 0) {
+        emptyState.classList.remove('hidden');
+        list.style.display = 'none';
+        updateMetricsCount();
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      list.style.display = 'flex';
+
+      metrics.forEach((m, i) => {
+        const row = createMetricRow(m, i);
         list.appendChild(row);
       });
+
+      updateMetricsCount();
+    }
+
+    /**
+     * Creates a variant card with all inputs
+     */
+    function createVariantCard(variant, variantIndex, eventIndex) {
+      const card = document.createElement('div');
+      card.className = 'variant-card';
+      card.id = variant.id;
+
+      // Variant badge (A, B, C...)
+      const badge = document.createElement('div');
+      badge.className = `variant-badge ${variantColors[variantIndex % variantColors.length]}`;
+      badge.textContent = variantLetters[variantIndex];
+
+      // Grip handle
+      const grip = document.createElement('div');
+      grip.className = 'variant-grip';
+      grip.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+        <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+        <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+      </svg>`;
+
+      // Content area
+      const content = document.createElement('div');
+      content.className = 'variant-content';
+
+      // Row 1: Variant name + Traffic split
+      const row1 = document.createElement('div');
+      row1.className = 'variant-row';
+
+      const nameFieldDiv = document.createElement('div');
+      nameFieldDiv.className = 'variant-name-field';
+      const nameField = createInputField({
+        id: `variant-name-${eventIndex}-${variantIndex}`,
+        label: 'Variant name',
+        showLabel: true,
+        help: 'Enter variant name',
+        text: variant.name || '',
+        variant: 'vertical'
+      });
+      nameFieldDiv.appendChild(nameField);
+
+      const trafficFieldDiv = document.createElement('div');
+      trafficFieldDiv.className = 'variant-traffic-field';
+      const trafficField = createInputField({
+        id: `variant-traffic-${eventIndex}-${variantIndex}`,
+        label: 'Traffic',
+        showLabel: true,
+        showRText: true,
+        suffix: '%',
+        help: '50',
+        text: variant.traffic !== undefined ? String(variant.traffic) : '',
+        variant: 'vertical'
+      });
+      trafficFieldDiv.appendChild(trafficField);
+
+      row1.appendChild(nameFieldDiv);
+      row1.appendChild(trafficFieldDiv);
+
+      // Row 2: Metrics inputs + Set as winner
+      const row2 = document.createElement('div');
+      row2.className = 'variant-metrics-row';
+
+      // CTR metric field
+      const ctrFieldDiv = document.createElement('div');
+      ctrFieldDiv.className = 'variant-metric-field';
+      const ctrField = createInputField({
+        id: `variant-ctr-${eventIndex}-${variantIndex}`,
+        label: 'CTR',
+        showLabel: true,
+        help: '0.00',
+        text: variant.metrics?.ctr !== undefined ? String(variant.metrics.ctr) : '',
+        variant: 'vertical'
+      });
+      ctrFieldDiv.appendChild(ctrField);
+
+      // CR metric field
+      const crFieldDiv = document.createElement('div');
+      crFieldDiv.className = 'variant-metric-field';
+      const crField = createInputField({
+        id: `variant-cr-${eventIndex}-${variantIndex}`,
+        label: 'CR',
+        showLabel: true,
+        help: '0.00',
+        text: variant.metrics?.cr !== undefined ? String(variant.metrics.cr) : '',
+        variant: 'vertical'
+      });
+      crFieldDiv.appendChild(crField);
+
+      // Set as winner button
+      const winnerBtn = document.createElement('button');
+      winnerBtn.type = 'button';
+      winnerBtn.className = `btn-set-winner${variant.isWinner ? ' is-winner' : ''}`;
+      winnerBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7"/>
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7"/>
+        <path d="M4 22h16"/>
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/>
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+      </svg>
+      <span>${variant.isWinner ? 'Winner' : 'Set as winner'}</span>`;
+      winnerBtn.title = variant.isWinner ? 'Current winner' : 'Set as winner';
+      winnerBtn.onclick = () => {
+        // Toggle winner status, unset others
+        events[eventIndex].variants.forEach((v, i) => {
+          v.isWinner = (i === variantIndex) ? !v.isWinner : false;
+        });
+        renderEvents(events);
+      };
+
+      row2.appendChild(ctrFieldDiv);
+      row2.appendChild(crFieldDiv);
+      row2.appendChild(winnerBtn);
+
+      content.appendChild(row1);
+      content.appendChild(row2);
+
+      // Actions (remove variant)
+      const actions = document.createElement('div');
+      actions.className = 'variant-actions';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'variant-action-btn remove';
+      removeBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>`;
+      removeBtn.title = 'Remove variant';
+      removeBtn.onclick = () => {
+        events[eventIndex].variants.splice(variantIndex, 1);
+        if (events[eventIndex].variants.length === 0) {
+          events[eventIndex].hasVariants = false;
+        }
+        renderEvents(events);
+      };
+
+      actions.appendChild(removeBtn);
+
+      // Assemble card
+      card.appendChild(badge);
+      card.appendChild(grip);
+      card.appendChild(content);
+      card.appendChild(actions);
+
+      return card;
+    }
+
+    /**
+     * Creates an event row with optional variants
+     */
+    function createEventRow(event, eventIndex, totalEvents) {
+      const row = document.createElement('div');
+      row.className = 'event-row';
+      row.id = event.id;
+
+      // Main row (step badge + input + actions)
+      const mainRow = document.createElement('div');
+      mainRow.className = 'event-row-main';
+
+      // Step indicator with flow line
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'event-step';
+      
+      const stepBadge = document.createElement('div');
+      stepBadge.className = 'event-step-badge';
+      stepBadge.textContent = String(eventIndex + 1);
+      stepDiv.appendChild(stepBadge);
+
+      // Flow line (if not last event or has variants)
+      if (eventIndex < totalEvents - 1 || event.hasVariants) {
+        const flowLine = document.createElement('div');
+        flowLine.className = 'event-flow-line';
+        stepDiv.appendChild(flowLine);
+      }
+
+      // Event name input
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'event-input-container';
+      const eventInput = createInputField({
+        id: `event-name-${eventIndex}`,
+        label: 'Event',
+        showLabel: false,
+        help: 'Event name',
+        text: event.name || '',
+        variant: 'horizontal'
+      });
+      inputContainer.appendChild(eventInput);
+
+      // Actions (sync + delete)
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'event-actions';
+
+      // Sync button (experiment icon)
+      const syncBtn = document.createElement('button');
+      syncBtn.type = 'button';
+      syncBtn.className = 'event-action-btn';
+      syncBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/>
+        <path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/>
+        <path d="M12 20v-8"/>
+        <path d="m9 17 3 3 3-3"/>
+        <path d="M12 4v4"/>
+      </svg>`;
+      syncBtn.title = 'Sync with Figma';
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'event-action-btn delete';
+      deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/>
+        <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+      </svg>`;
+      deleteBtn.title = 'Delete event';
+      deleteBtn.onclick = () => {
+        events.splice(eventIndex, 1);
+        renderEvents(events);
+      };
+
+      actionsDiv.appendChild(syncBtn);
+      actionsDiv.appendChild(deleteBtn);
+
+      mainRow.appendChild(stepDiv);
+      mainRow.appendChild(inputContainer);
+      mainRow.appendChild(actionsDiv);
+      row.appendChild(mainRow);
+
+      // Variants container (if this event has variants)
+      if (event.hasVariants || event.variants?.length > 0) {
+        const variantsContainer = document.createElement('div');
+        variantsContainer.className = 'event-variants-container';
+
+        const variantsLine = document.createElement('div');
+        variantsLine.className = 'event-variants-line';
+
+        const variantsList = document.createElement('div');
+        variantsList.className = 'variants-list';
+
+        // Render each variant card
+        event.variants.forEach((variant, vIndex) => {
+          const variantCard = createVariantCard(variant, vIndex, eventIndex);
+          variantsList.appendChild(variantCard);
+        });
+
+        variantsContainer.appendChild(variantsLine);
+        variantsContainer.appendChild(variantsList);
+        row.appendChild(variantsContainer);
+      }
+
+      // Sync input to event data
+      const nameInput = eventInput.querySelector('.InputField__input');
+      nameInput.addEventListener('change', () => {
+        event.name = nameInput.value.trim();
+        updateEventsCount();
+      });
+
+      return row;
+    }
+
+    /**
+     * Updates the events count display
+     */
+    function updateEventsCount() {
+      const countEl = document.getElementById('eventsCount');
+      const eventCount = events.filter(e => e.name).length;
+      const variantCount = events.reduce((sum, e) => sum + (e.variants?.length || 0), 0);
+      countEl.textContent = `${eventCount} event${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
+    }
+
+    /**
+     * Renders the complete events/flow section
+     */
+    function renderEvents(eventsList) {
+      const list = document.getElementById('eventsList');
+      const emptyState = document.getElementById('eventsEmptyState');
+      list.innerHTML = '';
+
+      if (!eventsList || eventsList.length === 0) {
+        emptyState.classList.remove('hidden');
+        list.style.display = 'none';
+        updateEventsCount();
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      list.style.display = 'flex';
+
+      eventsList.forEach((event, index) => {
+        const eventRow = createEventRow(event, index, eventsList.length);
+        list.appendChild(eventRow);
+      });
+
+      updateEventsCount();
     }
 
     let metrics = JSON.parse(JSON.stringify(defaultMetrics));
@@ -1064,6 +1926,17 @@
       const figmaLink = document.getElementById('figmaLink').value.trim();
       const jiraLink = document.getElementById('jiraLink').value.trim();
       const miroLink = document.getElementById('miroLink').value.trim();
+
+      // Collect filled metrics only
+      const filledMetrics = metrics
+        .filter(m => m.name)
+        .map(m => ({ 
+          name: m.name, 
+          abbreviation: m.abbreviation,
+          min: m.min,
+          max: m.max
+        }));
+
       parent.postMessage({ pluginMessage: {
         type: 'create-flow',
         payload: {
@@ -1072,7 +1945,7 @@
           figmaLink,
           jiraLink,
           miroLink,
-          metrics: JSON.parse(JSON.stringify(metrics)),
+          metrics: filledMetrics,
           events: JSON.parse(JSON.stringify(events))
         }
       } }, '*');
@@ -1084,8 +1957,25 @@
 
     document.querySelector('.btn-add-metric').onclick = (e) => {
       e.preventDefault();
-      metrics.push({ name: 'New metric', status: 'add button', value: 0 });
+      metrics.push({ 
+        id: `metric-${Date.now()}`,
+        name: '',
+        abbreviation: '',
+        min: '',
+        max: ''
+      });
       renderMetrics(metrics);
+    };
+
+    document.querySelector('.btn-add-event').onclick = (e) => {
+      e.preventDefault();
+      events.push({
+        id: `event-${Date.now()}`,
+        name: '',
+        hasVariants: false,
+        variants: []
+      });
+      renderEvents(events);
     };
 
     // Links section expand/collapse
