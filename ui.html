@@ -540,7 +540,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      width: 22px;
+      width: 20px;
       flex-shrink: 0;
     }
 
@@ -639,13 +639,15 @@
       align-items: center;
       padding: 0px 2px;
       flex-shrink: 0;
-      width: 22px
+      width: 20px
     }
 
     .variants-list {
       display: flex;
       flex-direction: column;
       flex: 1;
+      min-width: 0;
+      width: 100%;
     }
 
     /* Variant Card - States: Default, Entered, onHover, onDrag */
@@ -657,6 +659,10 @@
       background: transparent;
       border-bottom: 1px dashed var(--border);
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      min-width: 0;
+      width: 100%;
+      cursor: grab;
+      user-select: none;
     }
 
     .variant-card:last-child {
@@ -673,6 +679,25 @@
       background: rgba(236, 239, 242, 0.4);
       border-top: 0.5px solid var(--text-secondary);
       box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
+      cursor: grabbing;
+    }
+
+    /* Active/pressed state */
+    .variant-card:active {
+      cursor: grabbing;
+    }
+
+    /* Interactive elements within card should have default cursor */
+    .variant-card input,
+    .variant-card button,
+    .variant-card select,
+    .variant-card textarea {
+      cursor: auto;
+      user-select: auto;
+    }
+
+    .variant-card button {
+      cursor: pointer;
     }
 
     /* Variant letter badge */
@@ -693,34 +718,6 @@
     .variant-badge.variant-c { background: #dd7602; color: #fff; }
     .variant-badge.variant-d { background: #8b5cf6; color: #fff; }
     .variant-badge.variant-add { background: var(--border-dark); color: var(--text-secondary); }
-
-    /* Variant grip handle */
-    .variant-grip {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      transition: color 0.15s;
-    }
-
-    .variant-grip:hover {
-      color: var(--text-secondary);
-    }
-
-    .variant-grip:active,
-    .variant-card.dragging .variant-grip {
-      cursor: grabbing;
-      color: var(--text-secondary);
-    }
-
-    .variant-grip svg {
-      width: 12px;
-      height: 12px;
-    }
 
     /* Variant content area */
     .variant-content {
@@ -877,8 +874,11 @@
     /* Footer Section */
     .section-footer {
       display: flex;
-      gap: var(--space-12);
-      padding-top: var(--space-8);
+      flex-direction: row-reverse;
+      gap: var(--space-16);
+      background: var(--background-surface);
+      border-bottom: 1px solid var(--border);
+      padding: var(--space-16);
     }
 
     /* Buttons */
@@ -1075,8 +1075,8 @@
 
     /* Links subsection inside events section */
     .links-subsection {
-      margin-top: var(--space-16);
-      padding-top: var(--space-16);
+      /* margin-top: var(--space-16);*/
+      padding-top: var(--space-8);
     }
 
     .links-header {
@@ -1274,9 +1274,8 @@
               <span class="InputField__icon hidden"></span>
             </div>
           </div>
-        </div>
 
-        <!-- Links subsection -->
+          <!-- Links subsection -->
         <div class="links-subsection" id="linksSubsection">
           <div class="links-header" id="linksHeader">
             <span class="links-header__chevron">
@@ -1353,6 +1352,9 @@
             </div>
           </div>
         </div>
+        </div>
+
+        
       </section>
     
       <!-- Metrics Section -->
@@ -1426,8 +1428,7 @@
       'chevron-down': '<path d="m6 9 6 6 6-6"/>',
       // https://lucide.dev/icons/trash-2
       'trash-2': '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
-      // https://lucide.dev/icons/grip-vertical
-      'grip-vertical': '<circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>',
+
       // https://lucide.dev/icons/git-branch-plus
       'git-branch-plus': '<path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M15 6a9 9 0 0 0-9 9"/><path d="M18 15v6"/><path d="M21 18h-6"/>',
       // https://lucide.dev/icons/trophy
@@ -1799,11 +1800,6 @@
       badge.className = `variant-badge ${variantColors[variantIndex % variantColors.length]}`;
       badge.textContent = variantLetters[variantIndex];
 
-      // Grip handle (Lucide: grip-vertical)
-      const grip = document.createElement('div');
-      grip.className = 'variant-grip';
-      grip.innerHTML = getIcon('grip-vertical');
-
       // Content area
       const content = document.createElement('div');
       content.className = 'variant-content';
@@ -1914,7 +1910,6 @@
 
       // Assemble card
       card.appendChild(badge);
-      card.appendChild(grip);
       card.appendChild(content);
       card.appendChild(actions);
 
