@@ -103,7 +103,7 @@
       --radius-xl: 18px;
 
       /* === Component Variables === */
-      --section-padding: 20px;
+      --section-padding: 16px 24px 16px 16px;
       --section-gap: 16px;
       --section-radius: 18px;
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
@@ -863,7 +863,7 @@
     }
 
     .variant-traffic-field {
-      width: 50px;
+      width: 44px;
       flex-shrink: 0;
     }
 
@@ -1347,11 +1347,11 @@
       flex-shrink: 0;*/
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 10px;
-      font-weight: 500;
+      font-weight: 600;
       line-height: 100%;
       color: var(--text-secondary);
       opacity: var(--input-field-suffix-opacity);
-      letter-spacing: 2%;
+      letter-spacing: 0.175px;
       flex-shrink: 0;
       width: 22px;
       text-align: left;
@@ -1394,7 +1394,7 @@
       line-height: 100%;
       color: var(--text-secondary);
       opacity: var(--input-field-suffix-opacity);
-      letter-spacing: 2%;
+      letter-spacing: 0.175px;
       flex-shrink: 0;
       width: 22px;
       text-align: right
@@ -2902,9 +2902,9 @@
       linksList.innerHTML = '';
 
       const linkConfigs = [
-        { id: 'figmaLink', icon: 'figma', placeholder: 'https://www.figma.com/design/AbC123...' },
+        { id: 'figmaLink', icon: 'figma', placeholder: 'https://www.figma.com/design/AbC123' },
         { id: 'jiraLink', icon: 'jira', placeholder: 'https://example.atlassian.net/browse/GL-123' },
-        { id: 'miroLink', icon: 'miro', placeholder: 'https://miro.com/app/board/uXjK9AbC...' }
+        { id: 'miroLink', icon: 'miro', placeholder: 'https://miro.com/app/board/uXjK9AbC' }
       ];
 
       linkConfigs.forEach(config => {
