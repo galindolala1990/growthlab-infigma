@@ -6,6 +6,303 @@
 */
 
 :root {
+  /* ================================================================
+     BASE COLOR TOKENS (from Figma)
+     ================================================================ */
+
+  /* --- Azure (Neutral Gray-Blue) --- */
+  --color-azure-50: #f6f7f9;
+  --color-azure-100: #eceff2;
+  --color-azure-200: #d4dae3;
+  --color-azure-300: #afbbca;
+  --color-azure-400: #8496ac;
+  --color-azure-500: #647993;
+  --color-azure-600: #506179;
+  --color-azure-700: #3f4c5f;
+  --color-azure-800: #394453;
+  --color-azure-900: #333b47;
+  --color-azure-950: #22272f;
+
+  /* Azure Alpha (Light) */
+  --color-azure-light-alpha-25: #eceff206;
+  --color-azure-light-alpha-50: #eceff20c;
+  --color-azure-light-alpha-100: #eceff219;
+  --color-azure-light-alpha-200: #eceff233;
+  --color-azure-light-alpha-300: #eceff24c;
+  --color-azure-light-alpha-400: #eceff266;
+  --color-azure-light-alpha-500: #eceff27f;
+  --color-azure-light-alpha-600: #eceff299;
+  --color-azure-light-alpha-700: #eceff2b2;
+  --color-azure-light-alpha-800: #eceff2cc;
+  --color-azure-light-alpha-900: #eceff2e5;
+  --color-azure-light-alpha-950: #eceff2f2;
+
+  /* Azure Alpha (Dark) */
+  --color-azure-dark-alpha-25: #22272f06;
+  --color-azure-dark-alpha-50: #22272f0c;
+  --color-azure-dark-alpha-100: #22272f19;
+  --color-azure-dark-alpha-200: #22272f33;
+  --color-azure-dark-alpha-300: #22272f4c;
+  --color-azure-dark-alpha-400: #22272f66;
+  --color-azure-dark-alpha-500: #22272f7f;
+  --color-azure-dark-alpha-600: #22272f99;
+  --color-azure-dark-alpha-700: #22272fb2;
+  --color-azure-dark-alpha-800: #22272fcc;
+  --color-azure-dark-alpha-900: #22272fe5;
+  --color-azure-dark-alpha-950: #22272ff2;
+
+  /* --- Pale Sky (Neutral Gray) --- */
+  --color-pale-sky-50: #f7f8f8;
+  --color-pale-sky-100: #edeef1;
+  --color-pale-sky-200: #d8dbdf;
+  --color-pale-sky-300: #b6bac3;
+  --color-pale-sky-400: #8e95a2;
+  --color-pale-sky-500: #6b7280;
+  --color-pale-sky-600: #5b616e;
+  --color-pale-sky-700: #4a4e5a;
+  --color-pale-sky-800: #40444c;
+  --color-pale-sky-900: #383a42;
+  --color-pale-sky-950: #383a42;
+
+  /* Pale Sky Alpha (Dark) */
+  --color-pale-sky-dark-alpha-20: #6b728005;
+  --color-pale-sky-dark-alpha-50: #6b72800c;
+  --color-pale-sky-dark-alpha-80: #6b728014;
+  --color-pale-sky-dark-alpha-100: #6b728019;
+  --color-pale-sky-dark-alpha-200: #6b728033;
+  --color-pale-sky-dark-alpha-300: #6b72804c;
+  --color-pale-sky-dark-alpha-400: #6b728066;
+  --color-pale-sky-dark-alpha-500: #6b72807f;
+  --color-pale-sky-dark-alpha-600: #6b728099;
+  --color-pale-sky-dark-alpha-700: #6b7280b2;
+  --color-pale-sky-dark-alpha-800: #6b7280cc;
+  --color-pale-sky-dark-alpha-900: #6b7280e5;
+  --color-pale-sky-dark-alpha-950: #6b7280f2;
+
+  /* Pale Sky Alpha (Light) */
+  --color-pale-sky-light-alpha-50: #edeef10c;
+  --color-pale-sky-light-alpha-100: #edeef119;
+  --color-pale-sky-light-alpha-200: #edeef133;
+  --color-pale-sky-light-alpha-300: #edeef14c;
+  --color-pale-sky-light-alpha-400: #edeef166;
+  --color-pale-sky-light-alpha-500: #edeef17f;
+  --color-pale-sky-light-alpha-600: #edeef199;
+  --color-pale-sky-light-alpha-700: #edeef1b2;
+  --color-pale-sky-light-alpha-800: #edeef1cc;
+  --color-pale-sky-light-alpha-900: #edeef1e5;
+  --color-pale-sky-light-alpha-950: #edeef1f2;
+
+  /* --- Electric Violet (Brand Purple) --- */
+  --color-electric-violet-50: #f4f2ff;
+  --color-electric-violet-100: #e9e8ff;
+  --color-electric-violet-200: #d6d4ff;
+  --color-electric-violet-300: #b9b1ff;
+  --color-electric-violet-400: #9785ff;
+  --color-electric-violet-500: #6f4cff;
+  --color-electric-violet-600: #6330f7;
+  --color-electric-violet-700: #551ee3;
+  --color-electric-violet-800: #4718bf;
+  --color-electric-violet-900: #3b169c;
+  --color-electric-violet-950: #230b6a;
+
+  /* Electric Violet Alpha */
+  --color-electric-violet-alpha-100: #7f4dff19;
+  --color-electric-violet-alpha-200: #7f4dff33;
+  --color-electric-violet-alpha-300: #7f4dff4c;
+  --color-electric-violet-alpha-400: #7f4dff66;
+  --color-electric-violet-alpha-500: #7f4dff7f;
+  --color-electric-violet-alpha-600: #7f4dff99;
+
+  /* --- Royal Blue (Info/Link) --- */
+  --color-royal-blue-50: #eff7ff;
+  --color-royal-blue-100: #dbecfe;
+  --color-royal-blue-200: #bfdffe;
+  --color-royal-blue-300: #93ccfd;
+  --color-royal-blue-400: #60b0fa;
+  --color-royal-blue-500: #3b8ff6;
+  --color-royal-blue-600: #2563eb;
+  --color-royal-blue-700: #1d5bd8;
+  --color-royal-blue-800: #1e4aaf;
+  --color-royal-blue-900: #1e418a;
+  --color-royal-blue-950: #172954;
+
+  /* Royal Blue Alpha */
+  --color-royal-blue-alpha-50: #2470eb0c;
+  --color-royal-blue-alpha-100: #2470eb19;
+  --color-royal-blue-alpha-200: #2470eb33;
+  --color-royal-blue-alpha-300: #2470eb4c;
+  --color-royal-blue-alpha-400: #2470eb66;
+  --color-royal-blue-alpha-500: #2470eb7f;
+  --color-royal-blue-alpha-600: #2470eb99;
+  --color-royal-blue-alpha-700: #2470ebb2;
+  --color-royal-blue-alpha-800: #2470ebcc;
+  --color-royal-blue-alpha-900: #2470ebe5;
+
+  /* --- Malachite (Success Green) --- */
+  --color-malachite-50: #effef4;
+  --color-malachite-100: #dafee5;
+  --color-malachite-200: #b8facd;
+  --color-malachite-300: #80f5a6;
+  --color-malachite-400: #42e679;
+  --color-malachite-500: #1fe461;
+  --color-malachite-600: #0eab43;
+  --color-malachite-700: #0f8637;
+  --color-malachite-800: #126930;
+  --color-malachite-900: #10572a;
+  --color-malachite-950: #033015;
+
+  /* Malachite Alpha */
+  --color-malachite-alpha-20: #0eab4305;
+  --color-malachite-alpha-50: #0eab430c;
+  --color-malachite-alpha-100: #0eab4319;
+  --color-malachite-alpha-200: #0eab4333;
+  --color-malachite-alpha-300: #0eab434c;
+  --color-malachite-alpha-400: #0eab4366;
+  --color-malachite-alpha-500: #0eab437f;
+  --color-malachite-alpha-600: #0eab4399;
+  --color-malachite-alpha-900: #0eab43e5;
+
+  /* --- Yellow (Warning) --- */
+  --color-yellow-50: #fffbea;
+  --color-yellow-100: #fff4c6;
+  --color-yellow-200: #ffe270;
+  --color-yellow-300: #ffd44a;
+  --color-yellow-400: #ffc020;
+  --color-yellow-500: #f99e07;
+  --color-yellow-600: #dd7602;
+  --color-yellow-700: #b75306;
+  --color-yellow-800: #943f0c;
+  --color-yellow-900: #7a340d;
+  --color-yellow-950: #461a02;
+
+  /* Yellow Alpha */
+  --color-yellow-alpha-100: #f99e0719;
+  --color-yellow-alpha-300: #f99e074c;
+
+  /* --- Coral Red (Error/Danger) --- */
+  --color-coral-red-50: #fff1f1;
+  --color-coral-red-100: #ffdfdf;
+  --color-coral-red-200: #ffc5c5;
+  --color-coral-red-300: #ff9d9d;
+  --color-coral-red-400: #ff6464;
+  --color-coral-red-500: #ff3838;
+  --color-coral-red-600: #ed1515;
+  --color-coral-red-700: #c80d0d;
+  --color-coral-red-800: #a50f0f;
+  --color-coral-red-900: #881414;
+  --color-coral-red-950: #4b0404;
+
+  /* Coral Red Alpha */
+  --color-coral-red-alpha-100: #ff383819;
+  --color-coral-red-alpha-200: #ff383833;
+  --color-coral-red-alpha-300: #ff38384c;
+  --color-coral-red-alpha-400: #ff383866;
+  --color-coral-red-alpha-500: #ff38387f;
+  --color-coral-red-alpha-600: #ff383899;
+  --color-coral-red-alpha-700: #ff3838b2;
+  --color-coral-red-alpha-800: #ff3838cc;
+  --color-coral-red-alpha-900: #ff3838e5;
+
+  /* --- Lochinvar (Teal) --- */
+  --color-lochinvar-50: #eefffb;
+  --color-lochinvar-100: #c6fff4;
+  --color-lochinvar-200: #8effec;
+  --color-lochinvar-300: #4efae0;
+  --color-lochinvar-400: #19e8d0;
+  --color-lochinvar-500: #01cbb7;
+  --color-lochinvar-600: #00a496;
+  --color-lochinvar-700: #03857c;
+  --color-lochinvar-800: #086762;
+  --color-lochinvar-900: #0c5551;
+  --color-lochinvar-950: #003433;
+
+  /* --- Pompadour (Pink/Magenta) --- */
+  --color-pompadour-50: #fef1fb;
+  --color-pompadour-100: #fee5f9;
+  --color-pompadour-200: #feccf5;
+  --color-pompadour-300: #ffa2ed;
+  --color-pompadour-400: #fe68dd;
+  --color-pompadour-500: #f93bca;
+  --color-pompadour-600: #e919ab;
+  --color-pompadour-700: #cb0b8d;
+  --color-pompadour-800: #a70d73;
+  --color-pompadour-900: #740d51;
+  --color-pompadour-950: #560139;
+
+  /* --- White Alpha --- */
+  --color-white-alpha-20: #ffffff00;
+  --color-white-alpha-100: #ffffff;
+
+  /* ================================================================
+     SEMANTIC TOKENS - LIGHT MODE (from Figma)
+     ================================================================ */
+
+  /* --- Fills --- */
+  --fills-background: var(--color-azure-100);
+  --fills-surface: #ffffff;
+  --fills-brand: var(--color-electric-violet-500);
+  --fills-overlay: #3e0080cc;
+  --fills-skeleton: var(--color-azure-200);
+  --fills-input-fill: var(--color-azure-dark-alpha-50);
+  --fills-component-default: var(--color-azure-light-alpha-50);
+  --fills-component-hover: var(--color-azure-light-alpha-400);
+  --fills-success: var(--color-malachite-alpha-100);
+  --fills-blur: var(--color-azure-light-alpha-50);
+  --fills-link-default: var(--color-royal-blue-600);
+  --fills-link-inverse: var(--color-royal-blue-50);
+
+  /* --- Text --- */
+  --text-primary-default: var(--color-azure-900);
+  --text-primary-inverted: #ffffff;
+  --text-secondary-default: var(--color-azure-600);
+  --text-secondary-inverted: var(--color-azure-300);
+  --text-tertiary-default: var(--color-azure-500);
+  --text-tertiary-inverted: var(--color-azure-200);
+  --text-link-default: var(--color-royal-blue-600);
+  --text-label-default: var(--color-pale-sky-200);
+  --text-states-success: var(--color-malachite-800);
+
+  /* --- Border --- */
+  --border-border: var(--color-pale-sky-100);
+  --border-input-border: var(--color-azure-dark-alpha-100);
+
+  /* --- Buttons --- */
+  --buttons-black-default: var(--color-azure-950);
+  --buttons-black-hover: var(--color-azure-900);
+  --buttons-black-selected: var(--color-azure-800);
+  --buttons-secondary-default: var(--color-azure-dark-alpha-25);
+  --buttons-secondary-hover: var(--color-azure-dark-alpha-50);
+  --buttons-secondary-selected: var(--color-azure-dark-alpha-100);
+  --buttons-purple-default: var(--color-electric-violet-500);
+  --buttons-purple-hover: var(--color-electric-violet-600);
+  --buttons-purple-selected: var(--color-electric-violet-500);
+  --buttons-button-green-default: var(--color-malachite-400);
+  --buttons-button-green-hover: var(--color-malachite-500);
+  --buttons-tertiary-hover: var(--color-azure-dark-alpha-50);
+  --buttons-tertiary-selected: var(--color-azure-dark-alpha-100);
+
+  /* ================================================================
+     COLOR INDICATORS (from Figma)
+     ================================================================ */
+  --indicator-gray-1: var(--color-azure-300);
+  --indicator-coral-1: var(--color-coral-red-500);
+  --indicator-coral-2: var(--color-coral-red-300);
+  --indicator-violet-1: var(--color-electric-violet-500);
+  --indicator-violet-2: var(--color-electric-violet-300);
+  --indicator-blue-1: var(--color-royal-blue-500);
+  --indicator-blue-2: var(--color-royal-blue-300);
+  --indicator-teal-1: var(--color-lochinvar-600);
+  --indicator-teal-2: var(--color-lochinvar-400);
+  --indicator-green-1: var(--color-malachite-600);
+  --indicator-green-2: var(--color-malachite-400);
+  --indicator-yellow-1: var(--color-yellow-600);
+  --indicator-yellow-2: var(--color-yellow-400);
+  --indicator-pink-1: var(--color-pompadour-400);
+
+  /* ================================================================
+     LEGACY ALIASES (for backward compatibility)
+     ================================================================ */
+
   /* === Typography System (from Figma) === */
   /* H1: Figtree 12px/100%, SemiBold 600 */
   --heading-h1-size: 12px;
@@ -42,56 +339,57 @@
   --input-text-weight: 400;
   --input-text-line-height: 91%;
 
-  /* === Text/Typography Colors === */
-  --typography-h1-color: var(--accent-primary-dark);
-  --typography-h2-color: var(--accent-primary-dark);
-  --typography-h3-color: var(--text-secondary);
-  --typography-meta-color: #4a5a70;
+  /* === Text/Typography Colors (mapped to semantic tokens) === */
+  --typography-h1-color: var(--text-primary-default);
+  --typography-h2-color: var(--text-primary-default);
+  --typography-h3-color: var(--text-secondary-default);
+  --typography-meta-color: var(--text-tertiary-default);
   
-  /* === Primary Brand Palette === */
-  --primary: #6F4CFF; /* Default brand color */
-  --primary-foreground: #FFFFFF; /* Text on primary */
-  --primary-hover: #5F3DE6; /* Hover state */
-  --primary-active: #4C2FCC; /* Active/pressed */
-  --primary-soft: #F0EBFF; /* Soft backgrounds */
-  --primary-soft-foreground: #5F3DE6; /* Text on soft bg */
+  /* === Primary Brand Palette (mapped to base tokens) === */
+  --primary: var(--color-electric-violet-500);
+  --primary-foreground: #ffffff;
+  --primary-hover: var(--color-electric-violet-600);
+  --primary-active: var(--color-electric-violet-700);
+  --primary-soft: var(--color-electric-violet-50);
+  --primary-soft-foreground: var(--color-electric-violet-600);
 
-  /* === Background Palette === */
-  --background: #FFFFFF; /* Main canvas */
-  --background-subtle: #F9FAFB; /* Page bg, secondary panels */
-  --background-surface: #FFFFFF; /* Cards, modals, popovers */
-  --background-muted: #ECEFF2; /* Disabled, receding areas - rgb(236,239,242) */
+  /* === Background Palette (mapped to semantic tokens) === */
+  --background: var(--fills-surface);
+  --background-subtle: var(--color-azure-50);
+  --background-surface: var(--fills-surface);
+  --background-muted: var(--fills-background);
 
-  /* === Text Palette === */
-  --foreground: #0F1729; /* Primary text */
-  --text: var(--foreground); /* Alias for primary text */
-  --text-secondary: #333B47; /* Secondary text rgb(51,59,71) */
-  --text-tertiary: #394453; /* Tertiary text */
-  --text-muted: #3F4C5F; /* Muted text rgb(63,76,95) */
-  --text-subtle: #D1D5DB; /* Placeholder, disabled text */
-  --muted-foreground: var(--text-secondary); /* Alias for secondary/muted text */
+  /* === Text Palette (mapped to semantic tokens) === */
+  --foreground: var(--text-primary-default);
+  --text: var(--text-primary-default);
+  --text-secondary: var(--text-secondary-default);
+  --text-tertiary: var(--text-tertiary-default);
+  --text-muted: var(--color-azure-700);
+  --text-subtle: var(--text-label-default);
+  --muted-foreground: var(--text-secondary-default);
 
-  /* === Border Palette === */
-  --border: #EDEDF1; /* Light border rgb(237,238,241) */
-  --border-light: #EDEDF1; /* Lighter border */
-  --border-dark: #D8DBDF; /* Darker border */
-  --border-strong: #b7c6e0;
+  /* === Border Palette (mapped to semantic tokens) === */
+  --border: var(--border-border);
+  --border-light: var(--border-border);
+  --border-dark: var(--color-pale-sky-200);
+  --border-strong: var(--color-pale-sky-300);
 
-  /* === Accent/Status Palette === */
-  --accent-success: #126930; /* Success/Winner green */
-  --accent-success-light: #0ACF83; /* Bright green indicator */
-  --accent-success-bg: #eaf7f0;
-  --accent-error: #F24E1E; /* Error red */
-  --accent-warning: #DD7602; /* Warning orange */
-  --accent-info: #2684FF; /* Info blue */
-  --accent-highlight: #1ABCFE; /* Bright cyan */
-  --accent-primary: #2a4d7a;
-  --accent-primary-dark: #18305a;
+  /* === Accent/Status Palette (mapped to base tokens) === */
+  --accent-success: var(--color-malachite-800);
+  --accent-success-light: var(--color-malachite-400);
+  --accent-success-bg: var(--fills-success);
+  --accent-error: var(--color-coral-red-500);
+  --accent-warning: var(--color-yellow-600);
+  --accent-info: var(--color-royal-blue-600);
+  --accent-highlight: var(--color-lochinvar-500);
+  --accent-primary: var(--color-azure-700);
+  --accent-primary-dark: var(--color-azure-950);
   
-  /* === Status Badge Colors === */
-  --status-variant-a: #2563EB; /* Bright blue */
-  --status-variant-b: #A259FF; /* Bright purple */
-  --status-variant-c: #F24E1E; /* Red/orange */
+  /* === Status Badge Colors (mapped to indicators) === */
+  --status-variant-a: var(--indicator-blue-1);
+  --status-variant-b: var(--indicator-violet-1);
+  --status-variant-c: var(--indicator-coral-1);
+
   /* Spacing scale (8px system) */
   --space-0: 0;
   --space-4: 4px;
@@ -114,62 +412,62 @@
   /* === Component-Specific Variables === */
 
   /* Plugin Container (from Figma) */
-  --plugin-radius: var(--radius-lg); /* 16px */
+  --plugin-radius: var(--radius-lg);
   --plugin-bg: var(--background);
 
   /* Sections (from Figma: padding=16px, spacing=16px) */
   --section-padding: var(--space-16);
   --section-gap: var(--space-16);
-  --section-bg: var(--background-muted);
-  --section-border: var(--border);
+  --section-bg: var(--fills-background);
+  --section-border: var(--border-border);
   --section-radius: var(--radius-xl);
   --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
 
   /* Emphasized/Meta Areas */
-  --emphasized-bg: #f5f8fd;
+  --emphasized-bg: var(--color-azure-50);
   --emphasized-border: var(--border-strong);
   --emphasized-shadow: 0 2px 12px 0 rgba(40,60,90,0.05);
 
-  --meta-bg: #f9fbfd;
-  --meta-border: var(--border);
+  --meta-bg: var(--color-azure-50);
+  --meta-border: var(--border-border);
   --meta-shadow: 0 2px 12px 0 rgba(40,60,90,0.04);
 
   /* Form Inputs (from Figma: padding=9px/7px, radius=4px) */
-  --input-bg: var(--background-surface);
-  --input-border: 1px solid #dbe3ef;
-  --input-radius: var(--radius-xs); /* 4px */
+  --input-bg: var(--fills-surface);
+  --input-border: 1px solid var(--border-input-border);
+  --input-radius: var(--radius-xs);
   --input-padding-x: 9px;
   --input-padding-y: 7px;
   --input-height: 40px;
 
   /* Labels */
-  --label-color: #6b7a90;
+  --label-color: var(--color-azure-500);
 
   /* Buttons (from Figma: padding=6px, radius=4px, gap=4px) */
   --button-padding: 6px;
-  --button-radius: var(--radius-xs); /* 4px */
+  --button-radius: var(--radius-xs);
   --button-gap: var(--space-4);
 
   /* Container gap (from Figma: spacing=4px) */
   --container-gap: var(--space-4);
 
   /* Variant Cards */
-  --variant-card-bg: var(--background-muted);
-  --variant-card-border: var(--border);
+  --variant-card-bg: var(--fills-background);
+  --variant-card-border: var(--border-border);
   --variant-card-radius: var(--radius-lg);
   --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
 
   /* Variant Key Badge */
-  --variant-key-badge-bg: var(--accent-primary);
-  --variant-key-badge-color: var(--primary-foreground);
+  --variant-key-badge-bg: var(--buttons-black-default);
+  --variant-key-badge-color: var(--text-primary-inverted);
   --variant-key-badge-radius: 50%;
   --variant-key-badge-size: 28px;
 
   /* Variant Traffic */
-  --variant-traffic-bg: var(--accent-success-bg);
-  --variant-traffic-border: #b6e2c6;
+  --variant-traffic-bg: var(--fills-success);
+  --variant-traffic-border: var(--color-malachite-200);
   --variant-traffic-radius: var(--radius-sm);
-  --variant-traffic-color: var(--accent-success);
+  --variant-traffic-color: var(--text-states-success);
 }
 
 /* Utility classes (import in your main CSS) */

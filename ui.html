@@ -75,8 +75,9 @@
       --background-surface: #FFFFFF;
       --background-muted: #ECEFF2;
       --foreground: #0F1729;
-      --text-secondary: #333B47;
-      --text-muted: #3F4C5F;
+      --text-primary: #333B47;
+      --text-secondary:#506179;
+      --text-muted: var(--text-secondary);
       --text-subtle: #D1D5DB;
       --border: #EDEDF1;
       --border-dark: #D8DBDF;
@@ -102,21 +103,22 @@
       --radius-xl: 18px;
 
       /* === Component Variables === */
-      --section-padding: 16px;
+      --section-padding: 20px;
       --section-gap: 16px;
       --section-radius: 18px;
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-      --input-bg: #FFFFFF;
-      --input-border: 1px solid #dbe3ef;
+      --input-bg: #FFFFFF;/* === what is this === */
+      --input-border: 1px solid #dbe3ef;/* === what is this === */
       --input-radius: 4px;
-      --input-padding-x: 9px;
-      --input-padding-y: 7px;
+      --input-padding-x: 6px;
+      --input-padding-y: 0px;
       --input-height: 40px;
       --button-padding: 6px;
       --button-radius: 4px;
       --button-gap: 4px;
       --container-gap: 4px;
-      --variant-card-bg: #ECEFF2;
+      --variant-card-bg: #22272f06;
+      --variant-card-hover-bg: #22272f0c;
       --variant-card-border: #EDEDF1;
       --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
       --variant-traffic-bg: #eaf7f0;
@@ -125,20 +127,33 @@
 
       /* === Input Field Component (from Figma node 353-7322) === */
       --input-field-bg: rgba(34, 39, 47, 0.05);
-      --input-field-border-color: rgba(34, 39, 47, 0.1);
-      --input-field-border: 1px solid rgba(34, 39, 47, 0.1);
+      --input-field-dropdown-bg: var(--background-surface);
+      --input-field-border: 1px solid #22272f19; /* === dropdown border === */
+      --input-field-border-color: #22272f19;
+      --input-field-border-no-color: #22272f00;
       --input-field-radius: 4px;
-      --input-field-padding-x: 9px;
-      --input-field-padding-y: 7px;
+      --input-field-padding-x: var(--input-padding-x);
+      --input-field-padding-y: var(--input-padding-y);
       --input-field-gap: 8px;
       --input-field-label-gap: 5px;
       --input-field-horizontal-gap: 12px;
-      --input-field-text-color: #3f4c5f;
-      --input-field-placeholder-opacity: 0.8;
-      --input-field-hover-bg: rgba(34, 39, 47, 0.08);
+      --input-field-text-color: var(--text-secondary);
+      --input-field-placeholder-opacity: 0.7;
+      --input-field-suffix-opacity: 0.5;
+      --input-field-hover-bg: #22272f0c;
       --input-field-hover-border: rgba(34, 39, 47, 0.15);
       --input-field-focus-border: #6F4CFF;
       --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
+
+      /* === SelectField Component (from Figma node 678-78897) === */
+      --select-field-height-sm: 20px;
+      --select-field-height-md: 24px;
+      --select-field-height-lg: 28px;
+      --select-field-icon-size: 12px;
+      --select-field-icon-gap: 8px;
+      --select-field-disabled-opacity: 0.5;
+      --select-field-error-border: #F24E1E;
+      --select-field-error-shadow: 0 0 0 2px rgba(242, 78, 30, 0.15);
     }
 
     /* 
@@ -234,7 +249,7 @@
       border-radius: var(--input-radius);
       height: var(--input-height);
       padding: var(--input-padding-y) var(--input-padding-x);
-      color: var(--foreground);
+      color: var(--text-primary);
       font-size: var(--input-text-size);
       font-weight: var(--input-text-weight);
       line-height: var(--input-text-line-height);
@@ -261,7 +276,7 @@
     .section-events {
       background: var(--background-surface);
       border-bottom: 1px solid var(--border);
-      padding: var(--space-16);
+      padding: var(--section-padding);
     }
 
     .metrics-header,
@@ -284,7 +299,7 @@
 
     /* Add Event Button */
     .btn-add-event {
-      width: 26px;
+      width: 24px;
       height: 24px;
       border-radius: var(--button-radius);
       border: none;
@@ -327,7 +342,7 @@
 
     /* Add Metric Button (from Figma: radius=4px) */
     .btn-add-metric {
-      width: 26px;
+      width: 24px;
       height: 24px;
       border-radius: var(--button-radius);
       border: none;
@@ -363,18 +378,24 @@
 
     .metric-row {
       display: flex;
-      align-items: flex-end;
+      align-items: self-end;
       gap: var(--space-8);
       padding-bottom: var(--space-16);
-      border-bottom: 1px dashed transparent;
+      /* border-bottom: 1px dashed transparent;*/
     }
 
     .metric-row:not(:last-child) {
       border-bottom-color: var(--border);
     }
-
+    /* Hiding this style for now to reduce excessive spacing between metric rows
     .metric-row + .metric-row {
       padding-top: var(--space-16);
+    }
+     */
+
+    /* Hide labels for metric rows after the first to save vertical space */
+    .metric-row:not(:first-child) .InputField__label {
+      display: none;
     }
 
     /* Metric name field (flexible width) */
@@ -397,23 +418,22 @@
 
     .metric-range-separator {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
-      height: 44px;
-      padding-bottom: 7px;
+      justify-content: center;
+      height: 24px; /* Match input field height */
+      align-self: flex-end; /* Align to bottom with input fields */
     }
 
     .metric-range-separator span {
       font-size: 11px;
       font-weight: 400;
       color: var(--text-secondary);
-      line-height: 10px;
+      line-height: 1;
     }
 
     /* Delete button */
     .metric-delete-btn {
-      width: 26px;
+      width: 24px;
       height: 24px;
       border-radius: var(--radius-xs);
       border: none;
@@ -526,6 +546,16 @@
       border-bottom-color: var(--border);
     }
 
+    /* First event row should not have top padding */
+    .event-row:first-child .event-row-main {
+      padding-top: 0;
+    }
+
+    /* Last event row should not have bottom border */
+    .event-row:last-child .event-row-main {
+      border-bottom: none;
+    }
+
     /* Hide border when variants container follows */
     .event-row:has(.event-variants-container) .event-row-main {
       /*border-bottom-color: transparent;*/
@@ -548,7 +578,7 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--text-secondary);
+      background: var(--text-primary);
       color: #fff;
       font-size: 10px;
       font-weight: 600;
@@ -590,7 +620,7 @@
     }
 
     .event-action-btn {
-      width: 26px;
+      width: 24px;
       height: 24px;
       border-radius: var(--radius-xs);
       border: none;
@@ -621,7 +651,8 @@
     .event-variants-container {
       display: flex;
       gap: var(--space-8);
-      margin-top: -1px
+      margin-top: -1px;
+      border-bottom: 1px dashed var(--border);
       /*margin-left: 9px;
       padding-left: var(--space-8);*/
     }
@@ -648,6 +679,8 @@
       flex: 1;
       min-width: 0;
       width: 100%;
+      gap: var(--space-8);
+      padding-bottom: var(--space-16);
     }
 
     /* Variant Card - States: Default, Entered, onHover, onDrag */
@@ -655,9 +688,10 @@
       display: flex;
       align-items: flex-start;
       gap: var(--space-8);
-      padding: var(--space-12) var(--space-8);
-      background: transparent;
-      border-bottom: 1px dashed var(--border);
+      padding: var(--space-12);
+      background: var(--variant-card-bg);
+      /* border-bottom: 1px dashed var(--border);*/
+      border-radius: var(--radius-sm);
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       min-width: 0;
       width: 100%;
@@ -671,13 +705,13 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: rgba(236, 239, 242, 0.4);
+      background: var(--variant-card-hover-bg);
     }
 
     /* Dragging state */
     .variant-card.dragging {
       background: rgba(236, 239, 242, 0.4);
-      border-top: 0.5px solid var(--text-secondary);
+       /* border-top: 0.5px solid var(--text-secondary);*/
       box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
       cursor: grabbing;
     }
@@ -717,13 +751,102 @@
     .variant-badge.variant-b { background: #0eab43; color: #fff; }
     .variant-badge.variant-c { background: #dd7602; color: #fff; }
     .variant-badge.variant-d { background: #8b5cf6; color: #fff; }
+    .variant-badge.variant-e { background: #ec4899; color: #fff; }
+    .variant-badge.variant-f { background: #14b8a6; color: #fff; }
     .variant-badge.variant-add { background: var(--border-dark); color: var(--text-secondary); }
+
+    /* Variant Color Palette */
+    :root {
+      --variant-color-blue: #2563eb;
+      --variant-color-green: #0eab43;
+      --variant-color-orange: #dd7602;
+      --variant-color-purple: #8b5cf6;
+      --variant-color-pink: #ec4899;
+      --variant-color-teal: #14b8a6;
+      --variant-color-red: #dc2626;
+      --variant-color-gray: #6b7280;
+    }
+
+    /* Color Indicator Button (inside InputField wrapper) */
+    .color-indicator {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .color-indicator:hover {
+      transform: scale(1.15);
+    }
+
+    .color-indicator:focus {
+      outline: none;
+    }
+
+    .color-indicator.active {
+      transform: scale(1.15);
+    }
+
+    /* Color Picker Popover */
+    .color-popover {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: -4px;
+      z-index: 9999;
+      background: var(--background-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-8);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    .color-popover.open {
+      display: flex;
+    }
+
+    .color-popover-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .color-option {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.15);
+    }
+
+    .color-option.selected {
+      border-color: var(--foreground);
+    }
+
+    .color-option:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(111, 76, 255, 0.3);
+    }
 
     /* Variant content area */
     .variant-content {
       display: flex;
       flex-direction: column;
-      gap: var(--space-16);
+      gap: var(--space-8);
       flex: 1;
       min-width: 0;
     }
@@ -731,6 +854,7 @@
     .variant-row {
       display: flex;
       gap: var(--space-8);
+      align-items: center;
     }
 
     .variant-name-field {
@@ -739,20 +863,51 @@
     }
 
     .variant-traffic-field {
-      width: 70px;
+      width: 50px;
       flex-shrink: 0;
     }
 
-    /* Variant metrics row */
+    .variant-traffic-field .InputField__input {
+      text-align: left;
+    }
+
+    /* Variant metrics section with label */
+    .variant-metrics-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--input-field-label-gap);
+    }
+
+    .variant-metrics-label {
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      line-height: 100%;
+      letter-spacing: 0.09px;
+      color: var(--input-field-text-color);
+      padding: 3px 0;
+      margin-top: 3px;
+    }
+
+    /* Variant metrics row - max 2 per row for better placeholder visibility */
     .variant-metrics-row {
       display: flex;
-      gap: var(--space-16);
+      flex-wrap: wrap;
+      gap: var(--space-8) var(--space-12);
       align-items: flex-end;
     }
 
+    /* Base field style - 2 per row layout for readable placeholders */
     .variant-metric-field {
-      flex: 1;
-      min-width: 60px;
+      flex: 1 1 calc(50% - var(--space-12) / 2);
+      min-width: calc(50% - var(--space-12) / 2);
+      max-width: calc(50% - var(--space-12) / 2);
+    }
+
+    /* 1 metric: half width */
+    .variant-metrics-row > .variant-metric-field:only-child {
+      flex: 0 1 calc(50% - var(--space-12) / 2);
+      min-width: auto;
     }
 
     /* ============================================
@@ -787,40 +942,78 @@
       display: none;
     }
 
-    /* Custom select/dropdown styling */
+    /* ============================================
+     * SELECTFIELD COMPONENT (from Figma 678-78897)
+     * Props: label, showLabel, placeholder, disabled, error, size
+     * Variants: size (sm/md/lg), variant (vertical/horizontal)
+     * States: default, hover, focus, disabled, error
+     * ============================================ */
+    
+    /* Base SelectField Container */
     .SelectField {
       display: flex;
       flex-direction: column;
       gap: var(--input-field-label-gap);
+      width: 100%;
     }
 
+    /* Horizontal variant */
+    .SelectField.horizontal {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--input-field-horizontal-gap);
+    }
+
+    .SelectField.horizontal .SelectField__label {
+      flex-shrink: 0;
+      min-width: fit-content;
+    }
+
+    .SelectField.horizontal .SelectField__wrapper {
+      flex: 1;
+    }
+
+    /* Label */
     .SelectField__label {
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 100%;
       letter-spacing: 0.09px;
       color: var(--input-field-text-color);
       padding: 3px 0;
     }
 
+    .SelectField__label.hidden {
+      display: none;
+    }
+
+    /* Required indicator */
+    .SelectField__label.required::after {
+      content: ' *';
+      color: var(--select-field-error-border);
+    }
+
+    /* Wrapper (positions icon) */
     .SelectField__wrapper {
       position: relative;
       display: flex;
       align-items: center;
     }
 
+    /* Select element - default (md) size, matches InputField__wrapper */
     .SelectField__select {
       width: 100%;
-      height: 28px;
-      padding: var(--input-field-padding-y) var(--input-field-padding-x);
-      padding-right: 28px;
-      background: var(--input-field-bg);
+      height: var(--select-field-height-md);
+      padding: 0 var(--input-field-padding-x);
+      padding-right: calc(var(--input-field-padding-x) + var(--select-field-icon-size) + var(--select-field-icon-gap));
+      background: var(--input-field-dropdown-bg);
       border: var(--input-field-border);
       border-radius: var(--input-field-radius);
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: var(--input-text-size);
-      font-weight: var(--input-text-weight);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: var(--select-field-height-sm);
       color: var(--input-field-text-color);
       cursor: pointer;
       appearance: none;
@@ -829,20 +1022,95 @@
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
-    .SelectField__select:hover {
+    /* Size variants */
+    .SelectField.sm .SelectField__select {
+      height: var(--select-field-height-sm);
+      line-height: var(--select-field-height-sm);
+      font-size: 10px;
+      padding: 0 7px;
+      padding-right: calc(7px + var(--select-field-icon-size) + 6px);
+    }
+
+    .SelectField.lg .SelectField__select {
+      height: var(--select-field-height-lg);
+      line-height: var(--select-field-height-lg);
+      font-size: 11px;
+      padding: 0 10px;
+      padding-right: calc(10px + var(--select-field-icon-size) + 8px);
+    }
+
+    /* Placeholder styling (when no value selected) */
+    .SelectField__select:invalid,
+    .SelectField__select option[value=""][disabled] {
+      color: var(--input-field-text-color);
+      opacity: var(--input-field-placeholder-opacity);
+    }
+
+    .SelectField__select option {
+      color: var(--input-field-text-color);
+    }
+
+    /* Hover state */
+    .SelectField__select:hover:not(:disabled) {
       background: var(--input-field-hover-bg);
       border-color: var(--input-field-hover-border);
     }
 
+    /* Focus state */
     .SelectField__select:focus {
       outline: none;
       border-color: var(--input-field-focus-border);
       box-shadow: var(--input-field-focus-shadow);
     }
 
+    /* Disabled state */
+    .SelectField.disabled .SelectField__select,
+    .SelectField__select:disabled {
+      opacity: var(--select-field-disabled-opacity);
+      cursor: not-allowed;
+      background: var(--input-field-bg);
+    }
+
+    .SelectField.disabled .SelectField__label,
+    .SelectField.disabled .SelectField__icon {
+      opacity: var(--select-field-disabled-opacity);
+    }
+
+    /* Error state */
+    .SelectField.error .SelectField__select {
+      border-color: var(--select-field-error-border);
+    }
+
+    .SelectField.error .SelectField__select:focus {
+      box-shadow: var(--select-field-error-shadow);
+    }
+
+    .SelectField.error .SelectField__label {
+      color: var(--select-field-error-border);
+    }
+
+    /* Helper/Error text */
+    .SelectField__helper {
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      line-height: 130%;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .SelectField__helper.hidden {
+      display: none;
+    }
+
+    .SelectField.error .SelectField__helper {
+      color: var(--select-field-error-border);
+    }
+
+    /* Icon (chevron-down) */
     .SelectField__icon {
       position: absolute;
-      right: 8px;
+      right: var(--input-field-padding-x);
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
@@ -850,11 +1118,21 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: transform 0.2s ease;
     }
 
     .SelectField__icon svg {
-      width: 12px;
-      height: 12px;
+      width: var(--select-field-icon-size);
+      height: var(--select-field-icon-size);
+    }
+
+    /* Size-specific icon positioning */
+    .SelectField.sm .SelectField__icon {
+      right: 7px;
+    }
+
+    .SelectField.lg .SelectField__icon {
+      right: 10px;
     }
 
     /* Status-specific badge colors */
@@ -915,8 +1193,8 @@
     }
 
     .variant-action-btn svg {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
     }
 
     /* Empty state for events */
@@ -942,7 +1220,7 @@
       gap: var(--space-16);
       background: var(--background-surface);
       border-bottom: 1px solid var(--border);
-      padding: var(--space-16);
+      padding: var(--section-padding);
     }
 
     /* Buttons */
@@ -1020,7 +1298,7 @@
     .InputField__label {
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 100%;
       letter-spacing: 0.09px;
       color: var(--input-field-text-color);
@@ -1035,10 +1313,11 @@
     .InputField__wrapper {
       display: flex;
       align-items: center;
-      max-height: 24px;
+      height: 24px;
       gap: var(--input-field-gap);
       background: var(--input-field-bg);
       border: var(--input-field-border);
+      border-color: var(--input-field-border-no-color);
       border-radius: var(--input-field-radius);
       padding: var(--input-field-padding-y) var(--input-field-padding-x);
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
@@ -1048,6 +1327,7 @@
     .InputField__wrapper:hover,
     .InputField.hover .InputField__wrapper {
       background: var(--input-field-hover-bg);
+      border: var(--input-field-border);
       border-color: var(--input-field-hover-border);
     }
 
@@ -1059,12 +1339,23 @@
 
     /* Left text (prefix like "(CR)") */
     .InputField__prefix {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      /* font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: 100%;
       color: var(--input-field-text-color);
+      flex-shrink: 0;*/
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 100%;
+      color: var(--text-secondary);
+      opacity: var(--input-field-suffix-opacity);
+      letter-spacing: 2%;
       flex-shrink: 0;
+      width: 22px;
+      text-align: left;
+
     }
 
     .InputField__prefix.hidden {
@@ -1081,7 +1372,7 @@
       font-size: 11px;
       font-weight: 400;
       line-height: 10px;
-      color: var(--foreground);
+      color: var(--text-primary);
       min-width: 0;
     }
 
@@ -1098,11 +1389,15 @@
     /* Right text (suffix) */
     .InputField__suffix {
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 11px;
-      font-weight: 400;
+      font-size: 10px;
+      font-weight: 500;
       line-height: 100%;
-      color: var(--input-field-text-color);
+      color: var(--text-secondary);
+      opacity: var(--input-field-suffix-opacity);
+      letter-spacing: 2%;
       flex-shrink: 0;
+      width: 22px;
+      text-align: right
     }
 
     .InputField__suffix.hidden {
@@ -1115,7 +1410,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: var(--foreground);
+      color: var(--text-primary);
     }
 
     .InputField__icon.hidden {
@@ -1126,6 +1421,20 @@
       width: 12px;
       height: 12px;
     }
+
+    /* Multiline variant (textarea) */
+    .InputField.multiline .InputField__wrapper {
+      max-height: none;
+      align-items: flex-start;
+      padding: var(--input-field-padding-y) var(--input-field-padding-x);
+    }
+
+    .InputField__textarea {
+      resize: none;
+      min-height: 18px;
+      line-height: 1.4;
+    }
+
     /* ============================================
      * LINKS SECTION
      * External links: Figma, Jira, Miro
@@ -1134,7 +1443,7 @@
     .section-links {
       background: var(--background-surface);
       border: 1px solid var(--border);
-      padding: var(--space-16);
+      padding: var(--section-padding);
     }
 
     /* Links subsection inside events section */
@@ -1241,7 +1550,7 @@
 
     .link-chip__remove:hover {
       background: var(--border);
-      color: var(--foreground);
+      color: var(--text-primary);
     }
 
     .link-add-btn {
@@ -1269,7 +1578,39 @@
       height: 12px;
     }
 
-    /* Link icon as InputField label (horizontal variant) */
+    /* Left icon inside InputField wrapper (brand icons) */
+    .InputField__left-icon {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: var(--radius-xs);
+    }
+
+    .InputField__left-icon svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    /* Brand colors from Simple Icons - https://simpleicons.org */
+    .InputField__left-icon.figma {
+      background: #F5F5F5; /* Neutral background for multi-color logo */
+    }
+
+    .InputField__left-icon.jira {
+      background: #E9F2FF; /* Light blue background for gradient logo */
+      color: #2684FF; /* Jira blue */
+    }
+
+    .InputField__left-icon.miro {
+      background: #FFD02F; /* Official Miro yellow */
+      color: #050038; /* Official Miro dark navy */
+    }
+
+    /* Legacy: Link icon as InputField label (horizontal variant) - for backwards compatibility */
     .InputField__label.link-icon {
       width: 24px;
       height: 24px;
@@ -1316,8 +1657,8 @@
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Experiment name</label>
             <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden">(CR)</span>
-              <input class="InputField__input" type="text" id="experimentName" placeholder="Untitled experiment">
+              <span class="InputField__prefix hidden">CR</span>
+              <input class="InputField__input" type="text" id="experimentName" placeholder="i.e., Landing page CTA test">
               <span class="InputField__suffix hidden"></span>
               <!-- Lucide: chevron-down -->
               <span class="InputField__icon hidden">
@@ -1333,7 +1674,7 @@
             <label class="InputField__label">Description</label>
             <div class="InputField__wrapper">
               <span class="InputField__prefix hidden"></span>
-              <input class="InputField__input" type="text" id="experimentDescription" placeholder="Add description">
+              <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Testing if new CTA increases conversions">
               <span class="InputField__suffix hidden"></span>
               <span class="InputField__icon hidden"></span>
             </div>
@@ -1393,69 +1734,7 @@
             <span class="links-header__label">Links</span>
           </div>
           <div class="links-list" id="linksList">
-            <!-- Figma Link - InputField Component: Horizontal variant with icon -->
-            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-              <label class="InputField__label link-icon figma" aria-label="Figma">
-                <!-- Official Figma multi-color logo -->
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M8 24c2.208 0 4-1.792 4-4v-4H8c-2.208 0-4 1.792-4 4s1.792 4 4 4z" fill="#0ACF83"/>
-                  <path d="M4 12c0-2.208 1.792-4 4-4h4v8H8c-2.208 0-4-1.792-4-4z" fill="#A259FF"/>
-                  <path d="M4 4c0-2.208 1.792-4 4-4h4v8H8C5.792 8 4 6.208 4 4z" fill="#F24E1E"/>
-                  <path d="M12 0h4c2.208 0 4 1.792 4 4s-1.792 4-4 4h-4V0z" fill="#FF7262"/>
-                  <path d="M20 12c0 2.208-1.792 4-4 4s-4-1.792-4-4 1.792-4 4-4 4 1.792 4 4z" fill="#1ABCFE"/>
-                </svg>
-              </label>
-              <div class="InputField__wrapper">
-                <span class="InputField__prefix hidden"></span>
-                <input class="InputField__input" type="url" id="figmaLink" placeholder="Paste Figma link...">
-                <span class="InputField__suffix hidden"></span>
-                <span class="InputField__icon hidden"></span>
-              </div>
-            </div>
-
-            <!-- Jira Link - InputField Component: Horizontal variant with icon -->
-            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-              <label class="InputField__label link-icon jira" aria-label="Jira">
-                <!-- Official Atlassian Jira logo with blue gradient -->
-                <svg viewBox="0 0 24 24" fill="none">
-                  <defs>
-                    <linearGradient id="jira-gradient-1" x1="98.03%" x2="58.89%" y1=".22%" y2="40.21%">
-                      <stop offset="0%" stop-color="#0052CC"/>
-                      <stop offset="92.29%" stop-color="#2684FF"/>
-                    </linearGradient>
-                    <linearGradient id="jira-gradient-2" x1="100.98%" x2="55.67%" y1=".35%" y2="44.49%">
-                      <stop offset="0%" stop-color="#0052CC"/>
-                      <stop offset="92.29%" stop-color="#2684FF"/>
-                    </linearGradient>
-                  </defs>
-                  <path fill="#2684FF" d="M23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z"/>
-                  <path fill="url(#jira-gradient-1)" d="M17.294 5.757H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001Z"/>
-                  <path fill="url(#jira-gradient-2)" d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005Z"/>
-                </svg>
-              </label>
-              <div class="InputField__wrapper">
-                <span class="InputField__prefix hidden"></span>
-                <input class="InputField__input" type="url" id="jiraLink" placeholder="Paste Jira ticket link...">
-                <span class="InputField__suffix hidden"></span>
-                <span class="InputField__icon hidden"></span>
-              </div>
-            </div>
-
-            <!-- Miro Link - InputField Component: Horizontal variant with icon -->
-            <div class="InputField horizontal" data-state="default" data-variant="horizontal">
-              <label class="InputField__label link-icon miro" aria-label="Miro">
-                <!-- Simple Icons: miro - https://simpleicons.org/?q=miro -->
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.392 0H13.9L17 4.808 10.444 0H6.949l3.102 6.3L3.494 0H0l3.05 8.131L0 24h3.494L10.05 6.985 6.949 24h3.494L17 5.494 13.899 24h3.493L24 3.672 17.392 0z"/>
-                </svg>
-              </label>
-              <div class="InputField__wrapper">
-                <span class="InputField__prefix hidden"></span>
-                <input class="InputField__input" type="url" id="miroLink" placeholder="Paste Miro board link...">
-                <span class="InputField__suffix hidden"></span>
-                <span class="InputField__icon hidden"></span>
-              </div>
-            </div>
+            <!-- Link fields will be generated dynamically -->
           </div>
         </div>
         </div>
@@ -1547,8 +1826,17 @@
      * @see https://simpleicons.org
      */
     const brandIcons = {
-      // https://simpleicons.org/?q=figma
-      'figma': '<path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/>',
+      // Official Figma multi-color logo
+      'figma': {
+        multicolor: true,
+        paths: [
+          { d: 'M8 24c2.208 0 4-1.792 4-4v-4H8c-2.208 0-4 1.792-4 4s1.792 4 4 4z', fill: '#0ACF83' },
+          { d: 'M4 12c0-2.208 1.792-4 4-4h4v8H8c-2.208 0-4-1.792-4-4z', fill: '#A259FF' },
+          { d: 'M4 4c0-2.208 1.792-4 4-4h4v8H8C5.792 8 4 6.208 4 4z', fill: '#F24E1E' },
+          { d: 'M12 0h4c2.208 0 4 1.792 4 4s-1.792 4-4 4h-4V0z', fill: '#FF7262' },
+          { d: 'M20 12c0 2.208-1.792 4-4 4s-4-1.792-4-4 1.792-4 4-4 4 1.792 4 4z', fill: '#1ABCFE' }
+        ]
+      },
       // https://simpleicons.org/?q=miro
       'miro': '<path d="M17.392 0H13.9L17 4.808 10.444 0H6.949l3.102 6.3L3.494 0H0l3.05 8.131L0 24h3.494L10.05 6.985 6.949 24h3.494L17 5.494 13.899 24h3.493L24 3.672 17.392 0z"/>',
       // https://simpleicons.org/?q=jira
@@ -1567,13 +1855,20 @@
         className = ''
       } = options;
       
-      const iconPath = brandIcons[name];
-      if (!iconPath) {
+      const iconData = brandIcons[name];
+      if (!iconData) {
         console.warn(`Brand icon "${name}" not found`);
         return '';
       }
       
-      return `<svg class="brand-icon brand-icon-${name}${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor">${iconPath}</svg>`;
+      // Handle multi-color icons (like Figma)
+      if (iconData.multicolor) {
+        const paths = iconData.paths.map(p => `<path d="${p.d}" fill="${p.fill}"/>`).join('');
+        return `<svg class="brand-icon brand-icon-${name}${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none">${paths}</svg>`;
+      }
+      
+      // Handle single-color icons
+      return `<svg class="brand-icon brand-icon-${name}${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor">${iconData}</svg>`;
     }
 
     /**
@@ -1609,13 +1904,19 @@
      * @param {boolean} props.showRText - Show right suffix text (default: false)
      * @param {boolean} props.showRIcon - Show dropdown icon (default: false)
      * @param {boolean} props.showLText - Show left prefix text (default: false)
+     * @param {boolean} props.showLIcon - Show left brand icon (default: false)
+     * @param {string} props.leftIcon - Brand icon name: 'figma', 'miro', 'jira' (default: '')
      * @param {string} props.smallText - Prefix text like "(CR)" (default: "(CR)")
      * @param {string} props.help - Placeholder text (default: "Enter input")
      * @param {string} props.text - Input value (default: "")
      * @param {string} props.suffix - Suffix text (default: "")
      * @param {string} props.state - "default" or "entered" (default: "default")
      * @param {string} props.variant - "vertical" or "horizontal" (default: "vertical")
+     * @param {boolean} props.multiline - Use textarea instead of input (default: false)
+     * @param {number} props.rows - Number of rows for textarea (default: 1)
+     * @param {HTMLElement} props.prefixElement - Custom prefix element (e.g., color indicator)
      * @param {Function} props.onChange - Change handler
+     * @param {string} props.inputType - Input type: 'text', 'url', etc. (default: 'text')
      * @returns {HTMLElement} The InputField container element
      */
     function createInputField(props = {}) {
@@ -1626,18 +1927,25 @@
         showRText = false,
         showRIcon = false,
         showLText = false,
-        smallText = '(CR)',
+        showLIcon = false,
+        leftIcon = '',
+        smallText = 'CTR',
         help = 'Enter input',
         text = '',
         suffix = '',
         state = 'default',
         variant = 'vertical',
-        onChange = null
+        multiline = false,
+        rows = 1,
+        prefixElement = null,
+        onChange = null,
+        inputType = 'text'
       } = props;
 
       // Create container
       const container = document.createElement('div');
       container.className = `InputField ${variant}`;
+      if (multiline) container.classList.add('multiline');
       container.dataset.state = state;
       container.dataset.variant = variant;
       if (text) container.classList.add('entered');
@@ -1652,18 +1960,39 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'InputField__wrapper';
 
-      // Create prefix
-      const prefix = document.createElement('span');
-      prefix.className = `InputField__prefix${showLText ? '' : ' hidden'}`;
-      prefix.textContent = smallText;
+      // Create left icon (brand icons like figma, miro, jira)
+      if (showLIcon && leftIcon) {
+        const iconEl = document.createElement('span');
+        iconEl.className = `InputField__left-icon ${leftIcon}`;
+        iconEl.innerHTML = getBrandIcon(leftIcon, { size: 14 });
+        wrapper.appendChild(iconEl);
+      }
 
-      // Create input
-      const input = document.createElement('input');
-      input.className = 'InputField__input';
-      input.type = 'text';
-      input.id = id;
-      input.placeholder = help;
-      input.value = text;
+      // Create prefix (text or custom element)
+      if (prefixElement) {
+        wrapper.appendChild(prefixElement);
+      } else if (showLText) {
+        const prefix = document.createElement('span');
+        prefix.className = 'InputField__prefix';
+        prefix.textContent = smallText;
+        wrapper.appendChild(prefix);
+      }
+
+      // Create input or textarea
+      let inputEl;
+      if (multiline) {
+        inputEl = document.createElement('textarea');
+        inputEl.className = 'InputField__input InputField__textarea';
+        inputEl.rows = rows;
+        inputEl.style.resize = 'none';
+      } else {
+        inputEl = document.createElement('input');
+        inputEl.className = 'InputField__input';
+        inputEl.type = inputType;
+      }
+      inputEl.id = id;
+      inputEl.placeholder = help;
+      inputEl.value = text;
 
       // Create suffix
       const suffixEl = document.createElement('span');
@@ -1676,7 +2005,7 @@
       icon.innerHTML = getIcon('chevron-down');
 
       // Handle state changes
-      input.addEventListener('input', (e) => {
+      inputEl.addEventListener('input', (e) => {
         if (e.target.value) {
           container.classList.add('entered');
           container.dataset.state = 'entered';
@@ -1684,12 +2013,16 @@
           container.classList.remove('entered');
           container.dataset.state = 'default';
         }
+        // Auto-resize textarea
+        if (multiline) {
+          e.target.style.height = 'auto';
+          e.target.style.height = e.target.scrollHeight + 'px';
+        }
         if (onChange) onChange(e.target.value);
       });
 
       // Assemble
-      wrapper.appendChild(prefix);
-      wrapper.appendChild(input);
+      wrapper.appendChild(inputEl);
       wrapper.appendChild(suffixEl);
       wrapper.appendChild(icon);
       container.appendChild(labelEl);
@@ -1712,12 +2045,213 @@
         input.addEventListener('input', (e) => {
           if (e.target.value) {
             field.classList.add('entered');
+            field.classList.add('entered');
             field.dataset.state = 'entered';
           } else {
             field.classList.remove('entered');
             field.dataset.state = 'default';
           }
         });
+      }
+    });
+
+    /**
+     * SelectField Component
+     * Creates a styled dropdown/select element following the design system.
+     * 
+     * @param {Object} props - Component properties
+     * @param {string} props.id - Unique identifier for the select element
+     * @param {string} props.label - Label text (default: "Label")
+     * @param {boolean} props.showLabel - Whether to show the label (default: true)
+     * @param {boolean} props.required - Whether the field is required (default: false)
+     * @param {string} props.placeholder - Placeholder option text (default: "Select...")
+     * @param {boolean} props.showPlaceholder - Whether to show placeholder option (default: true)
+     * @param {Array<{value: string, label: string, disabled?: boolean}>} props.options - Select options
+     * @param {string} props.value - Currently selected value (default: "")
+     * @param {string} props.size - Size variant: "sm" | "md" | "lg" (default: "md")
+     * @param {string} props.variant - Layout variant: "vertical" | "horizontal" (default: "vertical")
+     * @param {boolean} props.disabled - Whether select is disabled (default: false)
+     * @param {boolean} props.error - Whether to show error state (default: false)
+     * @param {string} props.helperText - Helper or error text below the select
+     * @param {Function} props.onChange - Change handler function
+     * @returns {HTMLElement} The SelectField container element
+     * 
+     * @example
+     * // Basic usage
+     * const select = createSelectField({
+     *   id: 'status',
+     *   label: 'Status',
+     *   options: [
+     *     { value: 'running', label: 'Running' },
+     *     { value: 'stopped', label: 'Stopped' }
+     *   ],
+     *   onChange: (value) => console.log('Selected:', value)
+     * });
+     * 
+     * @example
+     * // With all props
+     * const select = createSelectField({
+     *   id: 'priority',
+     *   label: 'Priority',
+     *   showLabel: true,
+     *   required: true,
+     *   placeholder: 'Select priority...',
+     *   options: [
+     *     { value: 'high', label: 'High' },
+     *     { value: 'medium', label: 'Medium' },
+     *     { value: 'low', label: 'Low', disabled: true }
+     *   ],
+     *   value: 'medium',
+     *   size: 'md',
+     *   variant: 'vertical',
+     *   disabled: false,
+     *   error: false,
+     *   helperText: 'Select the task priority',
+     *   onChange: (value) => handleChange(value)
+     * });
+     */
+    function createSelectField(props = {}) {
+      const {
+        id = 'select-' + Math.random().toString(36).substr(2, 9),
+        label = 'Label',
+        showLabel = true,
+        required = false,
+        placeholder = 'Select...',
+        showPlaceholder = true,
+        options = [],
+        value = '',
+        size = 'md',
+        variant = 'vertical',
+        disabled = false,
+        error = false,
+        helperText = '',
+        onChange = null
+      } = props;
+
+      // Create container with variant and size classes
+      const container = document.createElement('div');
+      container.className = 'SelectField';
+      if (variant === 'horizontal') container.classList.add('horizontal');
+      if (size !== 'md') container.classList.add(size);
+      if (disabled) container.classList.add('disabled');
+      if (error) container.classList.add('error');
+      container.dataset.size = size;
+      container.dataset.variant = variant;
+
+      // Create label
+      const labelEl = document.createElement('label');
+      labelEl.className = 'SelectField__label';
+      if (!showLabel) labelEl.classList.add('hidden');
+      if (required) labelEl.classList.add('required');
+      labelEl.textContent = label;
+      labelEl.htmlFor = id;
+
+      // Create wrapper (for positioning icon)
+      const wrapper = document.createElement('div');
+      wrapper.className = 'SelectField__wrapper';
+
+      // Create select element
+      const selectEl = document.createElement('select');
+      selectEl.className = 'SelectField__select';
+      selectEl.id = id;
+      selectEl.disabled = disabled;
+      if (required) selectEl.required = true;
+
+      // Add placeholder option if showPlaceholder is true
+      if (showPlaceholder) {
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = placeholder;
+        placeholderOption.disabled = true;
+        // Select placeholder if no value is set
+        if (!value) placeholderOption.selected = true;
+        selectEl.appendChild(placeholderOption);
+      }
+
+      // Add options
+      options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.disabled) option.disabled = true;
+        if (opt.value === value) option.selected = true;
+        selectEl.appendChild(option);
+      });
+
+      // Create icon (Lucide: chevron-down)
+      const icon = document.createElement('span');
+      icon.className = 'SelectField__icon';
+      icon.innerHTML = getIcon('chevron-down');
+
+      // Create helper text element
+      const helperEl = document.createElement('span');
+      helperEl.className = 'SelectField__helper';
+      if (!helperText) helperEl.classList.add('hidden');
+      helperEl.textContent = helperText;
+
+      // Handle change events
+      selectEl.addEventListener('change', (e) => {
+        const newValue = e.target.value;
+        if (onChange) onChange(newValue, e);
+      });
+
+      // Assemble component
+      wrapper.appendChild(selectEl);
+      wrapper.appendChild(icon);
+      container.appendChild(labelEl);
+      container.appendChild(wrapper);
+      if (helperText) container.appendChild(helperEl);
+
+      // Add helper methods to the container element
+      container.getValue = () => selectEl.value;
+      container.setValue = (newValue) => {
+        selectEl.value = newValue;
+        selectEl.dispatchEvent(new Event('change'));
+      };
+      container.setOptions = (newOptions, keepValue = true) => {
+        const currentValue = keepValue ? selectEl.value : '';
+        // Clear all but placeholder
+        while (selectEl.options.length > (showPlaceholder ? 1 : 0)) {
+          selectEl.remove(selectEl.options.length - 1);
+        }
+        // Add new options
+        newOptions.forEach(opt => {
+          const option = document.createElement('option');
+          option.value = opt.value;
+          option.textContent = opt.label;
+          if (opt.disabled) option.disabled = true;
+          if (opt.value === currentValue) option.selected = true;
+          selectEl.appendChild(option);
+        });
+      };
+      container.setDisabled = (isDisabled) => {
+        selectEl.disabled = isDisabled;
+        container.classList.toggle('disabled', isDisabled);
+      };
+      container.setError = (hasError, message = '') => {
+        container.classList.toggle('error', hasError);
+        helperEl.textContent = message;
+        helperEl.classList.toggle('hidden', !message);
+      };
+      container.getSelectElement = () => selectEl;
+
+      return container;
+    }
+
+    // Initialize existing SelectFields to ensure consistent behavior
+    document.querySelectorAll('.SelectField').forEach(field => {
+      const select = field.querySelector('.SelectField__select');
+      if (select) {
+        // Add size class based on height if not already set
+        if (!field.classList.contains('sm') && !field.classList.contains('lg')) {
+          // Default to md
+          field.dataset.size = 'md';
+        }
+        
+        // Add variant class if horizontal layout detected
+        if (!field.classList.contains('horizontal') && !field.classList.contains('vertical')) {
+          field.dataset.variant = 'vertical';
+        }
       }
     });
 
@@ -1728,15 +2262,27 @@
     ];
 
     // Variant badge colors
-    const variantColors = ['variant-a', 'variant-b', 'variant-c', 'variant-d'];
+    const variantColors = ['variant-a', 'variant-b', 'variant-c', 'variant-d', 'variant-e', 'variant-f'];
     const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    
+    // Color palette for variant color picker
+    const colorPalette = [
+      { id: 'blue', hex: '#2563eb', class: 'variant-a' },
+      { id: 'green', hex: '#0eab43', class: 'variant-b' },
+      { id: 'orange', hex: '#dd7602', class: 'variant-c' },
+      { id: 'purple', hex: '#8b5cf6', class: 'variant-d' },
+      { id: 'pink', hex: '#ec4899', class: 'variant-e' },
+      { id: 'teal', hex: '#14b8a6', class: 'variant-f' },
+      { id: 'red', hex: '#dc2626', class: 'variant-red' },
+      { id: 'gray', hex: '#6b7280', class: 'variant-gray' }
+    ];
 
     // Sample data for events with variants
     const defaultEvents = [
       {
         id: 'event-0',
         name: 'Landing page',
-         hasVariants: false,
+        hasVariants: false,
         variants: []
       },
       {
@@ -1744,14 +2290,14 @@
         name: 'Conversion button',
         hasVariants: true,
         variants: [
-          { id: 'var-0-0', name: 'Control', traffic: 50, metrics: { ctr: 0.695, cr: 0.425 } },
-          { id: 'var-0-1', name: 'Variation A', traffic: 50, metrics: { ctr: 0.725, cr: 0.480 } },
+          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, metrics: { ctr: 0.695, cr: 0.425 } },
+          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, metrics: { ctr: 0.725, cr: 0.480 } },
         ]
       },
       {
         id: 'event-2',
         name: 'Checkout page',
-         hasVariants: false,
+        hasVariants: false,
         variants: []
       },
     ];
@@ -1759,22 +2305,26 @@
     /**
      * Creates a metric row matching the Figma design
      * Layout: [Metric name input (with abbreviation)] [Min] [-] [Max] [Delete]
+     * Only the first row shows labels to save vertical space
      */
     function createMetricRow(metric, index) {
       const row = document.createElement('div');
       row.className = 'metric-row';
       row.id = metric.id || `metric-${index}`;
 
+      // Show labels only for the first metric row (index 0)
+      const isFirstRow = index === 0;
+
       // Metric name input field (flex: 1)
       const nameFieldDiv = document.createElement('div');
       nameFieldDiv.className = 'metric-name-field';
       const nameField = createInputField({
         id: `metric-name-${index}`,
-        label: 'Metric',
-        showLabel: true,
-        showRText: true,
-        suffix: metric.abbreviation || '',
-        help: 'Enter metric name',
+        label: 'Name',
+        showLabel: isFirstRow,
+        showLText: true,
+        smallText: metric.abbreviation || 'CTR',
+        help: 'e.g., Click through rate',
         text: metric.name || '',
         variant: 'vertical'
       });
@@ -1790,7 +2340,7 @@
       const minField = createInputField({
         id: `metric-min-${index}`,
         label: 'Min',
-        showLabel: true,
+        showLabel: isFirstRow,
         help: '0.00',
         text: metric.min !== undefined ? String(metric.min) : '',
         variant: 'vertical'
@@ -1808,7 +2358,7 @@
       const maxField = createInputField({
         id: `metric-max-${index}`,
         label: 'Max',
-        showLabel: true,
+        showLabel: isFirstRow,
         help: '1.00',
         text: metric.max !== undefined ? String(metric.max) : '',
         variant: 'vertical'
@@ -1840,21 +2390,33 @@
       const nameInput = nameField.querySelector('.InputField__input');
       const minInput = minField.querySelector('.InputField__input');
       const maxInput = maxField.querySelector('.InputField__input');
-      const suffixEl = nameField.querySelector('.InputField__suffix');
+      const prefixEl = nameField.querySelector('.InputField__prefix');
 
       // Sync inputs to metric data
       const syncData = () => {
+        const previousName = metric.name;
         metric.name = nameInput.value.trim();
         metric.min = parseFloat(minInput.value) || '';
         metric.max = parseFloat(maxInput.value) || '';
-        // Auto-generate abbreviation from name
+        // Auto-generate abbreviation from name (max 3 characters)
         if (metric.name && !metric.abbreviation) {
           const words = metric.name.split(' ');
-          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase();
-          suffixEl.textContent = metric.abbreviation;
-          suffixEl.classList.remove('hidden');
+          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
+          prefixEl.textContent = metric.abbreviation;
+          prefixEl.classList.remove('hidden');
+        }
+        // Update abbreviation if name changed (max 3 characters)
+        if (metric.name && previousName !== metric.name) {
+          const words = metric.name.split(' ');
+          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
+          prefixEl.textContent = metric.abbreviation;
+          prefixEl.classList.remove('hidden');
         }
         updateMetricsCount();
+        // Re-render events to update variant metric fields
+        if (typeof events !== 'undefined') {
+          renderEvents(events);
+        }
       };
 
       nameInput.addEventListener('change', syncData);
@@ -1870,62 +2432,143 @@
       countEl.textContent = count > 0 ? `${count} metric${count !== 1 ? 's' : ''}` : '';
     }
 
-    function renderMetrics(metrics) {
+    function renderMetrics(metricsArray, skipEventRender = false) {
       const list = document.getElementById('metricsList');
       const emptyState = document.getElementById('metricsEmptyState');
       list.innerHTML = '';
 
-      if (!metrics || metrics.length === 0) {
+      if (!metricsArray || metricsArray.length === 0) {
         emptyState.classList.remove('hidden');
         list.style.display = 'none';
         updateMetricsCount();
+        // Re-render events to update variant metric fields
+        if (!skipEventRender && typeof events !== 'undefined') {
+          renderEvents(events);
+        }
         return;
       }
 
       emptyState.classList.add('hidden');
       list.style.display = 'flex';
 
-      metrics.forEach((m, i) => {
+      metricsArray.forEach((m, i) => {
         const row = createMetricRow(m, i);
         list.appendChild(row);
       });
 
       updateMetricsCount();
+      
+      // Re-render events to update variant metric fields when metrics change
+      if (!skipEventRender && typeof events !== 'undefined') {
+        renderEvents(events);
+      }
     }
 
     /**
-     * Creates a variant card with all inputs
+     * Creates a color picker popover for variant color selection
+     */
+    function createColorPopover(currentColor, onSelect) {
+      const popover = document.createElement('div');
+      popover.className = 'color-popover';
+      
+      const grid = document.createElement('div');
+      grid.className = 'color-popover-grid';
+      
+      colorPalette.forEach(color => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'color-option';
+        if (currentColor === color.hex) {
+          option.classList.add('selected');
+        }
+        option.style.backgroundColor = color.hex;
+        option.dataset.colorId = color.id;
+        option.dataset.colorHex = color.hex;
+        option.title = color.id.charAt(0).toUpperCase() + color.id.slice(1);
+        
+        option.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Remove selected from all
+          grid.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+          option.classList.add('selected');
+          onSelect(color.hex);
+          popover.classList.remove('open');
+        });
+        
+        grid.appendChild(option);
+      });
+      
+      popover.appendChild(grid);
+      return popover;
+    }
+
+    /**
+     * Creates a variant card with unified color indicator + name, description, and metrics
      */
     function createVariantCard(variant, variantIndex, eventIndex) {
       const card = document.createElement('div');
       card.className = 'variant-card';
       card.id = variant.id;
 
-      // Variant badge (A, B, C...)
-      const badge = document.createElement('div');
-      badge.className = `variant-badge ${variantColors[variantIndex % variantColors.length]}`;
-      badge.textContent = variantLetters[variantIndex];
+      // Get default color based on index if not set
+      const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
+      const currentColor = variant.color || defaultColor;
 
       // Content area
       const content = document.createElement('div');
       content.className = 'variant-content';
 
-      // Row 1: Variant name + Traffic split
+      // Row 1: Color indicator + Variant name + Traffic split
       const row1 = document.createElement('div');
       row1.className = 'variant-row';
 
+      // Color indicator button with popover (to be used as prefix)
+      const colorIndicator = document.createElement('button');
+      colorIndicator.type = 'button';
+      colorIndicator.className = 'color-indicator';
+      colorIndicator.style.backgroundColor = currentColor;
+      colorIndicator.title = 'Select variant color';
+
+      // Create color popover
+      const colorPopover = createColorPopover(currentColor, (newColor) => {
+        colorIndicator.style.backgroundColor = newColor;
+        variant.color = newColor;
+        colorIndicator.classList.remove('active');
+      });
+      colorIndicator.appendChild(colorPopover);
+
+      // Toggle popover on click
+      colorIndicator.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = colorPopover.classList.contains('open');
+        // Close all other open popovers
+        document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.color-indicator.active').forEach(c => c.classList.remove('active'));
+        
+        if (!isOpen) {
+          colorPopover.classList.add('open');
+          colorIndicator.classList.add('active');
+        }
+      });
+
+      // Variant name field (InputField with color indicator as prefix)
       const nameFieldDiv = document.createElement('div');
       nameFieldDiv.className = 'variant-name-field';
       const nameField = createInputField({
         id: `variant-name-${eventIndex}-${variantIndex}`,
         label: 'Variant name',
         showLabel: false,
-        help: 'Enter variant name',
+        help: 'Variant name',
         text: variant.name || '',
-        variant: 'vertical'
+        variant: 'vertical',
+        prefixElement: colorIndicator,
+        onChange: (value) => {
+          variant.name = value;
+        }
       });
       nameFieldDiv.appendChild(nameField);
 
+      // Traffic field (percentage format: value displayed as "50%")
       const trafficFieldDiv = document.createElement('div');
       trafficFieldDiv.className = 'variant-traffic-field';
       const trafficField = createInputField({
@@ -1933,51 +2576,89 @@
         label: 'Traffic',
         showLabel: false,
         showRText: false,
-        suffix: '%',
-        help: '50',
-        text: variant.traffic !== undefined ? String(variant.traffic) : '',
-        variant: 'vertical'
+        suffix: '',
+        help: '50%',
+        text: variant.traffic !== undefined ? `${variant.traffic}%` : '',
+        variant: 'vertical',
+        onChange: (value) => {
+          // Parse number from value (strip % if present)
+          variant.traffic = parseFloat(value.replace('%', '')) || 0;
+        }
+      });
+      // Add blur handler to append % after editing
+      const trafficInput = trafficField.querySelector('.InputField__input');
+      trafficInput.addEventListener('blur', () => {
+        const numValue = parseFloat(trafficInput.value.replace('%', '')) || 0;
+        if (trafficInput.value.trim() !== '') {
+          trafficInput.value = `${numValue}%`;
+          variant.traffic = numValue;
+        }
       });
       trafficFieldDiv.appendChild(trafficField);
 
       row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
 
-      // Row 2: Metrics inputs
+      // Row 2: Description field
       const row2 = document.createElement('div');
-      row2.className = 'variant-metrics-row';
-
-      // CTR metric field
-      const ctrFieldDiv = document.createElement('div');
-      ctrFieldDiv.className = 'variant-metric-field';
-      const ctrField = createInputField({
-        id: `variant-ctr-${eventIndex}-${variantIndex}`,
-        label: 'CTR',
-        showLabel: true,
-        help: '0.00',
-        text: variant.metrics?.ctr !== undefined ? String(variant.metrics.ctr) : '',
-        variant: 'vertical'
+      row2.className = 'variant-description';
+      const descriptionField = createInputField({
+        id: `variant-description-${eventIndex}-${variantIndex}`,
+        label: 'Description',
+        showLabel: false,
+        help: 'Variant description',
+        text: variant.description || '',
+        variant: 'vertical',
+        onChange: (value) => {
+          variant.description = value;
+        }
       });
-      ctrFieldDiv.appendChild(ctrField);
+      row2.appendChild(descriptionField);
 
-      // CR metric field
-      const crFieldDiv = document.createElement('div');
-      crFieldDiv.className = 'variant-metric-field';
-      const crField = createInputField({
-        id: `variant-cr-${eventIndex}-${variantIndex}`,
-        label: 'CR',
-        showLabel: true,
-        help: '0.00',
-        text: variant.metrics?.cr !== undefined ? String(variant.metrics.cr) : '',
-        variant: 'vertical'
+      // Row 3: Metrics section with label and inputs
+      const metricsSection = document.createElement('div');
+      metricsSection.className = 'variant-metrics-section';
+
+      // Metrics section label
+      const metricsLabel = document.createElement('span');
+      metricsLabel.className = 'variant-metrics-label';
+      metricsLabel.textContent = 'Metrics';
+      metricsSection.appendChild(metricsLabel);
+
+      // Metrics inputs row (dynamically rendered from global metrics array)
+      const row3 = document.createElement('div');
+      row3.className = 'variant-metrics-row';
+
+      // Dynamically create metric fields based on global metrics array
+      metrics.forEach((metric, metricIndex) => {
+        if (!metric.name) return; // Skip metrics without a name
+        
+        const metricKey = (metric.abbreviation || metric.name.replace(/\s+/g, '_')).toLowerCase();
+        const metricFieldDiv = document.createElement('div');
+        metricFieldDiv.className = 'variant-metric-field';
+        const metricField = createInputField({
+          id: `variant-metric-${eventIndex}-${variantIndex}-${metricIndex}`,
+          label: metric.abbreviation || metric.name,
+          showLabel: false,
+          showLText: true,
+        smallText: metric.abbreviation || '',
+          help: metric.min !== undefined && metric.max !== undefined ? `${metric.min}-${metric.max}` : '0.00',
+          text: variant.metrics?.[metricKey] !== undefined ? String(variant.metrics[metricKey]) : '',
+          variant: 'vertical',
+          onChange: (value) => {
+            if (!variant.metrics) variant.metrics = {};
+            variant.metrics[metricKey] = parseFloat(value) || 0;
+          }
+        });
+        metricFieldDiv.appendChild(metricField);
+        row3.appendChild(metricFieldDiv);
       });
-      crFieldDiv.appendChild(crField);
 
-      row2.appendChild(ctrFieldDiv);
-      row2.appendChild(crFieldDiv);
+      metricsSection.appendChild(row3);
 
       content.appendChild(row1);
       content.appendChild(row2);
+      content.appendChild(metricsSection);
 
       // Actions (remove variant)
       const actions = document.createElement('div');
@@ -1986,7 +2667,7 @@
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'variant-action-btn remove';
-      removeBtn.innerHTML = getIcon('minus');
+      removeBtn.innerHTML = getIcon('trash-2');
       removeBtn.title = 'Remove variant';
       removeBtn.onclick = () => {
         events[eventIndex].variants.splice(variantIndex, 1);
@@ -1999,7 +2680,6 @@
       actions.appendChild(removeBtn);
 
       // Assemble card
-      card.appendChild(badge);
       card.appendChild(content);
       card.appendChild(actions);
 
@@ -2103,9 +2783,13 @@
       addVariantBtn.title = 'Add variant';
       addVariantBtn.onclick = () => {
         event.hasVariants = true;
+        const variantIndex = event.variants.length;
+        const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
         event.variants.push({
-          id: `var-${eventIndex}-${event.variants.length}`,
+          id: `var-${eventIndex}-${variantIndex}`,
           name: '',
+          description: '',
+          color: defaultColor,
           traffic: '',
           metrics: { ctr: '', cr: '' },
           isWinner: false
@@ -2208,8 +2892,45 @@
     let metrics = JSON.parse(JSON.stringify(defaultMetrics));
     let events = JSON.parse(JSON.stringify(defaultEvents));
 
-    renderMetrics(metrics);
+    // Initial render - skip event render from metrics to avoid double render
+    renderMetrics(metrics, true);
     renderEvents(events);
+
+    // Render link input fields
+    function renderLinkFields() {
+      const linksList = document.getElementById('linksList');
+      linksList.innerHTML = '';
+
+      const linkConfigs = [
+        { id: 'figmaLink', icon: 'figma', placeholder: 'https://www.figma.com/design/AbC123...' },
+        { id: 'jiraLink', icon: 'jira', placeholder: 'https://example.atlassian.net/browse/GL-123' },
+        { id: 'miroLink', icon: 'miro', placeholder: 'https://miro.com/app/board/uXjK9AbC...' }
+      ];
+
+      linkConfigs.forEach(config => {
+        const linkField = createInputField({
+          id: config.id,
+          label: config.icon,
+          showLabel: false,
+          showLIcon: true,
+          leftIcon: config.icon,
+          help: config.placeholder,
+          variant: 'horizontal',
+          inputType: 'url'
+        });
+        linksList.appendChild(linkField);
+      });
+    }
+
+    renderLinkFields();
+
+    // Global click handler to close color popovers when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.color-indicator')) {
+        document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.color-indicator.active').forEach(c => c.classList.remove('active'));
+      }
+    });
 
     document.getElementById('exp-form').onsubmit = (e) => {
       e.preventDefault();
