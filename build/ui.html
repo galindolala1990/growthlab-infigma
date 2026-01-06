@@ -90,6 +90,7 @@
       --typography-meta-color: #4a5a70;
 
       /* === Spacing === */
+      --space-2: 2px;
       --space-4: 4px;
       --space-8: 8px;
       --space-10: 10px;
@@ -115,9 +116,14 @@
       --input-padding-y: 0px;
       --input-height: 40px;
       --button-height: 32px;
+      --button-secondary-bg:rgba(34, 39, 47, 0.0);
+      --button-secondary-hover-bg:rgba(34, 39, 47, 0.05);
+      --button-secondary-selected-bg:rgba(34, 39, 47, 0.10);
       --button-padding: 6px;
       --button-radius: 8px;
       --button-gap: 4px;
+      --dropdown-hover-bg:var(--button-secondary-hover-bg);
+      --dropdown-selected-bg:rgba(239, 247, 255, 1);
       --container-gap: 4px;
       --variant-card-bg: #22272f06;
       --variant-card-hover-bg: #22272f0c;
@@ -147,7 +153,6 @@
       --input-field-focus-border: #6F4CFF;
       --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
 
-      --button-secondary-selected-bg: #EFF7FF;
 
       /* === SelectField Component (from Figma node 678-78897) === */
       --select-field-height-sm: 20px;
@@ -330,7 +335,7 @@
       height: 24px;
       border-radius: var(--radius-xs);
       border: none;
-      background: transparent;
+      background: var(--button-secondary-bg);
       color: var(--text-secondary);
       cursor: pointer;
       display: flex;
@@ -341,11 +346,11 @@
     }
 
     .icon-btn:hover {
-      background: var(--background-muted);
+      background: var(--button-secondary-hover-bg);
     }
 
     .icon-btn:active {
-      background: var(--background-subtle);
+      background: var(--button-secondary-selected-bg);
     }
 
     .icon-btn svg {
@@ -375,11 +380,6 @@
       font-size: var(--body-md-size);
       font-weight: 400;
       color: var(--text-muted);
-    }
-
-    /* Add Metric Button */
-    .btn-add-metric {
-      border-radius: var(--button-radius);
     }
 
     /* Metric Cards */
@@ -421,8 +421,7 @@
     .metric-range-container {
       display: flex;
       align-items: center;
-      gap: var(--space-8);
-      padding-left: var(--space-8);
+      gap: var(--space-4);
     }
 
     .metric-range-field {
@@ -607,7 +606,7 @@
     .event-actions {
       display: flex;
       align-items: center;
-      gap: var(--space-8);
+      gap: var(--space-2);
     }
 
     /* Event action buttons - use .icon-btn, .icon-btn--danger for delete */
@@ -1247,11 +1246,11 @@
     }
 
     .CustomDropdown__option:hover {
-      background: var(--input-field-hover-bg);
+      background: var(--dropdown-hover-bg);
     }
 
     .CustomDropdown__option.selected {
-      background: var(--button-secondary-selected-bg);
+      background: var(--dropdown-selected-bg);
       color: var(--text-link);
     }
 
@@ -1332,14 +1331,12 @@
     }
 
     .Button.secondary {
-      background: var(--background-surface);
+      background: var(--button-secondary-bg);
       color: var(--text-secondary);
-      border: 1px solid var(--border);
     }
 
     .Button.secondary:hover {
-      background: var(--background-muted);
-      border-color: var(--border-dark);
+      background: var(--button-secondary-hover-bg);
     }
 
     /* ============================================
@@ -1563,7 +1560,7 @@
     .links-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-16);
+      gap: var(--space-8);
     }
 
     .link-chip {
@@ -1619,7 +1616,7 @@
       align-items: center;
       gap: 4px;
       padding: 6px 10px;
-      background: transparent;
+      background: var(--button-secondary-bg);
       border: 1px dashed var(--border-dark);
       border-radius: var(--radius-xs);
       font-size: var(--body-sm-size);
@@ -1629,7 +1626,7 @@
     }
 
     .link-add-btn:hover {
-      background: var(--background-muted);
+      background: var(--button-secondary-hover-bg);
       border-color: var(--primary);
       color: var(--primary);
     }
