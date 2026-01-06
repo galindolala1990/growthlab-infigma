@@ -156,8 +156,29 @@
       --select-field-icon-size: 12px;
       --select-field-icon-gap: 8px;
       --select-field-disabled-opacity: 0.5;
-      --select-field-error-border: #F24E1E;
-      --select-field-error-shadow: 0 0 0 2px rgba(242, 78, 30, 0.15);
+      --select-field-error-border: var(--danger);
+      --select-field-error-shadow: var(--danger-shadow);
+
+      /* === Variant Color Palette === */
+      --variant-color-blue: #2563eb;
+      --variant-color-green: #0eab43;
+      --variant-color-orange: #dd7602;
+      --variant-color-purple: #8b5cf6;
+      --variant-color-pink: #ec4899;
+      --variant-color-teal: #14b8a6;
+      --variant-color-red: #dc2626;
+      --variant-color-gray: #6b7280;
+
+      /* === Semantic Status Colors === */
+      --status-running: #2563eb;
+      --status-rollout: #16a34a;
+      --status-inconclusive: #ca8a04;
+      --status-stopped: #dc2626;
+
+      /* === Danger/Error Colors === */
+      --danger: #f24e1e;
+      --danger-bg: rgba(242, 78, 30, 0.1);
+      --danger-shadow: 0 0 0 2px rgba(242, 78, 30, 0.15);
     }
 
     /* 
@@ -216,7 +237,6 @@
     
     /* Form Elements */
     input, button, select, textarea {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: var(--body-md-size);
     }
 
@@ -301,34 +321,47 @@
       padding: 4px 0;
     }
 
-    /* Add Event Button */
-    .btn-add-event {
+    /* ============================================
+     * ICON BUTTON BASE CLASS
+     * Shared styles for all icon buttons
+     * ============================================ */
+    .icon-btn {
       width: 24px;
       height: 24px;
-      border-radius: var(--button-radius);
+      border-radius: var(--radius-xs);
       border: none;
       background: transparent;
       color: var(--text-secondary);
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
       transition: background 0.15s, color 0.15s;
     }
 
-    .btn-add-event:hover {
+    .icon-btn:hover {
       background: var(--background-muted);
     }
 
-     .btn-add-event:active {
+    .icon-btn:active {
       background: var(--background-subtle);
     }
 
-    .btn-add-event svg {
+    .icon-btn svg {
       width: 14px;
       height: 14px;
+    }
+
+    /* Danger hover variant for delete/remove buttons */
+    .icon-btn--danger:hover {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    /* Add Event Button */
+    .btn-add-event {
+      border-radius: var(--button-radius);
     }
 
     .metrics-header-left {
@@ -344,33 +377,9 @@
       color: var(--text-muted);
     }
 
-    /* Add Metric Button (from Figma: radius=4px) */
+    /* Add Metric Button */
     .btn-add-metric {
-      width: 24px;
-      height: 24px;
       border-radius: var(--button-radius);
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .btn-add-metric:hover {
-      background: var(--background-muted);
-    }
-
-    .btn-add-metric:active {
-      background: var(--background-subtle);
-    }
-    .btn-add-metric svg {
-      width: 14px;
-      height: 14px;
     }
 
     /* Metric Cards */
@@ -435,34 +444,12 @@
       line-height: 1;
     }
 
-    /* Delete button */
-    .metric-delete-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-xs);
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s;
-    }
+    /* Delete button - uses .icon-btn.icon-btn--danger */
 
-    .metric-delete-btn:hover {
-      background: rgba(242, 78, 30, 0.1);
-      color: #f24e1e;
-    }
-
-    .metric-delete-btn svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    /* Empty state */
-    .metrics-empty-state {
+    /* ============================================
+     * EMPTY STATE BASE CLASS
+     * ============================================ */
+    .empty-state {
       text-align: center;
       padding: var(--space-24);
       color: var(--text-muted);
@@ -473,7 +460,7 @@
       min-height: 60px;
     }
 
-    .metrics-empty-state.hidden {
+    .empty-state.hidden {
       display: none;
     }
 
@@ -623,33 +610,7 @@
       gap: var(--space-8);
     }
 
-    .event-action-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-xs);
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .event-action-btn:hover {
-      background: rgba(34, 39, 47, 0.08);
-    }
-
-    .event-action-btn.delete:hover {
-      background: rgba(242, 78, 30, 0.1);
-      color: #f24e1e;
-    }
-
-    .event-action-btn svg {
-      width: 14px;
-      height: 14px;
-    }
+    /* Event action buttons - use .icon-btn, .icon-btn--danger for delete */
 
     /* Variants container (nested under event) */
     .event-variants-container {
@@ -758,18 +719,6 @@
     .variant-badge.variant-pink { background: var(--variant-color-pink); color: #fff; }
     .variant-badge.variant-teal { background: var(--variant-color-teal); color: #fff; }
     .variant-badge.variant-add { background: var(--border-dark); color: var(--text-secondary); }
-
-    /* Variant Color Palette */
-    :root {
-      --variant-color-blue: #2563eb;
-      --variant-color-green: #0eab43;
-      --variant-color-orange: #dd7602;
-      --variant-color-purple: #8b5cf6;
-      --variant-color-pink: #ec4899;
-      --variant-color-teal: #14b8a6;
-      --variant-color-red: #dc2626;
-      --variant-color-gray: #6b7280;
-    }
 
     /* Color Indicator Button (inside InputField wrapper) */
     .color-indicator {
@@ -898,7 +847,6 @@
     }
 
     .variant-metrics-label {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 400;
       line-height: 100%;
@@ -994,7 +942,6 @@
 
     /* Label */
     .SelectField__label {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 400;
       line-height: 100%;
@@ -1029,7 +976,6 @@
       background: var(--input-field-dropdown-bg);
       border: var(--input-field-border);
       border-radius: var(--input-field-radius);
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: var(--select-field-height-sm);
@@ -1110,7 +1056,6 @@
 
     /* Helper/Error text */
     .SelectField__helper {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 400;
       line-height: 130%;
@@ -1155,10 +1100,10 @@
     }
 
     /* Status-specific badge colors */
-    .SelectField__select option[value="running"] { color: #2563eb; }
-    .SelectField__select option[value="rollout"] { color: #16a34a; }
-    .SelectField__select option[value="inconclusive"] { color: #ca8a04; }
-    .SelectField__select option[value="stopped"] { color: #dc2626; }
+    .SelectField__select option[value="running"] { color: var(--status-running); }
+    .SelectField__select option[value="rollout"] { color: var(--status-rollout); }
+    .SelectField__select option[value="inconclusive"] { color: var(--status-inconclusive); }
+    .SelectField__select option[value="stopped"] { color: var(--status-stopped); }
 
     /* Status indicator dot */
     .status-indicator {
@@ -1174,10 +1119,10 @@
       flex-shrink: 0;
     }
 
-    .status-dot.running { background-color: #2563eb; }
-    .status-dot.rollout { background-color: #16a34a; }
-    .status-dot.inconclusive { background-color: #ca8a04; }
-    .status-dot.stopped { background-color: #dc2626; }
+    .status-dot.running { background-color: var(--status-running); }
+    .status-dot.rollout { background-color: var(--status-rollout); }
+    .status-dot.inconclusive { background-color: var(--status-inconclusive); }
+    .status-dot.stopped { background-color: var(--status-stopped); }
 
     /* Custom Dropdown (used for Status and Variant dropdowns) */
     .CustomDropdown {
@@ -1196,7 +1141,6 @@
       background: var(--input-field-dropdown-bg);
       border: var(--input-field-border);
       border-radius: var(--input-field-radius);
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       color: var(--input-field-text-color);
@@ -1290,7 +1234,6 @@
       align-items: center;
       gap: var(--space-8);
       padding: 6px var(--input-field-padding-x);
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       color: var(--input-field-text-color);
@@ -1346,49 +1289,7 @@
       flex-shrink: 0;
     }
 
-    .variant-action-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-xs);
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .variant-action-btn:hover {
-      background: rgba(34, 39, 47, 0.08);
-    }
-
-    .variant-action-btn.remove:hover {
-      background: rgba(242, 78, 30, 0.1);
-      color: #f24e1e;
-    }
-
-    .variant-action-btn svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    /* Empty state for events */
-    .events-empty-state {
-      text-align: center;
-      padding: var(--space-24);
-      color: var(--text-muted);
-      font-size: var(--body-md-size);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 60px;
-    }
-
-    .events-empty-state.hidden {
-      display: none;
-    }
+    /* Variant action buttons - use .icon-btn, .icon-btn--danger for remove */
 
     /* Footer Section */
     .section-footer {
@@ -1473,7 +1374,6 @@
 
     /* Label */
     .InputField__label {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 400;
       line-height: 100%;
@@ -1516,13 +1416,6 @@
 
     /* Left text (prefix like "(CR)") */
     .InputField__prefix {
-      /* font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 11px;
-      font-weight: 400;
-      line-height: 100%;
-      color: var(--input-field-text-color);
-      flex-shrink: 0;*/
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 10px;
       font-weight: 600;
       line-height: 100%;
@@ -1545,7 +1438,6 @@
       border: none;
       background: transparent;
       outline: none;
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 11px;
       font-weight: 400;
       line-height: 10px;
@@ -1565,7 +1457,6 @@
 
     /* Right text (suffix) */
     .InputField__suffix {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 10px;
       font-weight: 500;
       line-height: 100%;
@@ -1637,7 +1528,6 @@
     }
 
     .links-header__label {
-      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 9px;
       font-weight: 500;
       line-height: 100%;
@@ -1925,7 +1815,7 @@
             <h2>Metrics</h2>
             <span class="metrics-count" id="metricsCount"></span>
           </div>
-          <button class="btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">
+          <button class="icon-btn btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -1937,7 +1827,7 @@
           <!-- Metric rows inserted by JS -->
         </div>
         <!-- Empty state placeholder -->
-        <div class="metrics-empty-state" id="metricsEmptyState">
+        <div class="empty-state" id="metricsEmptyState">
           <p>No metrics yet. Click the + button to add your first metric.</p>
         </div>
       </section>
@@ -1949,7 +1839,7 @@
             <h2>Flow</h2>
             <span class="events-count" id="eventsCount">0 events • 0 variants</span>
           </div>
-          <button class="btn-add-event" type="button" aria-label="Add event" title="Add a new event">
+          <button class="icon-btn btn-add-event" type="button" aria-label="Add event" title="Add a new event">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -1961,7 +1851,7 @@
           <!-- Event rows inserted by JS -->
         </div>
         <!-- Empty state placeholder -->
-        <div class="events-empty-state" id="eventsEmptyState">
+        <div class="empty-state" id="eventsEmptyState">
           <p>No events yet. Click the + button to add your first event.</p>
         </div>
       </section>
@@ -2547,7 +2437,7 @@
 
       // Delete button (Lucide: trash-2)
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'metric-delete-btn';
+      deleteBtn.className = 'icon-btn icon-btn--danger';
       deleteBtn.type = 'button';
       deleteBtn.innerHTML = getIcon('trash-2');
       deleteBtn.title = 'Delete metric';
@@ -2848,7 +2738,7 @@
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
-      removeBtn.className = 'variant-action-btn remove';
+      removeBtn.className = 'icon-btn icon-btn--danger';
       removeBtn.innerHTML = getIcon('trash-2');
       removeBtn.title = 'Remove variant';
       removeBtn.onclick = () => {
@@ -2960,7 +2850,7 @@
       // Add variant button (Lucide: git-branch-plus)
       const addVariantBtn = document.createElement('button');
       addVariantBtn.type = 'button';
-      addVariantBtn.className = 'event-action-btn add-variant';
+      addVariantBtn.className = 'icon-btn';
       addVariantBtn.innerHTML = getIcon('git-branch-plus');
       addVariantBtn.title = 'Add variant';
       addVariantBtn.onclick = () => {
@@ -2982,7 +2872,7 @@
       // Delete button (Lucide: trash-2)
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
-      deleteBtn.className = 'event-action-btn delete';
+      deleteBtn.className = 'icon-btn icon-btn--danger';
       deleteBtn.innerHTML = getIcon('trash-2');
       deleteBtn.title = 'Delete event';
       deleteBtn.onclick = () => {
