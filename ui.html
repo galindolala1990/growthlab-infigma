@@ -65,29 +65,43 @@
       --input-text-line-height: 91%;
 
       /* === Colors === */
-      --brand: #6F4CFF;
-      --brand-foreground: #FFFFFF;
-      --brand-hover: #6330F7;
-      --brand-active: #6F4CFF;
-      --brand-soft: #F0EBFF;
-      --background: #FFFFFF;
-      --background-subtle: #F9FAFB;
-      --background-surface: #FFFFFF;
-      --background-muted: #ECEFF2;
-      --foreground: #0F1729;
-      --text-primary: #333B47;
-      --text-secondary:#506179;
-      --text-link: #2563EB;
-      --text-muted: var(--text-secondary);
-      --text-subtle: #D1D5DB;
-      --border: #EDEDF1;
-      --border-dark: #D8DBDF;
+      --color-azure-100: #eceff2;
+      --color-azure-light-alpha-25: #eceff206;
+      --color-azure-light-alpha-50: #eceff20c;
+      --color-azure-light-alpha-100: #eceff219;
+      --color-azure-dark-alpha-25: #22272f06;
+      --color-azure-dark-alpha-50: #22272f0c;
+      --color-azure-dark-alpha-100: #22272f19;
+      --color-white-100: #ffffff;
+      --color-pale-sky-100: #edeef1;
+      --color-azure-300: #afbbca;
+      --color-azure-400: #8496ac;
+      --color-azure-600: #506179;
+      --color-azure-900: #333b47;
+      --color-electric-violet-500: #6f4cff;
+      --color-electric-violet-600: #6330f7;
+      --color-royal-blue-50: #eff7ff;
+      --color-royal-blue-600: #2563eb;
+      --color-transparent: #ffffff00;
+
+
+  /* === Color Core === */
+      --brand: var(--color-electric-violet-500);
+      --brand-hover: var(--color-electric-violet-600);
+      --brand-active: var(--color-electric-violet-500);
+      --background: var(--color-azure-100);
+      --background-surface: var(--color-white-100);
+      --foreground: var(--color-azure-900);
+      --text-primary: var(--color-azure-900);
+      --text-primary-inverse: var(--color-white-100);
+      --text-secondary: var(--color-azure-600);
+      --text-link: var(--color-royal-blue-600);
+      --border: var(--color-pale-sky-100);
+      --border-dark:var(--color-azure-300);
       --accent-success: #126930;
       --accent-success-bg: #eaf7f0;
-      --accent-primary-dark: #18305a;
-      --typography-h1-color: var(--text-primary);
-      --typography-h2-color: var(--text-primary);
-      --typography-meta-color: #4a5a70;
+      --accent-primary-dark: var(--color-azure-900);
+      
 
       /* === Spacing === */
       --space-2: 2px;
@@ -109,36 +123,38 @@
       --section-gap: 16px;
       --section-radius: 18px;
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-      --input-bg: red;/* === what is this === */
-      --input-border: 1px solid #dbe3ef;/* === what is this === */
       --input-radius: 4px;
       --input-padding-x: 6px;
       --input-padding-y: 0px;
       --input-height: 40px;
       --button-height: 32px;
-      --button-secondary-bg:rgba(34, 39, 47, 0.0);
-      --button-secondary-hover-bg:rgba(34, 39, 47, 0.05);
-      --button-secondary-selected-bg:rgba(34, 39, 47, 0.10);
+      --button-secondary-bg: var(--background-surface);
+      --button-secondary-hover-bg: var(--color-azure-dark-alpha-50);
+      --button-secondary-selected-bg: var(--color-azure-dark-alpha-100);
       --button-padding: 6px;
       --button-radius: 8px;
       --button-gap: 4px;
-      --dropdown-hover-bg:var(--button-secondary-hover-bg);
-      --dropdown-selected-bg:rgba(239, 247, 255, 1);
+      --dropdown-hover-bg: var(--button-secondary-hover-bg);
+      --dropdown-selected-bg: var(--color-royal-blue-50);
       --container-gap: 4px;
-      --variant-card-bg: #22272f06;
-      --variant-card-hover-bg: #22272f0c;
-      --variant-card-border: #EDEDF1;
+      --variant-card-bg: var(--color-azure-dark-alpha-25);
+      --variant-card-hover-bg: var(--button-secondary-hover-bg);
+      --variant-card-border: var(--border);
       --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
       --variant-traffic-bg: #eaf7f0;
       --variant-traffic-border: #b6e2c6;
       --variant-traffic-color: #126930;
 
       /* === Input Field Component (from Figma node 353-7322) === */
-      --input-field-bg: rgba(34, 39, 47, 0.05); /*rgba(34, 39, 47, 0.05)*/
+      --input-field-bg: var(--color-azure-dark-alpha-50); 
+      --input-field-hover-bg: var(--color-azure-dark-alpha-50);
       --input-field-dropdown-bg: var(--background-surface);
-      --input-field-border: 1px solid #22272f19; /* === dropdown border === */
-      --input-field-border-color: #22272f19;
-      --input-field-border-no-color: #22272f00;
+      --input-field-hover-border: var(--input-field-border-color);
+      --input-field-focus-border: var(--color-electric-violet-500);
+      --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
+      --input-field-border: 1px solid var(--color-azure-dark-alpha-100); /* === dropdown border === */
+      --input-field-border-color: var(--color-azure-dark-alpha-100);
+      --input-field-border-no-color: var(--color-transparent);
       --input-field-radius: 4px;
       --input-field-padding-x: var(--input-padding-x);
       --input-field-padding-y: var(--input-padding-y);
@@ -148,11 +164,7 @@
       --input-field-text-color: var(--text-secondary);
       --input-field-placeholder-opacity: 0.7;
       --input-field-suffix-opacity: 0.5;
-      --input-field-hover-bg: #22272f0c;
-      --input-field-hover-border: rgba(34, 39, 47, 0.15);
-      --input-field-focus-border: #6F4CFF;
-      --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
-
+      
 
       /* === SelectField Component (from Figma node 678-78897) === */
       --select-field-height-sm: 20px;
@@ -203,7 +215,7 @@
       font-size: var(--heading-h1-size);
       font-weight: var(--heading-h1-weight);
       line-height: var(--heading-h1-line-height);
-      color: var(--typography-h1-color);
+      color: var(--text-primary);
       letter-spacing: -0.01em;
     }
     
@@ -212,7 +224,7 @@
       font-size: var(--heading-h2-size);
       font-weight: var(--heading-h2-weight);
       line-height: var(--heading-h2-line-height);
-      color: var(--typography-h2-color);
+      color: var(--text-primary);
       letter-spacing: -0.005em;
     }
     
@@ -237,7 +249,7 @@
       font-size: var(--body-sm-size);
       font-weight: var(--body-sm-weight);
       line-height: var(--body-sm-line-height);
-      color: var(--text-muted);
+      color: var(--text-secondary);
     }
     
     /* Form Elements */
@@ -247,7 +259,7 @@
 
     /* App Container */
     .app {
-      background: var(--background-subtle);
+      background: var(--background);
       min-height: 100vh;
     }
 
@@ -269,29 +281,6 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-16);
-    }
-
-    /* Form Inputs */
-    .Input {
-      background: var(--input-bg);
-      border: var(--input-border);
-      border-radius: var(--input-radius);
-      height: var(--input-height);
-      padding: var(--input-padding-y) var(--input-padding-x);
-      color: var(--text-primary);
-      font-size: var(--input-text-size);
-      font-weight: var(--input-text-weight);
-      line-height: var(--input-text-line-height);
-    }
-
-    .Input::placeholder {
-      color: var(--text-subtle);
-    }
-
-    .Input:focus {
-      outline: none;
-      border-color: var(--brand);
-      box-shadow: 0 0 0 2px var(--brand-soft);
     }
 
     /* Form Container*/
@@ -335,7 +324,7 @@
       height: 24px;
       border-radius: var(--radius-xs);
       border: none;
-      background: var(--button-secondary-bg);
+      background: var(--color-transparent);
       color: var(--text-secondary);
       cursor: pointer;
       display: flex;
@@ -379,7 +368,7 @@
     .events-count {
       font-size: var(--body-md-size);
       font-weight: 400;
-      color: var(--text-muted);
+      color: var(--text-secondary);
     }
 
     /* Metric Cards */
@@ -451,7 +440,7 @@
     .empty-state {
       text-align: center;
       padding: var(--space-24);
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: var(--body-md-size);
       display: flex;
       align-items: center;
@@ -1058,7 +1047,7 @@
       font-size: 9px;
       font-weight: 400;
       line-height: 130%;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       margin-top: 2px;
     }
 
@@ -1319,7 +1308,7 @@
 
     .Button.brand {
       background: var(--brand);
-      color: var(--brand-foreground);
+      color: var(--text-primary-inverse);
     }
 
     .Button.brand:hover {
@@ -1568,7 +1557,7 @@
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
-      background: var(--background-muted);
+      background: var(--background);
       border: 1px solid var(--border);
       border-radius: var(--radius-xs);
       font-size: var(--body-sm-size);
@@ -1581,7 +1570,7 @@
     }
 
     .link-chip:hover {
-      background: var(--background-subtle);
+      background: var(--background);
       border-color: var(--border-dark);
     }
 
@@ -1599,7 +1588,7 @@
       height: 14px;
       border-radius: 50%;
       background: transparent;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       flex-shrink: 0;
       font-size: 10px;
@@ -1620,7 +1609,7 @@
       border: 1px dashed var(--border-dark);
       border-radius: var(--radius-xs);
       font-size: var(--body-sm-size);
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
