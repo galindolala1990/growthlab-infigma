@@ -76,8 +76,8 @@
       --background-muted: #ECEFF2;
       --foreground: #0F1729;
       --text-primary: #333B47;
-      --text-link: #2563EB;
       --text-secondary:#506179;
+      --text-link: #2563EB;
       --text-muted: var(--text-secondary);
       --text-subtle: #D1D5DB;
       --border: #EDEDF1;
@@ -85,8 +85,8 @@
       --accent-success: #126930;
       --accent-success-bg: #eaf7f0;
       --accent-primary-dark: #18305a;
-      --typography-h1-color: #18305a;
-      --typography-h2-color: #18305a;
+      --typography-h1-color: var(--text-primary);
+      --typography-h2-color: var(--text-primary);
       --typography-meta-color: #4a5a70;
 
       /* === Spacing === */
@@ -109,7 +109,7 @@
       --section-gap: 16px;
       --section-radius: 18px;
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-      --input-bg: #FFFFFF;/* === what is this === */
+      --input-bg: red;/* === what is this === */
       --input-border: 1px solid #dbe3ef;/* === what is this === */
       --input-radius: 4px;
       --input-padding-x: 6px;
@@ -134,7 +134,7 @@
       --variant-traffic-color: #126930;
 
       /* === Input Field Component (from Figma node 353-7322) === */
-      --input-field-bg: rgba(34, 39, 47, 0.05);
+      --input-field-bg: rgba(34, 39, 47, 0.05); /*rgba(34, 39, 47, 0.05)*/
       --input-field-dropdown-bg: var(--background-surface);
       --input-field-border: 1px solid #22272f19; /* === dropdown border === */
       --input-field-border-color: #22272f19;
