@@ -76,6 +76,7 @@
       --background-muted: #ECEFF2;
       --foreground: #0F1729;
       --text-primary: #333B47;
+      --text-link: #2563EB;
       --text-secondary:#506179;
       --text-muted: var(--text-secondary);
       --text-subtle: #D1D5DB;
@@ -144,6 +145,8 @@
       --input-field-hover-border: rgba(34, 39, 47, 0.15);
       --input-field-focus-border: #6F4CFF;
       --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
+
+      --button-secondary-selected-bg: #EFF7FF;
 
       /* === SelectField Component (from Figma node 678-78897) === */
       --select-field-height-sm: 20px;
@@ -232,7 +235,7 @@
     .header-content {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      gap: var(--space-4);
       margin-bottom: var(--space-16);
     }
 
@@ -770,8 +773,9 @@
     /* Color Indicator Button (inside InputField wrapper) */
     .color-indicator {
       position: relative;
-      width: 14px;
-      height: 14px;
+      z-index: 10;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       border: none;
       cursor: pointer;
@@ -792,19 +796,20 @@
 
     .color-indicator.active {
       transform: scale(1.15);
+      z-index: 10000;
     }
 
     /* Color Picker Popover */
     .color-popover {
       position: absolute;
-      top: calc(100% + 4px);
+      bottom: calc(100% + 8px);
       left: -4px;
       z-index: 9999;
       background: var(--background-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: var(--space-8);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 24px -5px rgba(0, 0, 0, 0.16), 0 0 4px 0 rgba(0, 0, 0, 0.08);
       display: none;
       flex-direction: column;
       gap: var(--space-8);
@@ -815,31 +820,44 @@
     }
 
     .color-popover-grid {
-      display: grid;
+      display: inline-flex;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
 
     .color-option {
-      width: 24px;
-      height: 24px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      border: 2px solid transparent;
+      border: none;
       cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      box-sizing: border-box;
     }
 
+    /* Hover state - subtle scale */
     .color-option:hover {
-      transform: scale(1.15);
+      transform: scale(1.1);
     }
 
+    /* Selected state - ring uses the option's own color */
     .color-option.selected {
-      border-color: var(--foreground);
+      box-shadow: 0 0 0 1px var(--background-surface), 0 0 0 2px var(--color-option-color);
     }
 
+    /* Focus state for accessibility */
     .color-option:focus {
       outline: none;
-      box-shadow: 0 0 0 2px rgba(111, 76, 255, 0.3);
+    }
+
+    .color-option:focus-visible {
+      box-shadow: 0 0 0 1px var(--background-surface), 0 0 0 2px var(--color-electric-violet-500);
+    }
+
+    /* Selected + focus state */
+    .color-option.selected:focus-visible {
+      box-shadow: 0 0 0 1px var(--background-surface), 0 0 0 2px var(--color-option-color);
     }
 
     /* Variant content area */
@@ -1159,6 +1177,164 @@
     .status-dot.rollout { background-color: #16a34a; }
     .status-dot.inconclusive { background-color: #ca8a04; }
     .status-dot.stopped { background-color: #dc2626; }
+
+    /* Custom Dropdown (used for Status and Variant dropdowns) */
+    .CustomDropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .CustomDropdown__trigger {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      width: 100%;
+      height: var(--select-field-height-md);
+      padding: 0 var(--input-field-padding-x);
+      padding-right: calc(var(--input-field-padding-x) + var(--select-field-icon-size) + var(--select-field-icon-gap));
+      background: var(--input-field-dropdown-bg);
+      border: var(--input-field-border);
+      border-radius: var(--input-field-radius);
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--input-field-text-color);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      text-align: left;
+    }
+
+    .CustomDropdown__trigger:hover {
+      background: var(--input-field-hover-bg);
+      border-color: var(--input-field-hover-border);
+    }
+
+    .CustomDropdown__trigger:focus {
+      outline: none;
+      border-color: var(--input-field-focus-border);
+      box-shadow: var(--input-field-focus-shadow);
+    }
+
+    .CustomDropdown__trigger.placeholder {
+      color: var(--input-field-text-color);
+      opacity: var(--input-field-placeholder-opacity);
+    }
+
+    .CustomDropdown__badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Status-specific badge sizes (smaller dot) */
+    .CustomDropdown__badge.status-badge {
+      width: 6px;
+      height: 6px;
+    }
+
+    .CustomDropdown__text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .CustomDropdown__icon {
+      position: absolute;
+      right: var(--input-field-padding-x);
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+
+    .CustomDropdown__icon svg {
+      width: var(--select-field-icon-size);
+      height: var(--select-field-icon-size);
+    }
+
+    .CustomDropdown.open .CustomDropdown__icon {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .CustomDropdown__menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--background-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      flex-direction: column;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 6px;
+      gap: var(--space-4);
+    }
+
+    .CustomDropdown.open .CustomDropdown__menu {
+      display: flex;
+    }
+
+    .CustomDropdown__option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: 6px var(--input-field-padding-x);
+      font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--input-field-text-color);
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      border-radius: var(--radius-xs);
+    }
+
+    .CustomDropdown__option:hover {
+      background: var(--input-field-hover-bg);
+    }
+
+    .CustomDropdown__option.selected {
+      background: var(--button-secondary-selected-bg);
+      color: var(--text-link);
+    }
+
+    .CustomDropdown__option.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .CustomDropdown__option-badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Status-specific option badge sizes (smaller dot) */
+    .CustomDropdown__option-badge.status-badge {
+      width: 6px;
+      height: 6px;
+    }
+
+    .CustomDropdown__option-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     /* Variant actions */
     .variant-actions {
@@ -1686,19 +1862,20 @@
               <!-- Status Dropdown -->
               <div class="status-field">
                 <div class="SelectField">
-                  <label class="SelectField__label" for="experimentStatus">Status</label>
-                  <div class="SelectField__wrapper">
-                    <select class="SelectField__select" id="experimentStatus">
-                      <option value="running">Running</option>
-                      <option value="rollout">Rollout</option>
-                      <option value="inconclusive">Inconclusive</option>
-                      <option value="stopped">Stopped/Reverted</option>
-                    </select>
-                    <span class="SelectField__icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m6 9 6 6 6-6"/>
-                      </svg>
-                    </span>
+                  <label class="SelectField__label">Status</label>
+                  <div class="CustomDropdown" id="statusDropdown">
+                    <button type="button" class="CustomDropdown__trigger" id="statusTrigger">
+                      <span class="CustomDropdown__text">Running</span>
+                      <span class="CustomDropdown__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                      </span>
+                    </button>
+                    <div class="CustomDropdown__menu" id="statusMenu">
+                      <!-- Options will be populated by JS -->
+                    </div>
+                    <input type="hidden" id="experimentStatus" name="experimentStatus" value="running">
                   </div>
                 </div>
               </div>
@@ -1706,16 +1883,20 @@
               <!-- Rolled-out Variant Dropdown (shown only when status is "rollout") -->
               <div class="rolledout-field hidden" id="rolledoutField">
                 <div class="SelectField">
-                  <label class="SelectField__label" for="rolledoutVariant">Rolled-out</label>
-                  <div class="SelectField__wrapper">
-                    <select class="SelectField__select" id="rolledoutVariant">
-                      <option value="" disabled selected>To select, add variants</option>
-                    </select>
-                    <span class="SelectField__icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m6 9 6 6 6-6"/>
-                      </svg>
-                    </span>
+                  <label class="SelectField__label">Rolled-out</label>
+                  <div class="CustomDropdown" id="rolledoutVariantDropdown">
+                    <button type="button" class="CustomDropdown__trigger placeholder" id="rolledoutVariantTrigger">
+                      <span class="CustomDropdown__text">To select, add variants</span>
+                      <span class="CustomDropdown__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                      </span>
+                    </button>
+                    <div class="CustomDropdown__menu" id="rolledoutVariantMenu">
+                      <!-- Options will be populated dynamically -->
+                    </div>
+                    <input type="hidden" id="rolledoutVariant" name="rolledoutVariant" value="">
                   </div>
                 </div>
               </div>
@@ -2482,6 +2663,7 @@
           option.classList.add('selected');
         }
         option.style.backgroundColor = color.hex;
+        option.style.setProperty('--color-option-color', color.hex);
         option.dataset.colorId = color.id;
         option.dataset.colorHex = color.hex;
         option.title = color.id.charAt(0).toUpperCase() + color.id.slice(1);
@@ -2564,6 +2746,11 @@
         prefixElement: colorIndicator,
         onChange: (value) => {
           variant.name = value;
+          // Update rolled-out dropdown if status is rollout
+          const statusInput = document.getElementById('experimentStatus');
+          if (statusInput.value === 'rollout') {
+            updateRolledoutOptions();
+          }
         }
       });
       nameFieldDiv.appendChild(nameField);
@@ -3031,47 +3218,210 @@
      * Update the rolled-out variant dropdown options based on available variants
      */
     function updateRolledoutOptions() {
-      const rolledoutSelect = document.getElementById('rolledoutVariant');
+      const dropdown = document.getElementById('rolledoutVariantDropdown');
+      const trigger = document.getElementById('rolledoutVariantTrigger');
+      const menu = document.getElementById('rolledoutVariantMenu');
+      const hiddenInput = document.getElementById('rolledoutVariant');
       const allVariants = getAllVariants();
       
       // Clear existing options
-      rolledoutSelect.innerHTML = '';
+      menu.innerHTML = '';
       
       if (allVariants.length === 0) {
-        // No variants available
-        const option = document.createElement('option');
-        option.value = '';
-        option.disabled = true;
-        option.selected = true;
-        option.textContent = 'To select, add variants';
-        rolledoutSelect.appendChild(option);
+        // No variants available - update trigger to show placeholder
+        trigger.innerHTML = `
+          <span class="CustomDropdown__text">To select, add variants</span>
+          <span class="CustomDropdown__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </span>
+        `;
+        trigger.classList.add('placeholder');
+        hiddenInput.value = '';
       } else {
-        // Add placeholder option
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.disabled = true;
-        placeholder.selected = true;
-        placeholder.textContent = 'Select variant...';
-        rolledoutSelect.appendChild(placeholder);
+        // Reset trigger to placeholder if no value selected
+        if (!hiddenInput.value) {
+          trigger.innerHTML = `
+            <span class="CustomDropdown__text">Select variant...</span>
+            <span class="CustomDropdown__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </span>
+          `;
+          trigger.classList.add('placeholder');
+        }
         
         // Add variant options
         allVariants.forEach((variant) => {
-          const option = document.createElement('option');
-          option.value = variant.id;
-          option.textContent = variant.displayName;
-          rolledoutSelect.appendChild(option);
+          const defaultColor = colorPalette[variant.variantIndex % colorPalette.length].hex;
+          const variantColor = variant.color || defaultColor;
+          
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'CustomDropdown__option';
+          option.dataset.value = variant.id;
+          option.dataset.color = variantColor;
+          option.dataset.name = variant.displayName;
+          
+          if (hiddenInput.value === variant.id) {
+            option.classList.add('selected');
+          }
+          
+          option.innerHTML = `
+            <span class="CustomDropdown__option-badge" style="background-color: ${variantColor}"></span>
+            <span class="CustomDropdown__option-text">${variant.displayName}</span>
+          `;
+          
+          option.addEventListener('click', () => {
+            selectRolledoutVariant(variant.id, variantColor, variant.displayName);
+            dropdown.classList.remove('open');
+          });
+          
+          menu.appendChild(option);
         });
       }
+    }
+
+    /**
+     * Select a variant in the rolled-out dropdown
+     */
+    function selectRolledoutVariant(id, color, name) {
+      const trigger = document.getElementById('rolledoutVariantTrigger');
+      const hiddenInput = document.getElementById('rolledoutVariant');
+      const menu = document.getElementById('rolledoutVariantMenu');
+      
+      // Update hidden input value
+      hiddenInput.value = id;
+      
+      // Update trigger display
+      trigger.innerHTML = `
+        <span class="CustomDropdown__badge" style="background-color: ${color}"></span>
+        <span class="CustomDropdown__text">${name}</span>
+        <span class="CustomDropdown__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </span>
+      `;
+      trigger.classList.remove('placeholder');
+      
+      // Update selected state in menu
+      menu.querySelectorAll('.CustomDropdown__option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.value === id);
+      });
+    }
+
+    /**
+     * Initialize the rolled-out variant dropdown behavior
+     */
+    function initRolledoutDropdown() {
+      const dropdown = document.getElementById('rolledoutVariantDropdown');
+      const trigger = document.getElementById('rolledoutVariantTrigger');
+      
+      // Toggle dropdown on trigger click
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll('.CustomDropdown.open').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        dropdown.classList.toggle('open');
+      });
+    }
+
+    // Status dropdown configuration
+    const statusOptions = [
+      { value: 'running', label: 'Running', color: '#2563eb' },
+      { value: 'rollout', label: 'Rollout', color: '#16a34a' },
+      { value: 'inconclusive', label: 'Inconclusive', color: '#ca8a04' },
+      { value: 'stopped', label: 'Stopped/Reverted', color: '#dc2626' }
+    ];
+
+    /**
+     * Initialize the status dropdown
+     */
+    function initStatusDropdown() {
+      const dropdown = document.getElementById('statusDropdown');
+      const trigger = document.getElementById('statusTrigger');
+      const menu = document.getElementById('statusMenu');
+      const hiddenInput = document.getElementById('experimentStatus');
+      
+      // Populate menu options
+      statusOptions.forEach(status => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'CustomDropdown__option';
+        option.dataset.value = status.value;
+        option.dataset.color = status.color;
+        option.dataset.label = status.label;
+        
+        if (hiddenInput.value === status.value) {
+          option.classList.add('selected');
+        }
+        
+        option.innerHTML = `
+          <span class="CustomDropdown__option-text">${status.label}</span>
+        `;
+        
+        option.addEventListener('click', () => {
+          selectStatus(status.value, status.color, status.label);
+          dropdown.classList.remove('open');
+        });
+        
+        menu.appendChild(option);
+      });
+      
+      // Toggle dropdown on trigger click
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close other dropdowns
+        document.querySelectorAll('.CustomDropdown.open').forEach(d => {
+          if (d !== dropdown) d.classList.remove('open');
+        });
+        dropdown.classList.toggle('open');
+      });
+    }
+
+    /**
+     * Select a status in the status dropdown
+     */
+    function selectStatus(value, color, label) {
+      const trigger = document.getElementById('statusTrigger');
+      const hiddenInput = document.getElementById('experimentStatus');
+      const menu = document.getElementById('statusMenu');
+      
+      // Update hidden input value
+      hiddenInput.value = value;
+      
+      // Update trigger display
+      trigger.innerHTML = `
+        <span class="CustomDropdown__text">${label}</span>
+        <span class="CustomDropdown__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </span>
+      `;
+      
+      // Update selected state in menu
+      menu.querySelectorAll('.CustomDropdown__option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.value === value);
+      });
+      
+      // Trigger status change handler
+      handleStatusChange();
     }
 
     /**
      * Handle status dropdown change
      */
     function handleStatusChange() {
-      const statusSelect = document.getElementById('experimentStatus');
+      const statusInput = document.getElementById('experimentStatus');
       const rolledoutField = document.getElementById('rolledoutField');
       
-      if (statusSelect.value === 'rollout') {
+      if (statusInput.value === 'rollout') {
         rolledoutField.classList.remove('hidden');
         updateRolledoutOptions();
       } else {
@@ -3079,19 +3429,29 @@
       }
     }
 
-    // Initialize status dropdown handler
-    document.getElementById('experimentStatus').addEventListener('change', handleStatusChange);
+    // Global click handler for closing dropdowns
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.CustomDropdown.open').forEach(dropdown => {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('open');
+        }
+      });
+    });
 
     // Override renderEvents to also update rolled-out options when variants change
     const originalRenderEvents = renderEvents;
     renderEvents = function(eventsList) {
       originalRenderEvents(eventsList);
       // Update rolled-out dropdown if it's visible
-      const statusSelect = document.getElementById('experimentStatus');
-      if (statusSelect.value === 'rollout') {
+      const statusInput = document.getElementById('experimentStatus');
+      if (statusInput.value === 'rollout') {
         updateRolledoutOptions();
       }
     };
+
+    // Initialize the custom dropdowns (must be after function definitions)
+    initStatusDropdown();
+    initRolledoutDropdown();
   </script>
 </body>
 </html>
