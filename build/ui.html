@@ -112,18 +112,19 @@
       --space-16: 16px;
       --space-24: 24px;
 
-      /* === Border Radius === */
-      --radius-xs: 4px;
-      --radius-sm: 8px;
-      --radius-lg: 16px;
-      --radius-xl: 18px;
+      /* === Border Radius === .3125rem */
+      --radius-xs: 0.3125rem;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 1rem;
+      --radius-xl: 1.125rem;
 
       /* === Component Variables === */
       --section-padding: 16px 24px 16px 16px;
       --section-gap: 16px;
-      --section-radius: 18px;
+      --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
-      --input-radius: 4px;
+      --input-radius: var(--radius-xs);
       --input-padding-x: 6px;
       --input-padding-y: 0px;
       --input-height: 40px;
@@ -132,11 +133,11 @@
       --button-secondary-hover-bg: var(--color-azure-dark-alpha-50);
       --button-secondary-selected-bg: var(--color-azure-dark-alpha-100);
       --button-padding: 6px;
-      --button-radius: 8px;
-      --button-gap: 4px;
+      --button-radius: var(--radius-md);
+      --button-gap: var(--space-4);
       --dropdown-hover-bg: var(--button-secondary-hover-bg);
       --dropdown-selected-bg: var(--color-royal-blue-50);
-      --container-gap: 4px;
+      --container-gap: var(--space-4);
       --variant-card-bg: var(--color-azure-dark-alpha-25);
       --variant-card-hover-bg: var(--button-secondary-hover-bg);
       --variant-card-border: var(--border);
@@ -155,7 +156,7 @@
       --input-field-border: 1px solid var(--color-azure-dark-alpha-100); /* === dropdown border === */
       --input-field-border-color: var(--color-azure-dark-alpha-100);
       --input-field-border-no-color: var(--color-transparent);
-      --input-field-radius: 4px;
+      --input-field-radius: var(--radius-xs);
       --input-field-padding-x: var(--input-padding-x);
       --input-field-padding-y: var(--input-padding-y);
       --input-field-gap: 8px;
@@ -168,8 +169,8 @@
 
       /* === SelectField Component (from Figma node 678-78897) === */
       --select-field-height-sm: 20px;
-      --select-field-height-md: 24px;
-      --select-field-height-lg: 28px;
+      --select-field-height-md: 26px;
+      --select-field-height-lg: 32px;
       --select-field-icon-size: 12px;
       --select-field-icon-gap: 8px;
       --select-field-disabled-opacity: 0.5;
@@ -375,7 +376,7 @@
     .metrics-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-16);
+      gap: var(--space-8);
     }
 
     .metric-row {
@@ -644,7 +645,7 @@
       padding: var(--space-12);
       background: var(--variant-card-bg);
       /* border-bottom: 1px dashed var(--border);*/
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-md);
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       min-width: 0;
       width: 100%;
@@ -663,7 +664,6 @@
 
     /* Dragging state */
     .variant-card.dragging {
-      background: rgba(236, 239, 242, 0.4);
        /* border-top: 0.5px solid var(--text-secondary);*/
       box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
       cursor: grabbing;
@@ -671,6 +671,7 @@
 
     /* Active/pressed state */
     .variant-card:active {
+      background: var(--color-royal-blue-50);
       cursor: grabbing;
     }
 
@@ -1376,7 +1377,7 @@
     .InputField__wrapper {
       display: flex;
       align-items: center;
-      height: 24px;
+      height: var(--select-field-height-md);
       gap: var(--input-field-gap);
       background: var(--input-field-bg);
       border: var(--input-field-border);
@@ -1490,8 +1491,8 @@
     }
 
     /* ============================================
-     * LINKS SECTION
-     * External links: Figma, Jira, Miro
+     * RELATED LINKS SECTION
+     * Flexible links with smart service detection
      * ============================================ */
     
     .section-links {
@@ -1505,6 +1506,7 @@
       align-items: center;
       gap: var(--space-4);
       margin-bottom: var(--space-12);
+      margin-top: var(--space-4);
       cursor: pointer;
       user-select: none;
     }
@@ -1542,87 +1544,240 @@
       transform: rotate(-90deg);
     }
 
-    .links-subsection.collapsed .links-list {
+    .links-subsection.collapsed .links-content {
       display: none;
     }
 
-    .links-list {
+    .links-content {
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
     }
 
-    .link-chip {
-      display: inline-flex;
+    /* Link input wrapper */
+    .link-input-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .link-input-row {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: var(--background);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xs);
+      gap: var(--space-8);
+    }
+
+    .link-input-row .InputField {
+      flex: 1;
+    }
+
+    .link-input-error {
       font-size: var(--body-sm-size);
-      color: var(--text-secondary);
-      cursor: pointer;
+      color: var(--danger);
+      padding-left: var(--space-4);
+    }
+
+    /* Links list */
+    .links-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .links-list:empty {
+      display: none;
+    }
+
+    /* Link row item */
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: 0 var(--input-field-padding-x);
+      background: var(--button-secondary-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
       transition: background 0.15s, border-color 0.15s;
-      text-decoration: none;
-      max-width: 100%;
-      overflow: hidden;
+      height: var(--select-field-height-lg);
     }
 
-    .link-chip:hover {
-      background: var(--background);
-      border-color: var(--border-dark);
+    .link-row:hover {
+      background: var(--input-field-hover-bg);
+      border-color: var(--input-field-hover-border);
     }
 
-    .link-chip__text {
+    .link-row__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border-radius: var(--radius-xs);
+      flex-shrink: 0;
+    }
+
+    .link-row__icon svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .link-row__icon.figma { background: #F5F5F5; }
+    .link-row__icon.jira { background: #E9F2FF; color: #2684FF; }
+    .link-row__icon.miro { background: #FFD02F; color: #050038; }
+    .link-row__icon.asana { background: #FFF0F0; color: #F06A6A; }
+    .link-row__icon.linear { background: #F0F0FF; color: #5E6AD2; }
+    .link-row__icon.notion { background: #F7F6F3; color: #000000; }
+    .link-row__icon.slack { background: #F0F8F5; color: #4A154B; }
+    .link-row__icon.github { background: #F6F8FA; color: #24292F; }
+    .link-row__icon.confluence { background: #E9F2FF; color: #2684FF; }
+    .link-row__icon.trello { background: #E4F7FA; color: #0079BF; }
+    .link-row__icon.monday { background: #FFF5F0; color: #FF3D57; }
+    .link-row__icon.clickup { background: #FFF0F5; color: #7B68EE; }
+    .link-row__icon.generic { background: var(--background); color: var(--text-secondary); }
+
+    .link-row__info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .link-row__name {
+      font-size: var(--body-sm-size);
+      font-weight: 400;
+      color: var(--text-primary);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .link-chip__remove {
+    .link-row__domain {
+      font-size: var(--body-sm-size);
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link-row__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .link-row:hover .link-row__actions {
+      opacity: 1;
+    }
+
+    .link-row__action {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      border: none;
       background: transparent;
       color: var(--text-secondary);
+      border-radius: var(--radius-xs);
       cursor: pointer;
-      flex-shrink: 0;
-      font-size: 10px;
-      line-height: 1;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .link-chip__remove:hover {
-      background: var(--border);
+    .link-row__action:hover {
+      background: var(--button-secondary-hover-bg);
       color: var(--text-primary);
     }
 
-    .link-add-btn {
+    .link-row__action.delete:hover {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .link-row__action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Edit mode for link row */
+    .link-row.editing {
+      padding: var(--space-4);
+    }
+
+    .link-row.editing .link-row__info,
+    .link-row.editing .link-row__actions {
+      display: none;
+    }
+
+    .link-row__edit-form {
+      display: none;
+      flex: 1;
+      gap: var(--space-4);
+    }
+
+    .link-row.editing .link-row__edit-form {
       display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 6px 10px;
-      background: var(--button-secondary-bg);
-      border: 1px dashed var(--border-dark);
+    }
+
+    .link-row__edit-input {
+      flex: 1;
+      padding: var(--space-4) var(--space-8);
+      border: 1px solid var(--border-dark);
       border-radius: var(--radius-xs);
       font-size: var(--body-sm-size);
-      color: var(--text-secondary);
+      font-family: inherit;
+      background: var(--background-surface);
+      color: var(--text-primary);
+    }
+
+    .link-row__edit-input:focus {
+      outline: none;
+      border-color: var(--input-field-focus-border);
+      box-shadow: var(--input-field-focus-shadow);
+    }
+
+    .link-row__edit-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .link-row__edit-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: var(--radius-xs);
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      transition: background 0.15s;
     }
 
-    .link-add-btn:hover {
-      background: var(--button-secondary-hover-bg);
-      border-color: var(--primary);
-      color: var(--primary);
+    .link-row__edit-btn.save {
+      background: var(--accent-success-bg);
+      color: var(--accent-success);
     }
 
-    .link-add-btn svg {
-      width: 12px;
-      height: 12px;
+    .link-row__edit-btn.save:hover {
+      background: #d4eddb;
+    }
+
+    .link-row__edit-btn.cancel {
+      background: var(--background);
+      color: var(--text-secondary);
+    }
+
+    .link-row__edit-btn.cancel:hover {
+      background: var(--border);
+    }
+
+    .link-row__edit-btn svg {
+      width: 14px;
+      height: 14px;
     }
 
     /* Left icon inside InputField wrapper (brand icons) */
@@ -1643,51 +1798,19 @@
     }
 
     /* Brand colors from Simple Icons - https://simpleicons.org */
-    .InputField__left-icon.figma {
-      background: #F5F5F5; /* Neutral background for multi-color logo */
-    }
-
-    .InputField__left-icon.jira {
-      background: #E9F2FF; /* Light blue background for gradient logo */
-      color: #2684FF; /* Jira blue */
-    }
-
-    .InputField__left-icon.miro {
-      background: #FFD02F; /* Official Miro yellow */
-      color: #050038; /* Official Miro dark navy */
-    }
-
-    /* Legacy: Link icon as InputField label (horizontal variant) - for backwards compatibility */
-    .InputField__label.link-icon {
-      width: 24px;
-      height: 24px;
-      min-width: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      border-radius: var(--radius-xs);
-      padding: 0;
-    }
-
-    .InputField__label.link-icon svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    /* Brand colors from Simple Icons - https://simpleicons.org */
-    .InputField__label.link-icon.figma {
-      background: #F5F5F5; /* Neutral background for multi-color logo */
-    }
-
-    .InputField__label.link-icon.jira {
-      background: #E9F2FF; /* Light blue background for gradient logo */
-    }
-
-    .InputField__label.link-icon.miro {
-      background: #FFD02F; /* Official Miro yellow */
-      color: #050038; /* Official Miro dark navy */
-    }
+    .InputField__left-icon.figma { background: #F5F5F5; }
+    .InputField__left-icon.jira { background: #E9F2FF; color: #2684FF; }
+    .InputField__left-icon.miro { background: #FFD02F; color: #050038; }
+    .InputField__left-icon.asana { background: #FFF0F0; color: #F06A6A; }
+    .InputField__left-icon.linear { background: #F0F0FF; color: #5E6AD2; }
+    .InputField__left-icon.notion { background: #F7F6F3; color: #000000; }
+    .InputField__left-icon.slack { background: #F0F8F5; color: #4A154B; }
+    .InputField__left-icon.github { background: #F6F8FA; color: #24292F; }
+    .InputField__left-icon.confluence { background: #E9F2FF; color: #2684FF; }
+    .InputField__left-icon.trello { background: #E4F7FA; color: #0079BF; }
+    .InputField__left-icon.monday { background: #FFF5F0; color: #FF3D57; }
+    .InputField__left-icon.clickup { background: #FFF0F5; color: #7B68EE; }
+    .InputField__left-icon.generic { background: var(--background); color: var(--text-secondary); }
   </style>
 </head>
 <body>
@@ -1774,7 +1897,7 @@
             </div>
           </div>
 
-          <!-- Links subsection -->
+          <!-- Related links subsection -->
         <div class="links-subsection" id="linksSubsection">
           <div class="links-header" id="linksHeader">
             <span class="links-header__chevron">
@@ -1783,10 +1906,22 @@
                 <path d="m6 9 6 6 6-6"/>
               </svg>
             </span>
-            <span class="links-header__label">Links</span>
+            <span class="links-header__label">Related links</span>
           </div>
-          <div class="links-list" id="linksList">
-            <!-- Link fields will be generated dynamically -->
+          <div class="links-content">
+            <!-- Links list (dynamically populated) -->
+            <div class="links-list" id="linksList"></div>
+            <!-- Add link input -->
+            <div class="link-input-wrapper">
+              <div class="link-input-row">
+                <div class="InputField" data-state="default" data-variant="horizontal">
+                  <div class="InputField__wrapper">
+                    <input class="InputField__input" type="url" id="linkInput" placeholder="Paste a link...">
+                  </div>
+                </div>
+              </div>
+              <div class="link-input-error" id="linkInputError" style="display: none;"></div>
+            </div>
           </div>
         </div>
         </div>
@@ -1865,7 +2000,12 @@
       'chevron-down': '<path d="m6 9 6 6 6-6"/>',
       // https://lucide.dev/icons/trash-2
       'trash-2': '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
-
+      // https://lucide.dev/icons/pencil
+      'pencil': '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+      // https://lucide.dev/icons/check
+      'check': '<path d="M20 6 9 17l-5-5"/>',
+      // https://lucide.dev/icons/x
+      'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
       // https://lucide.dev/icons/git-branch-plus
       'git-branch-plus': '<path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M15 6a9 9 0 0 0-9 9"/><path d="M18 15v6"/><path d="M21 18h-6"/>',
       // https://lucide.dev/icons/trophy
@@ -1892,7 +2032,27 @@
       // https://simpleicons.org/?q=miro
       'miro': '<path d="M17.392 0H13.9L17 4.808 10.444 0H6.949l3.102 6.3L3.494 0H0l3.05 8.131L0 24h3.494L10.05 6.985 6.949 24h3.494L17 5.494 13.899 24h3.493L24 3.672 17.392 0z"/>',
       // https://simpleicons.org/?q=jira
-      'jira': '<path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z"/>'
+      'jira': '<path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z"/>',
+      // https://simpleicons.org/?q=asana
+      'asana': '<path d="M18.79 12.636a5.21 5.21 0 1 1 0 10.42 5.21 5.21 0 0 1 0-10.42zm-13.58 0a5.21 5.21 0 1 1 0 10.42 5.21 5.21 0 0 1 0-10.42zM12 .944a5.21 5.21 0 1 1 0 10.42 5.21 5.21 0 0 1 0-10.42z"/>',
+      // https://simpleicons.org/?q=linear
+      'linear': '<path d="M2.893 17.77L17.77 2.892A10.93 10.93 0 0 1 22.967 12c0 6.052-4.906 10.959-10.958 10.959-4.18 0-7.812-2.34-9.656-5.78l.54-.41zm-1.358-2.227L15.542 1.536A11.037 11.037 0 0 0 12 1.042C5.948 1.042 1.042 5.948 1.042 12c0 1.255.212 2.46.6 3.58zm-.432 4.39l.003-.002 16.073-16.074a10.93 10.93 0 0 0-5.17-1.295C5.948 2.562 1.562 6.948 1.562 12c0 2.788 1.14 5.308 2.977 7.122l-3.436 2.621V24h2.28l2.62-3.437c1.813 1.838 4.334 2.977 7.122 2.977 6.052 0 10.959-4.906 10.959-10.959 0-1.828-.448-3.552-1.242-5.07L6.766 23.588c.093.067.186.132.28.195l.54-.41z"/>',
+      // https://simpleicons.org/?q=notion
+      'notion': '<path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 2.02c-.42-.326-.98-.7-2.055-.607L3.01 2.72c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.354c0-.606-.233-.933-.746-.886l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.747 0-.933-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-1.26c1.634-.14 2.054-.047 3.082.7l4.249 2.986c.7.513.933.653.933 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.448-1.632z"/>',
+      // https://simpleicons.org/?q=slack
+      'slack': '<path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.122 2.521a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zm-1.268 0a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zm-2.523 10.122a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zm0-1.268a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>',
+      // https://simpleicons.org/?q=github
+      'github': '<path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>',
+      // https://simpleicons.org/?q=confluence
+      'confluence': '<path d="M.87 18.257c-.248.382-.53.875-.763 1.245a.764.764 0 0 0 .255 1.04l4.965 3.054a.764.764 0 0 0 1.058-.26c.199-.332.454-.763.733-1.221 1.967-3.247 3.945-2.853 7.508-1.146l4.957 2.377a.764.764 0 0 0 1.028-.382l2.36-5.2a.764.764 0 0 0-.382-1.003c-1.04-.49-2.795-1.322-4.569-2.147-6.2-2.883-11.09-2.616-17.15 3.643zM23.131 5.743c.249-.405.531-.875.764-1.244a.764.764 0 0 0-.256-1.04L18.675.404a.764.764 0 0 0-1.058.26c-.195.335-.451.763-.734 1.221-1.966 3.247-3.944 2.853-7.508 1.146L4.418.654a.764.764 0 0 0-1.028.382l-2.36 5.2a.764.764 0 0 0 .382 1.004c1.041.49 2.795 1.322 4.57 2.146 6.2 2.883 11.089 2.617 17.149-3.643z"/>',
+      // https://simpleicons.org/?q=trello
+      'trello': '<path d="M21 0H3C1.343 0 0 1.343 0 3v18c0 1.656 1.343 3 3 3h18c1.656 0 3-1.344 3-3V3c0-1.657-1.344-3-3-3zM10.44 18.18c0 .795-.645 1.44-1.44 1.44H4.56c-.795 0-1.44-.646-1.44-1.44V4.56c0-.795.645-1.44 1.44-1.44H9c.795 0 1.44.645 1.44 1.44v13.62zm10.44-6c0 .794-.645 1.44-1.44 1.44H15c-.795 0-1.44-.646-1.44-1.44V4.56c0-.795.646-1.44 1.44-1.44h4.44c.795 0 1.44.645 1.44 1.44v7.62z"/>',
+      // https://simpleicons.org/?q=monday
+      'monday': '<path d="M2.597 8.634a2.271 2.271 0 0 1-.203 2.152 2.449 2.449 0 0 1-1.937.94C.178 11.702.024 11.39 0 11.11v-.056c0-.893.5-1.735 1.322-2.19.889-.509 1.985-.367 2.75.356a2.35 2.35 0 0 1-.15.252l-1.325 1.162zm8.594.084a2.36 2.36 0 0 1-2.098 1.288 2.378 2.378 0 0 1-2.098-1.288L4.85 4.936a2.315 2.315 0 0 1 .127-2.456 2.417 2.417 0 0 1 2.197-1.042 2.401 2.401 0 0 1 2.018 1.34l2.146 3.782 2.145-3.782a2.402 2.402 0 0 1 2.018-1.34 2.416 2.416 0 0 1 2.197 1.042 2.316 2.316 0 0 1 .127 2.456l-2.146 3.782zm10.412 2.954a2.449 2.449 0 0 1-1.937-.94 2.27 2.27 0 0 1-.203-2.152 2.35 2.35 0 0 1-.15-.252c.765-.723 1.861-.865 2.75-.356A2.432 2.432 0 0 1 24 11.054v.056c-.024.28-.178.592-.457.616zm-5.012 9.876a2.402 2.402 0 0 1-2.018-1.34l-2.146-3.782-2.145 3.782a2.401 2.401 0 0 1-2.018 1.34 2.417 2.417 0 0 1-2.197-1.042 2.316 2.316 0 0 1-.127-2.456l2.145-3.782a2.36 2.36 0 0 1 2.098-1.288h4.49a2.36 2.36 0 0 1 2.098 1.288l2.145 3.782a2.315 2.315 0 0 1-.127 2.456 2.416 2.416 0 0 1-2.197 1.042z"/>',
+      // https://simpleicons.org/?q=clickup
+      'clickup': '<path d="M2.352 14.973l2.769-2.15a5.728 5.728 0 0 0 6.873 3.49 5.728 5.728 0 0 0 6.873-3.49l2.77 2.15A9.478 9.478 0 0 1 12 19.906a9.478 9.478 0 0 1-9.648-4.933zM12 8.767l-5.175 4.023-2.248-2.89L12 4.094l7.423 5.806-2.248 2.89z"/>',
+      // Generic link icon (Lucide)
+      'generic': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
     };
 
     /**
@@ -1909,14 +2069,20 @@
       
       const iconData = brandIcons[name];
       if (!iconData) {
-        console.warn(`Brand icon "${name}" not found`);
-        return '';
+        // Fall back to generic link icon
+        const genericIcon = brandIcons['generic'];
+        return `<svg class="brand-icon brand-icon-generic${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${genericIcon}</svg>`;
       }
       
       // Handle multi-color icons (like Figma)
       if (iconData.multicolor) {
         const paths = iconData.paths.map(p => `<path d="${p.d}" fill="${p.fill}"/>`).join('');
         return `<svg class="brand-icon brand-icon-${name}${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none">${paths}</svg>`;
+      }
+      
+      // Handle generic icon (uses stroke)
+      if (name === 'generic') {
+        return `<svg class="brand-icon brand-icon-generic${className ? ' ' + className : ''}" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconData}</svg>`;
       }
       
       // Handle single-color icons
@@ -2954,33 +3120,460 @@
     renderMetrics(metrics, true);
     renderEvents(events);
 
-    // Render link input fields
-    function renderLinkFields() {
+    // ============================================
+    // RELATED LINKS FUNCTIONALITY
+    // Smart link detection with provider auto-detection
+    // ============================================
+
+    /**
+     * Links state - array of link objects
+     * Each link: { id, url, provider, name, domain }
+     */
+    let relatedLinks = [];
+
+    /**
+     * Provider detection patterns
+     * Maps domain patterns to provider info
+     */
+    const providerPatterns = [
+      { pattern: /figma\.com/i, provider: 'figma', extractName: (url) => {
+        // Try to extract file name or ID from Figma URL
+        const match = url.match(/\/(?:file|design|proto|board)\/([a-zA-Z0-9]+)/);
+        return match ? match[1] : null;
+      }},
+      { pattern: /atlassian\.net.*\/browse\//i, provider: 'jira', extractName: (url) => {
+        // Extract Jira ticket ID (e.g., GL-123)
+        const match = url.match(/\/browse\/([A-Z]+-\d+)/i);
+        return match ? match[1] : null;
+      }},
+      { pattern: /jira\./i, provider: 'jira', extractName: (url) => {
+        const match = url.match(/\/browse\/([A-Z]+-\d+)/i);
+        return match ? match[1] : null;
+      }},
+      { pattern: /miro\.com/i, provider: 'miro', extractName: (url) => {
+        // Extract Miro board ID
+        const match = url.match(/\/board\/([a-zA-Z0-9_=-]+)/);
+        return match ? match[1] : null;
+      }},
+      { pattern: /asana\.com/i, provider: 'asana', extractName: (url) => {
+        // Extract Asana task ID
+        const match = url.match(/\/(\d+)(?:\/|$)/);
+        return match ? `Task ${match[1]}` : null;
+      }},
+      { pattern: /linear\.app/i, provider: 'linear', extractName: (url) => {
+        // Extract Linear issue ID (e.g., ENG-123)
+        const match = url.match(/\/issue\/([A-Z]+-\d+)/i);
+        return match ? match[1] : null;
+      }},
+      { pattern: /notion\.so|notion\.site/i, provider: 'notion', extractName: (url) => {
+        // Extract page name from URL
+        const match = url.match(/\/([^/?]+)(?:\?|$)/);
+        if (match) {
+          // Clean up the slug (remove ID suffix)
+          const slug = match[1].replace(/-[a-f0-9]{32}$/i, '').replace(/-/g, ' ');
+          return slug.charAt(0).toUpperCase() + slug.slice(1);
+        }
+        return null;
+      }},
+      { pattern: /slack\.com/i, provider: 'slack', extractName: (url) => {
+        // Extract channel or message context
+        const channelMatch = url.match(/\/archives\/([A-Z0-9]+)/i);
+        return channelMatch ? `Channel ${channelMatch[1]}` : null;
+      }},
+      { pattern: /github\.com/i, provider: 'github', extractName: (url) => {
+        // Extract repo or issue/PR info
+        const repoMatch = url.match(/github\.com\/([^/]+\/[^/]+)/);
+        const issueMatch = url.match(/\/(issues|pull)\/(\d+)/);
+        if (issueMatch) {
+          return `${issueMatch[1] === 'pull' ? 'PR' : 'Issue'} #${issueMatch[2]}`;
+        }
+        return repoMatch ? repoMatch[1] : null;
+      }},
+      { pattern: /atlassian\.net.*\/wiki/i, provider: 'confluence', extractName: (url) => {
+        // Extract page title from Confluence URL
+        const match = url.match(/\/pages\/\d+\/([^?]+)/);
+        if (match) {
+          return decodeURIComponent(match[1]).replace(/\+/g, ' ');
+        }
+        return null;
+      }},
+      { pattern: /confluence\./i, provider: 'confluence', extractName: (url) => null },
+      { pattern: /trello\.com/i, provider: 'trello', extractName: (url) => {
+        // Extract card or board name
+        const cardMatch = url.match(/\/c\/([a-zA-Z0-9]+)/);
+        return cardMatch ? `Card ${cardMatch[1]}` : null;
+      }},
+      { pattern: /monday\.com/i, provider: 'monday', extractName: (url) => null },
+      { pattern: /clickup\.com/i, provider: 'clickup', extractName: (url) => {
+        // Extract task ID
+        const match = url.match(/\/t\/([a-z0-9]+)/i);
+        return match ? `Task ${match[1]}` : null;
+      }}
+    ];
+
+    /**
+     * Detect provider from URL
+     * @param {string} url - The URL to analyze
+     * @returns {Object} Provider info { provider, name }
+     */
+    function detectProvider(url) {
+      for (const { pattern, provider, extractName } of providerPatterns) {
+        if (pattern.test(url)) {
+          return {
+            provider,
+            name: extractName(url)
+          };
+        }
+      }
+      return { provider: 'generic', name: null };
+    }
+
+    /**
+     * Extract domain from URL for display
+     * @param {string} url - The URL
+     * @returns {string} Domain (e.g., "figma.com")
+     */
+    function extractDomain(url) {
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.replace(/^www\./, '');
+      } catch {
+        return '';
+      }
+    }
+
+    /**
+     * Normalize URL
+     * - Trim whitespace
+     * - Add https:// if missing
+     * - Basic validation
+     * @param {string} url - Raw URL input
+     * @returns {Object} { valid, url, error }
+     */
+    function normalizeUrl(url) {
+      // Trim whitespace
+      let normalized = url.trim();
+      
+      if (!normalized) {
+        return { valid: false, url: '', error: 'Please enter a URL' };
+      }
+
+      // Add protocol if missing
+      if (!/^https?:\/\//i.test(normalized)) {
+        // If it looks like a domain, add https
+        if (/^[a-z0-9][\w.-]*\.[a-z]{2,}/i.test(normalized)) {
+          normalized = 'https://' + normalized;
+        } else {
+          return { valid: false, url: normalized, error: 'Invalid URL format' };
+        }
+      }
+
+      // Upgrade http to https where safe
+      if (/^http:\/\//i.test(normalized)) {
+        // Keep http for localhost, otherwise suggest https
+        if (!/localhost|127\.0\.0\.1|192\.168\.|10\./.test(normalized)) {
+          normalized = normalized.replace(/^http:/i, 'https:');
+        }
+      }
+
+      // Validate URL format
+      try {
+        new URL(normalized);
+        return { valid: true, url: normalized, error: null };
+      } catch {
+        return { valid: false, url: normalized, error: 'Invalid URL format' };
+      }
+    }
+
+    /**
+     * Add a new link
+     * @param {string} rawUrl - The URL to add
+     * @returns {boolean} Success
+     */
+    function addLink(rawUrl) {
+      const errorEl = document.getElementById('linkInputError');
+      const inputEl = document.getElementById('linkInput');
+      
+      // Normalize and validate
+      const { valid, url, error } = normalizeUrl(rawUrl);
+      
+      if (!valid) {
+        errorEl.textContent = error;
+        errorEl.style.display = 'block';
+        return false;
+      }
+
+      // Check for duplicates
+      if (relatedLinks.some(link => link.url === url)) {
+        errorEl.textContent = 'This link has already been added';
+        errorEl.style.display = 'block';
+        return false;
+      }
+
+      // Detect provider
+      const { provider } = detectProvider(url);
+      const domain = extractDomain(url);
+
+      // Create link object - use URL as display (stripped of protocol)
+      const displayUrl = url.replace(/^https?:\/\//, '');
+      const link = {
+        id: `link-${Date.now()}`,
+        url,
+        provider,
+        name: displayUrl,
+        domain
+      };
+
+      relatedLinks.push(link);
+      
+      // Clear input and error
+      inputEl.value = '';
+      errorEl.style.display = 'none';
+      
+      renderLinks();
+      return true;
+    }
+
+    /**
+     * Update an existing link
+     * @param {string} id - Link ID
+     * @param {string} newUrl - New URL
+     * @returns {boolean} Success
+     */
+    function updateLink(id, newUrl) {
+      const { valid, url, error } = normalizeUrl(newUrl);
+      
+      if (!valid) {
+        return { success: false, error };
+      }
+
+      // Check for duplicates (excluding current link)
+      if (relatedLinks.some(link => link.id !== id && link.url === url)) {
+        return { success: false, error: 'This link has already been added' };
+      }
+
+      const linkIndex = relatedLinks.findIndex(link => link.id === id);
+      if (linkIndex === -1) return { success: false, error: 'Link not found' };
+
+      // Update link - use URL as display (stripped of protocol)
+      const { provider } = detectProvider(url);
+      const domain = extractDomain(url);
+      const displayUrl = url.replace(/^https?:\/\//, '');
+
+      relatedLinks[linkIndex] = {
+        ...relatedLinks[linkIndex],
+        url,
+        provider,
+        name: displayUrl,
+        domain
+      };
+
+      renderLinks();
+      return { success: true };
+    }
+
+    /**
+     * Remove a link
+     * @param {string} id - Link ID
+     */
+    function removeLink(id) {
+      relatedLinks = relatedLinks.filter(link => link.id !== id);
+      renderLinks();
+    }
+
+    /**
+     * Enter edit mode for a link
+     * @param {string} id - Link ID
+     */
+    function editLink(id) {
+      const linkRow = document.querySelector(`[data-link-id="${id}"]`);
+      if (!linkRow) return;
+
+      linkRow.classList.add('editing');
+      const input = linkRow.querySelector('.link-row__edit-input');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+
+    /**
+     * Save edit for a link
+     * @param {string} id - Link ID
+     */
+    function saveEditLink(id) {
+      const linkRow = document.querySelector(`[data-link-id="${id}"]`);
+      if (!linkRow) return;
+
+      const input = linkRow.querySelector('.link-row__edit-input');
+      if (!input) return;
+
+      const result = updateLink(id, input.value);
+      if (!result.success) {
+        // Show error inline - could enhance with error display
+        alert(result.error);
+        return;
+      }
+
+      linkRow.classList.remove('editing');
+    }
+
+    /**
+     * Cancel edit for a link
+     * @param {string} id - Link ID
+     */
+    function cancelEditLink(id) {
+      renderLinks(); // Re-render to reset state
+    }
+
+    /**
+     * Render all links
+     */
+    function renderLinks() {
       const linksList = document.getElementById('linksList');
       linksList.innerHTML = '';
 
-      const linkConfigs = [
-        { id: 'figmaLink', icon: 'figma', placeholder: 'https://www.figma.com/design/AbC123' },
-        { id: 'jiraLink', icon: 'jira', placeholder: 'https://example.atlassian.net/browse/GL-123' },
-        { id: 'miroLink', icon: 'miro', placeholder: 'https://miro.com/app/board/uXjK9AbC' }
-      ];
+      relatedLinks.forEach(link => {
+        const row = document.createElement('div');
+        row.className = 'link-row';
+        row.dataset.linkId = link.id;
 
-      linkConfigs.forEach(config => {
-        const linkField = createInputField({
-          id: config.id,
-          label: config.icon,
-          showLabel: false,
-          showLIcon: true,
-          leftIcon: config.icon,
-          help: config.placeholder,
-          variant: 'horizontal',
-          inputType: 'url'
+        // Icon
+        const iconEl = document.createElement('div');
+        iconEl.className = `link-row__icon ${link.provider}`;
+        iconEl.innerHTML = getBrandIcon(link.provider, { size: 12 });
+
+        // Info - just show the URL (truncated via CSS)
+        const infoEl = document.createElement('div');
+        infoEl.className = 'link-row__info';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'link-row__name';
+        nameEl.textContent = link.name;
+        nameEl.title = link.url; // Show full URL on hover
+
+        infoEl.appendChild(nameEl);
+
+        // Actions
+        const actionsEl = document.createElement('div');
+        actionsEl.className = 'link-row__actions';
+
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'link-row__action edit';
+        editBtn.innerHTML = getIcon('pencil', { size: 14 });
+        editBtn.title = 'Edit link';
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editLink(link.id);
+        };
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'link-row__action delete';
+        deleteBtn.innerHTML = getIcon('trash-2', { size: 14 });
+        deleteBtn.title = 'Remove link';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeLink(link.id);
+        };
+
+        actionsEl.appendChild(editBtn);
+        actionsEl.appendChild(deleteBtn);
+
+        // Edit form (hidden by default)
+        const editForm = document.createElement('div');
+        editForm.className = 'link-row__edit-form';
+
+        const editInput = document.createElement('input');
+        editInput.type = 'url';
+        editInput.className = 'link-row__edit-input';
+        editInput.value = link.url;
+        editInput.placeholder = 'Paste a link...';
+
+        // Handle Enter/Escape in edit input
+        editInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            saveEditLink(link.id);
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEditLink(link.id);
+          }
         });
-        linksList.appendChild(linkField);
+
+        const editActions = document.createElement('div');
+        editActions.className = 'link-row__edit-actions';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'link-row__edit-btn save';
+        saveBtn.innerHTML = getIcon('check', { size: 14 });
+        saveBtn.title = 'Save';
+        saveBtn.onclick = (e) => {
+          e.stopPropagation();
+          saveEditLink(link.id);
+        };
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'link-row__edit-btn cancel';
+        cancelBtn.innerHTML = getIcon('x', { size: 14 });
+        cancelBtn.title = 'Cancel';
+        cancelBtn.onclick = (e) => {
+          e.stopPropagation();
+          cancelEditLink(link.id);
+        };
+
+        editActions.appendChild(saveBtn);
+        editActions.appendChild(cancelBtn);
+        editForm.appendChild(editInput);
+        editForm.appendChild(editActions);
+
+        // Assemble row
+        row.appendChild(iconEl);
+        row.appendChild(infoEl);
+        row.appendChild(actionsEl);
+        row.appendChild(editForm);
+
+        // Click row to open link (optional)
+        row.addEventListener('click', () => {
+          if (!row.classList.contains('editing')) {
+            window.open(link.url, '_blank');
+          }
+        });
+
+        linksList.appendChild(row);
       });
     }
 
-    renderLinkFields();
+    // Initialize link input handler
+    const linkInput = document.getElementById('linkInput');
+    linkInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addLink(e.target.value);
+      }
+    });
+
+    // Also handle paste event for immediate add
+    linkInput.addEventListener('paste', (e) => {
+      // Small delay to get pasted value
+      setTimeout(() => {
+        const value = e.target.value.trim();
+        if (value && value.includes('.')) {
+          addLink(value);
+        }
+      }, 0);
+    });
+
+    // Clear error on input
+    linkInput.addEventListener('input', () => {
+      const errorEl = document.getElementById('linkInputError');
+      errorEl.style.display = 'none';
+    });
 
     // Global click handler to close color popovers when clicking outside
     document.addEventListener('click', (e) => {
@@ -2996,9 +3589,6 @@
       const experimentDescription = document.getElementById('experimentDescription').value.trim();
       const experimentStatus = document.getElementById('experimentStatus').value;
       const rolledoutVariant = document.getElementById('rolledoutVariant').value;
-      const figmaLink = document.getElementById('figmaLink').value.trim();
-      const jiraLink = document.getElementById('jiraLink').value.trim();
-      const miroLink = document.getElementById('miroLink').value.trim();
 
       // Collect filled metrics only
       const filledMetrics = metrics
@@ -3017,9 +3607,12 @@
           experimentDescription,
           experimentStatus,
           rolledoutVariant: experimentStatus === 'rollout' ? rolledoutVariant : null,
-          figmaLink,
-          jiraLink,
-          miroLink,
+          links: relatedLinks.map(link => ({
+            url: link.url,
+            provider: link.provider,
+            name: link.name,
+            domain: link.domain
+          })),
           metrics: filledMetrics,
           events: JSON.parse(JSON.stringify(events))
         }
