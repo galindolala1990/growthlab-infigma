@@ -475,46 +475,464 @@
       display: none;
     }
 
-    /* Tooltip styling */
+    /* ============================================
+     * TOOLTIP COMPONENT
+     * Props: data-tooltip, data-tooltip-position, 
+     *        data-tooltip-align, data-tooltip-size,
+     *        data-tooltip-theme, data-tooltip-delay,
+     *        data-tooltip-multiline
+     * ============================================ */
+    
+    /* Tooltip CSS Variables */
+    :root {
+      /* Tooltip Colors */
+      --tooltip-bg-dark: var(--color-azure-950);
+      --tooltip-text-dark: var(--color-white-100);
+      --tooltip-bg-light: var(--color-white-100);
+      --tooltip-text-light: var(--color-azure-950);
+      --tooltip-border-light: var(--border);
+      --tooltip-shadow: 0 4px 12px rgba(34, 39, 47, 0.15);
+      
+      /* Tooltip Sizing */
+      --tooltip-padding-y-sm: 4px;
+      --tooltip-padding-x-sm: 4px;
+      --tooltip-padding-y-md: 6px;
+      --tooltip-padding-x-md: 6px;
+      --tooltip-padding-y-lg: 8px;
+      --tooltip-padding-x-lg: 8px;
+      --tooltip-font-size-sm: 9px;
+      --tooltip-font-size-md: 10px;
+      --tooltip-font-size-lg: 11px;
+      --tooltip-line-height: 1.4;
+      --tooltip-max-width: 200px;
+      --tooltip-radius: var(--radius-xs);
+      --tooltip-arrow-size: 5px;
+      --tooltip-offset: 8px;
+      --tooltip-transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 1.2s, transform 0.5s ease;
+    }
+
+    /* Base Tooltip Styles */
     [data-tooltip] {
       position: relative;
       cursor: help;
     }
 
+    /* Tooltip Content (::after pseudo-element) */
     [data-tooltip]::after {
       content: attr(data-tooltip);
       position: absolute;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--foreground);
-      color: var(--background-surface);
-      padding: var(--space-8) var(--space-12);
-      border-radius: var(--radius-xs);
-      font-size: 9px;
+      background: var(--tooltip-bg-dark);
+      color: var(--tooltip-text-dark);
+      padding: var(--tooltip-padding-y-sm) var(--tooltip-padding-x-md);
+      border-radius: var(--tooltip-radius);
+      font-size: var(--tooltip-font-size-md);
+      font-weight: var(--body-sm-weight);
+      line-height: var(--tooltip-line-height);
       white-space: nowrap;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 1000;
+      visibility: hidden;
+      transition: var(--tooltip-transition);
+      z-index: 9999;
+      box-shadow: var(--tooltip-shadow);
+      text-align: center;
     }
 
+    /* Arrow (::before pseudo-element) */
     [data-tooltip]::before {
       content: '';
       position: absolute;
-      bottom: 118%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 4px solid transparent;
-      border-top-color: var(--foreground);
+      border: var(--tooltip-arrow-size) solid transparent;
+      pointer-events: none;
       opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 1000;
+      visibility: hidden;
+      transition: var(--tooltip-transition);
+      z-index: 9999;
     }
 
+    /* Show on hover */
     [data-tooltip]:hover::after,
     [data-tooltip]:hover::before {
       opacity: 1;
+      visibility: visible;
+    }
+
+    /* ----------------------------------------
+     * POSITION: Top (Default)
+     * Arrow points DOWN toward element
+     * ---------------------------------------- */
+    [data-tooltip]:not([data-tooltip-position])::after,
+    [data-tooltip][data-tooltip-position="top"]::after {
+      bottom: calc(100% + var(--tooltip-offset));
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+    }
+
+    [data-tooltip]:not([data-tooltip-position]):hover::after,
+    [data-tooltip][data-tooltip-position="top"]:hover::after {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    [data-tooltip]:not([data-tooltip-position])::before,
+    [data-tooltip][data-tooltip-position="top"]::before {
+      bottom: calc(100% + var(--tooltip-offset) - var(--tooltip-arrow-size) - var(--tooltip-arrow-size));
+      left: 50%;
+      transform: translateX(-50%);
+      border-top-color: var(--tooltip-bg-dark);
+      border-bottom-color: transparent;
+    }
+
+    /* ----------------------------------------
+     * POSITION: Bottom
+     * Arrow points UP toward element
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-position="bottom"]::after {
+      top: calc(100% + var(--tooltip-offset));
+      bottom: auto;
+      left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"]:hover::after {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"]::before {
+      top: calc(100% + var(--tooltip-offset) - var(--tooltip-arrow-size) - var(--tooltip-arrow-size));
+      bottom: auto;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top-color: transparent;
+      border-bottom-color: var(--tooltip-bg-dark);
+    }
+
+    /* ----------------------------------------
+     * POSITION: Left
+     * Arrow points RIGHT toward element
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-position="left"]::after {
+      right: calc(100% + var(--tooltip-offset));
+      left: auto;
+      top: 50%;
+      bottom: auto;
+      transform: translateY(-50%) translateX(4px);
+    }
+
+    [data-tooltip][data-tooltip-position="left"]:hover::after {
+      transform: translateY(-50%) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="left"]::before {
+      right: calc(100% + var(--tooltip-offset) - var(--tooltip-arrow-size) - var(--tooltip-arrow-size));
+      left: auto;
+      top: 50%;
+      bottom: auto;
+      transform: translateY(-50%);
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      border-left-color: var(--tooltip-bg-dark);
+      border-right-color: transparent;
+    }
+
+    /* ----------------------------------------
+     * POSITION: Right
+     * Arrow points LEFT toward element
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-position="right"]::after {
+      left: calc(100% + var(--tooltip-offset));
+      right: auto;
+      top: 50%;
+      bottom: auto;
+      transform: translateY(-50%) translateX(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="right"]:hover::after {
+      transform: translateY(-50%) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="right"]::before {
+      left: calc(100% + var(--tooltip-offset) - var(--tooltip-arrow-size) - var(--tooltip-arrow-size));
+      right: auto;
+      top: 50%;
+      bottom: auto;
+      transform: translateY(-50%);
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      border-left-color: transparent;
+      border-right-color: var(--tooltip-bg-dark);
+    }
+
+    /* ----------------------------------------
+     * SIZE: Small
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-size="sm"]::after {
+      padding: var(--tooltip-padding-y-sm) var(--tooltip-padding-x-sm);
+      font-size: var(--tooltip-font-size-sm);
+    }
+
+    /* ----------------------------------------
+     * SIZE: Large
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-size="lg"]::after {
+      padding: var(--tooltip-padding-y-lg) var(--tooltip-padding-x-lg);
+      font-size: var(--tooltip-font-size-lg);
+    }
+
+    /* ----------------------------------------
+     * THEME: Light
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-theme="light"]::after {
+      background: var(--tooltip-bg-light);
+      color: var(--tooltip-text-light);
+      border: 1px solid var(--tooltip-border-light);
+    }
+
+    /* Light theme arrows - reset all borders first, then set correct one */
+    [data-tooltip][data-tooltip-theme="light"]::before {
+      border-color: transparent;
+    }
+
+    [data-tooltip][data-tooltip-theme="light"]:not([data-tooltip-position])::before,
+    [data-tooltip][data-tooltip-theme="light"][data-tooltip-position="top"]::before {
+      border-top-color: var(--tooltip-bg-light);
+    }
+
+    [data-tooltip][data-tooltip-theme="light"][data-tooltip-position="bottom"]::before {
+      border-bottom-color: var(--tooltip-bg-light);
+    }
+
+    [data-tooltip][data-tooltip-theme="light"][data-tooltip-position="left"]::before {
+      border-left-color: var(--tooltip-bg-light);
+    }
+
+    [data-tooltip][data-tooltip-theme="light"][data-tooltip-position="right"]::before {
+      border-right-color: var(--tooltip-bg-light);
+    }
+
+    /* ----------------------------------------
+     * MULTILINE: Wrapping text
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-multiline]::after {
+      white-space: normal;
+      max-width: var(--tooltip-max-width);
+      text-align: left;
+    }
+
+    /* Custom max-width via style attribute */
+    [data-tooltip][data-tooltip-multiline="wide"]::after {
+      max-width: 280px;
+    }
+
+    [data-tooltip][data-tooltip-multiline="narrow"]::after {
+      max-width: 140px;
+    }
+
+    /* ----------------------------------------
+     * DELAY: Hover delay variations
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-delay="short"] {
+      --tooltip-delay: 100ms;
+    }
+
+    [data-tooltip][data-tooltip-delay="long"] {
+      --tooltip-delay: 500ms;
+    }
+
+    [data-tooltip][data-tooltip-delay]::after,
+    [data-tooltip][data-tooltip-delay]::before {
+      transition-delay: var(--tooltip-delay, 0ms);
+    }
+
+    [data-tooltip][data-tooltip-delay]:hover::after,
+    [data-tooltip][data-tooltip-delay]:hover::before {
+      transition-delay: var(--tooltip-delay, 0ms);
+    }
+
+    /* ----------------------------------------
+     * NO ARROW: Hide arrow
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-arrow="false"]::before {
+      display: none;
+    }
+
+    /* ----------------------------------------
+     * INTERACTIVE: Allow hovering tooltip
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-interactive]::after {
+      pointer-events: auto;
+    }
+
+    /* ----------------------------------------
+     * CURSOR VARIANTS
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-cursor="pointer"] {
+      cursor: pointer;
+    }
+
+    [data-tooltip][data-tooltip-cursor="default"] {
+      cursor: default;
+    }
+
+    /* ----------------------------------------
+     * DISABLED STATE
+     * ---------------------------------------- */
+    [data-tooltip][data-tooltip-disabled]::after,
+    [data-tooltip][data-tooltip-disabled]::before {
+      display: none;
+    }
+
+    /* ----------------------------------------
+     * ALIGNMENT: Start (for edge positioning)
+     * For top/bottom: aligns tooltip to LEFT, arrow on LEFT side
+     * For left/right: aligns tooltip to TOP, arrow on TOP side
+     * ---------------------------------------- */
+    
+    /* Top + Start Alignment */
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="start"]::after,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="start"]::after {
+      left: 0;
+      right: auto;
+      transform: translateX(0) translateY(4px);
+    }
+
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="start"]:hover::after,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="start"]:hover::after {
+      transform: translateX(0) translateY(0);
+    }
+
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="start"]::before,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="start"]::before {
+      left: 8px;
+      right: auto;
+      transform: translateX(0);
+    }
+
+    /* Bottom + Start Alignment */
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="start"]::after {
+      left: 0;
+      right: auto;
+      transform: translateX(0) translateY(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="start"]:hover::after {
+      transform: translateX(0) translateY(0);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="start"]::before {
+      left: 8px;
+      right: auto;
+      transform: translateX(0);
+    }
+
+    /* Left + Start Alignment */
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="start"]::after {
+      top: 0;
+      bottom: auto;
+      transform: translateY(0) translateX(4px);
+    }
+
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="start"]:hover::after {
+      transform: translateY(0) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="start"]::before {
+      top: 8px;
+      bottom: auto;
+      transform: translateY(0);
+    }
+
+    /* Right + Start Alignment */
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="start"]::after {
+      top: 0;
+      bottom: auto;
+      transform: translateY(0) translateX(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="start"]:hover::after {
+      transform: translateY(0) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="start"]::before {
+      top: 8px;
+      bottom: auto;
+      transform: translateY(0);
+    }
+
+    /* ----------------------------------------
+     * ALIGNMENT: End (for edge positioning)
+     * For top/bottom: aligns tooltip to RIGHT, arrow on RIGHT side
+     * For left/right: aligns tooltip to BOTTOM, arrow on BOTTOM side
+     * ---------------------------------------- */
+    
+    /* Top + End Alignment */
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="end"]::after,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="end"]::after {
+      left: auto;
+      right: 0;
+      transform: translateX(0) translateY(4px);
+    }
+
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="end"]:hover::after,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="end"]:hover::after {
+      transform: translateX(0) translateY(0);
+    }
+
+    [data-tooltip][data-tooltip-position="top"][data-tooltip-align="end"]::before,
+    [data-tooltip]:not([data-tooltip-position])[data-tooltip-align="end"]::before {
+      left: auto;
+      right: 8px;
+      transform: translateX(0);
+    }
+
+    /* Bottom + End Alignment */
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="end"]::after {
+      left: auto;
+      right: 0;
+      transform: translateX(0) translateY(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="end"]:hover::after {
+      transform: translateX(0) translateY(0);
+    }
+
+    [data-tooltip][data-tooltip-position="bottom"][data-tooltip-align="end"]::before {
+      left: auto;
+      right: 8px;
+      transform: translateX(0);
+    }
+
+    /* Left + End Alignment */
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="end"]::after {
+      top: auto;
+      bottom: 0;
+      transform: translateY(0) translateX(4px);
+    }
+
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="end"]:hover::after {
+      transform: translateY(0) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="left"][data-tooltip-align="end"]::before {
+      top: auto;
+      bottom: 8px;
+      transform: translateY(0);
+    }
+
+    /* Right + End Alignment */
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="end"]::after {
+      top: auto;
+      bottom: 0;
+      transform: translateY(0) translateX(-4px);
+    }
+
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="end"]:hover::after {
+      transform: translateY(0) translateX(0);
+    }
+
+    [data-tooltip][data-tooltip-position="right"][data-tooltip-align="end"]::before {
+      top: auto;
+      bottom: 8px;
+      transform: translateY(0);
     }
 
     /* ============================================
@@ -548,9 +966,9 @@
       border-bottom-color: var(--border);
     }
 
-    /* First event row should not have top padding */
+    /* First event row should have top padding */
     .event-row:first-child .event-row-main {
-      padding-top: 0;
+      padding-top: var(--space-8);
     }
 
     /* Last event row should not have bottom border */
@@ -562,6 +980,7 @@
     .event-row:has(.event-variants-container) .event-row-main {
       /*border-bottom-color: transparent;*/
       border: none;
+      padding-bottom: var(--space-8);
     }
     
 
@@ -661,8 +1080,8 @@
       flex: 1;
       min-width: 0;
       width: 100%;
-      gap: var(--space-8);
-      padding-bottom: var(--space-16);
+      /*gap: var(--space-8);*/
+      padding-bottom: var(--space-8);
     }
 
     /* Variant Card - States: Default, Entered, onHover, onDrag */
@@ -670,8 +1089,8 @@
       display: flex;
       align-items: flex-start;
       gap: var(--space-8);
-      padding: var(--space-12);
-      background: var(--variant-card-bg);
+      padding: var(--space-8);
+      background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
       border-radius: var(--radius-md);
       min-width: 0;
@@ -682,8 +1101,8 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: var(--variant-card-hover-bg);
-      border: 1px solid var(--border);
+      background: var(--variant-card-bg);
+      border: 1px solid var(--color-transparent);
     }
 
     /* Dragging state */
@@ -827,7 +1246,7 @@
     .variant-content {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+     /*  gap: var(--space-8);*/
       flex: 1;
       min-width: 0;
     }
@@ -836,6 +1255,65 @@
       display: flex;
       gap: var(--space-8);
       align-items: center;
+    }
+
+    /* Variant subtree toggle button */
+    .variant-tree-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      transition: transform 0.15s ease, color 0.15s ease;
+      border-radius: var(--radius-xs);
+    }
+
+    .variant-tree-toggle:hover {
+      color: var(--text-primary);
+      background: var(--color-transparent);
+    }
+
+    .variant-tree-toggle svg {
+      width: 12px;
+      height: 12px;
+      transition: transform 0.15s ease;
+    }
+
+    /* Collapsed state - chevron points right */
+    .variant-tree-toggle.collapsed svg {
+      transform: rotate(-90deg);
+    }
+
+    /* Expanded state - chevron points down (default) */
+    .variant-tree-toggle:not(.collapsed) svg {
+      transform: rotate(0deg);
+    }
+
+    /* Variant subtree container for collapsible items */
+    .variant-subtree {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      padding-left: var(--space-24); /* Indent to align with content after toggle */
+      padding-top: var(--space-8);
+      overflow: hidden;
+      transition: max-height 0.2s ease, opacity 0.15s ease;
+      max-height: 500px; /* Arbitrary large value for animation */
+      opacity: 1;
+    }
+
+    .variant-subtree.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      gap: 0;
     }
 
     .variant-name-field {
@@ -1589,6 +2067,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
+      margin-left: var(--space-16);
     }
 
     /* Link input wrapper */
@@ -1975,7 +2454,7 @@
             <h2>Metrics</h2>
             <span class="metrics-count" id="metricsCount"></span>
           </div>
-          <button class="icon-btn btn-add-metric" type="button" aria-label="Add metric" title="Add a new metric">
+          <button class="icon-btn btn-add-metric" type="button" aria-label="Add metric" data-tooltip="Add metric" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -1999,7 +2478,7 @@
             <h2>Flow</h2>
             <span class="events-count" id="eventsCount">0 events • 0 variants</span>
           </div>
-          <button class="icon-btn btn-add-event" type="button" aria-label="Add event" title="Add a new event">
+          <button class="icon-btn btn-add-event" type="button" aria-label="Add event" data-tooltip="Add event" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -2631,7 +3110,10 @@
       deleteBtn.className = 'icon-btn icon-btn--danger';
       deleteBtn.type = 'button';
       deleteBtn.innerHTML = getIcon('minus');
-      deleteBtn.title = 'Delete metric';
+      deleteBtn.setAttribute('data-tooltip', 'Remove metric');
+      deleteBtn.setAttribute('data-tooltip-position', 'bottom');
+      deleteBtn.setAttribute('data-tooltip-align', 'end');
+      deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
       deleteBtn.onclick = (e) => {
         e.preventDefault();
         metrics.splice(metrics.indexOf(metric), 1);
@@ -2776,9 +3258,16 @@
       const content = document.createElement('div');
       content.className = 'variant-content';
 
-      // Row 1: Color indicator + Variant name + Traffic split
+      // Row 1: Tree toggle + Color indicator + Variant name + Traffic split
       const row1 = document.createElement('div');
       row1.className = 'variant-row';
+
+      // Tree toggle button (chevron to expand/collapse subtree)
+      const treeToggle = document.createElement('button');
+      treeToggle.type = 'button';
+      treeToggle.className = 'variant-tree-toggle';
+      treeToggle.innerHTML = getIcon('chevron-down', { size: 12 });
+      treeToggle.title = 'Toggle variant details';
 
       // Color indicator button with popover (to be used as prefix)
       const colorIndicator = document.createElement('button');
@@ -2859,10 +3348,22 @@
       });
       trafficFieldDiv.appendChild(trafficField);
 
+      row1.appendChild(treeToggle);
       row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
 
-      // Row 2: Description field
+      // Subtree container for collapsible content (description + metrics)
+      const subtree = document.createElement('div');
+      subtree.className = 'variant-subtree';
+
+      // Toggle subtree visibility on chevron click
+      treeToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isCollapsed = treeToggle.classList.toggle('collapsed');
+        subtree.classList.toggle('collapsed', isCollapsed);
+      });
+
+      // Row 2: Description field (inside subtree)
       const row2 = document.createElement('div');
       row2.className = 'variant-description';
       const descriptionField = createInputField({
@@ -2878,7 +3379,7 @@
       });
       row2.appendChild(descriptionField);
 
-      // Row 3: Metrics section with label and inputs
+      // Row 3: Metrics section with label and inputs (inside subtree)
       const metricsSection = document.createElement('div');
       metricsSection.className = 'variant-metrics-section';
 
@@ -2919,9 +3420,12 @@
 
       metricsSection.appendChild(row3);
 
+      // Add description and metrics to subtree
+      subtree.appendChild(row2);
+      subtree.appendChild(metricsSection);
+
       content.appendChild(row1);
-      content.appendChild(row2);
-      content.appendChild(metricsSection);
+      content.appendChild(subtree);
 
       // Actions (remove variant)
       const actions = document.createElement('div');
@@ -2931,7 +3435,10 @@
       removeBtn.type = 'button';
       removeBtn.className = 'icon-btn icon-btn--danger';
       removeBtn.innerHTML = getIcon('minus');
-      removeBtn.title = 'Remove variant';
+      removeBtn.setAttribute('data-tooltip', 'Remove variant');
+      removeBtn.setAttribute('data-tooltip-position', 'left');
+      removeBtn.setAttribute('data-tooltip-align', 'end');
+      removeBtn.setAttribute('data-tooltip-cursor', 'pointer');
       removeBtn.onclick = () => {
         events[eventIndex].variants.splice(variantIndex, 1);
         if (events[eventIndex].variants.length === 0) {
@@ -3043,7 +3550,10 @@
       addVariantBtn.type = 'button';
       addVariantBtn.className = 'icon-btn';
       addVariantBtn.innerHTML = getIcon('git-branch-plus');
-      addVariantBtn.title = 'Add variant';
+      addVariantBtn.setAttribute('data-tooltip', 'Add variant');
+      addVariantBtn.setAttribute('data-tooltip-position', 'bottom');
+      addVariantBtn.setAttribute('data-tooltip-align', 'end');
+      addVariantBtn.setAttribute('data-tooltip-cursor', 'pointer');
       addVariantBtn.onclick = () => {
         event.hasVariants = true;
         const variantIndex = event.variants.length;
@@ -3065,7 +3575,10 @@
       deleteBtn.type = 'button';
       deleteBtn.className = 'icon-btn icon-btn--danger';
       deleteBtn.innerHTML = getIcon('minus');
-      deleteBtn.title = 'Delete event';
+      deleteBtn.setAttribute('data-tooltip', 'Remove event');
+      deleteBtn.setAttribute('data-tooltip-position', 'bottom');
+      deleteBtn.setAttribute('data-tooltip-align', 'end');
+      deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
       deleteBtn.onclick = () => {
         events.splice(eventIndex, 1);
         renderEvents(events);
