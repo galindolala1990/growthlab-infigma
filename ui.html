@@ -65,6 +65,7 @@
       --input-text-line-height: 91%;
 
       /* === Colors === */
+      --color-azure-50: #f6f7f9;
       --color-azure-100: #eceff2;
       --color-azure-200: #d4dae3;
       --color-azure-300: #afbbca;
@@ -106,7 +107,7 @@
       --foreground: var(--color-azure-900);
       --text-primary: var(--color-azure-950);
       --text-primary-inverse: var(--color-white-100);
-      --text-secondary: var(--color-azure-dark-alpha-700);
+      --text-secondary: var(--color-azure-dark-alpha-600);
       --text-link: var(--color-royal-blue-600);
       --border: var(--color-pale-sky-200);
       --border-dark:var(--color-azure-300);
@@ -116,6 +117,7 @@
       
 
       /* === Spacing === */
+      --space-0: 0px;
       --space-2: 2px;
       --space-4: 4px;
       --space-8: 8px;
@@ -141,7 +143,7 @@
       --input-padding-y: 0px;
       --input-height: 40px;
       --button-height: 32px;
-      --button-secondary-bg: var(--background-surface);
+      --button-secondary-bg: var(--background-transparent);
       --button-secondary-hover-bg: var(--color-azure-dark-alpha-50);
       --button-secondary-selected-bg: var(--color-azure-dark-alpha-100);
       --button-padding: 6px;
@@ -150,8 +152,8 @@
       --dropdown-hover-bg: var(--button-secondary-hover-bg);
       --dropdown-selected-bg: var(--color-royal-blue-50);
       --container-gap: var(--space-4);
-      --variant-card-bg: var(--color-azure-dark-alpha-25);
-      --variant-card-hover-bg: var(--button-secondary-hover-bg);
+      --variant-card-bg: var(--color-azure-dark-alpha-50);
+      --variant-card-hover-bg: var(--color-azure-dark-alpha-50);
       --variant-card-border: 1px solid var(--border);
       --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
       --variant-traffic-bg: #eaf7f0;
@@ -160,7 +162,7 @@
 
       /* === Input Field Component (from Figma node 353-7322) === */
       --input-field-bg: var(--color-azure-dark-alpha-50); 
-      --input-field-hover-bg: var(--color-azure-dark-alpha-50);
+      --input-field-hover-bg: var(--color-azure-dark-alpha-50); 
       --input-field-dropdown-bg: var(--background-surface);
       --input-field-hover-border: var(--input-field-border-color);
       --input-field-focus-border: var(--color-electric-violet-500);
@@ -175,7 +177,7 @@
       --input-field-label-gap: 5px;
       --input-field-horizontal-gap: 12px;
       --input-field-text-color: var(--text-secondary);
-      --input-field-placeholder-opacity: 0.7;
+      --input-field-placeholder-opacity: 1;
       --input-field-suffix-opacity: 0.75;
       
 
@@ -1089,10 +1091,10 @@
       display: flex;
       align-items: flex-start;
       gap: var(--space-8);
-      padding: var(--space-8);
+      padding: var(--space-2) var(--space-4) var(--space-2) var(--space-8);
       background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       min-width: 0;
       width: 100%;
       cursor: grab;
@@ -1101,7 +1103,7 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: var(--variant-card-bg);
+      background: var(--variant-card-hover-bg);
       border: 1px solid var(--color-transparent);
     }
 
@@ -1114,7 +1116,7 @@
     /* Active/pressed state */
     .variant-card:active {
       background: var(--color-royal-blue-50);
-      border: 1px solid var(--border);
+      border: 1px solid var(--color-transparent);
       cursor: grabbing;
     }
 
@@ -1302,6 +1304,7 @@
       gap: var(--space-8);
       padding-left: var(--space-24); /* Indent to align with content after toggle */
       padding-top: var(--space-8);
+      padding-bottom: var(--space-4);
       overflow: hidden;
       transition: max-height 0.2s ease, opacity 0.15s ease;
       max-height: 500px; /* Arbitrary large value for animation */
@@ -1324,6 +1327,10 @@
     .variant-traffic-field {
       width: 44px;
       flex-shrink: 0;
+    }
+
+    .variant-content .InputField__wrapper {
+      background: var(--background-transparent) !important;
     }
 
     .variant-traffic-field .InputField__input {
@@ -1830,7 +1837,7 @@
 
     .Button.secondary {
       background: var(--button-secondary-bg);
-      color: var(--text-secondary);
+      color: var(--text-primary);
     }
 
     .Button.secondary:hover {
@@ -1941,15 +1948,15 @@
     }
 
     .InputField__input::placeholder {
-      color: #22272fb2 !important;
+      color: var(--text-secondary) !important;
       opacity: 1 !important;
-      -webkit-text-fill-color: #22272fb2;
+      -webkit-text-fill-color: var(--text-secondary);
     }
 
     .InputField__input::-webkit-input-placeholder {
-      color: #22272fb2 !important;
+      color: var(--text-secondary) !important;
       opacity: 1 !important;
-      -webkit-text-fill-color: #22272fb2;
+      -webkit-text-fill-color: var(--text-secondary);
     }
 
     /* State: entered - placeholder hidden, value shown */
@@ -2067,7 +2074,6 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      margin-left: var(--space-16);
     }
 
     /* Link input wrapper */
@@ -2416,12 +2422,6 @@
           <!-- Related links subsection -->
           <div class="links-subsection" id="linksSubsection">
             <div class="links-header" id="linksHeader">
-              <span class="links-header__chevron">
-                <!-- Lucide: chevron-down -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m6 9 6 6 6-6"/>
-                </svg>
-              </span>
               <span class="links-header__label">Related links</span>
             </div>
             <div class="links-content">
@@ -3107,7 +3107,7 @@
 
       // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn icon-btn--danger';
+      deleteBtn.className = 'icon-btn';
       deleteBtn.type = 'button';
       deleteBtn.innerHTML = getIcon('minus');
       deleteBtn.setAttribute('data-tooltip', 'Remove metric');
@@ -3356,11 +3356,19 @@
       const subtree = document.createElement('div');
       subtree.className = 'variant-subtree';
 
+      // Restore collapsed state from variant data
+      if (variant.collapsed) {
+        treeToggle.classList.add('collapsed');
+        subtree.classList.add('collapsed');
+      }
+
       // Toggle subtree visibility on chevron click
       treeToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const isCollapsed = treeToggle.classList.toggle('collapsed');
         subtree.classList.toggle('collapsed', isCollapsed);
+        // Persist collapsed state in variant data
+        variant.collapsed = isCollapsed;
       });
 
       // Row 2: Description field (inside subtree)
@@ -3433,7 +3441,7 @@
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
-      removeBtn.className = 'icon-btn icon-btn--danger';
+      removeBtn.className = 'icon-btn';
       removeBtn.innerHTML = getIcon('minus');
       removeBtn.setAttribute('data-tooltip', 'Remove variant');
       removeBtn.setAttribute('data-tooltip-position', 'left');
@@ -3565,7 +3573,8 @@
           color: defaultColor,
           traffic: '',
           metrics: { ctr: '', cr: '' },
-          isWinner: false
+          isWinner: false,
+          collapsed: false
         });
         renderEvents(events);
       };
@@ -3573,7 +3582,7 @@
       // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
-      deleteBtn.className = 'icon-btn icon-btn--danger';
+      deleteBtn.className = 'icon-btn';
       deleteBtn.innerHTML = getIcon('minus');
       deleteBtn.setAttribute('data-tooltip', 'Remove event');
       deleteBtn.setAttribute('data-tooltip-position', 'bottom');
