@@ -48,36 +48,48 @@
       --heading-h2-size: 11px;
       --heading-h2-weight: 500;
       --heading-h2-line-height: 91%;
-      --body-md-size: 11px;
-      --body-md-weight: 400;
-      --body-md-line-height: 130%;
       --body-lg-size: 12px;
       --body-lg-weight: 400;
       --body-lg-line-height: 120%;
+      --body-md-size: 11px;
+      --body-md-weight: 400;
+      --body-md-line-height: 130%;
       --body-sm-size: 10px;
       --body-sm-weight: 400;
       --body-sm-line-height: 130%;
-      --label-size: 9px;
-      --label-weight: 500;
-      --label-line-height: 100%;
+      --body-xs-size: 9px;
+      --body-xs-weight: 500;
+      --body-xs-line-height: 100%;
       --input-text-size: 11px;
       --input-text-weight: 400;
       --input-text-line-height: 91%;
 
       /* === Colors === */
       --color-azure-100: #eceff2;
+      --color-azure-200: #d4dae3;
+      --color-azure-300: #afbbca;
+      --color-azure-400: #8496ac;
+      --color-azure-500: #647993;
+      --color-azure-600: #506179;
+      --color-azure-900: #333b47;
+      --color-azure-950: #22272f;
       --color-azure-light-alpha-25: #eceff206;
       --color-azure-light-alpha-50: #eceff20c;
       --color-azure-light-alpha-100: #eceff219;
       --color-azure-dark-alpha-25: #22272f06;
       --color-azure-dark-alpha-50: #22272f0c;
       --color-azure-dark-alpha-100: #22272f19;
+      --color-azure-dark-alpha-400: #22272f66;
+      --color-azure-dark-alpha-500: #22272f7f;
+      --color-azure-dark-alpha-600: #22272f99;
+      --color-azure-dark-alpha-700: #22272fb2;
+      --color-azure-dark-alpha-800: #22272fcc;
+      --color-azure-dark-alpha-900: #22272fe5;
+      --color-azure-dark-alpha-950: #22272ff2;
       --color-white-100: #ffffff;
       --color-pale-sky-100: #edeef1;
-      --color-azure-300: #afbbca;
-      --color-azure-400: #8496ac;
-      --color-azure-600: #506179;
-      --color-azure-900: #333b47;
+      --color-pale-sky-200: #d8dbdf;
+      --color-pale-sky-300: #b6bac3;
       --color-electric-violet-500: #6f4cff;
       --color-electric-violet-600: #6330f7;
       --color-royal-blue-50: #eff7ff;
@@ -92,11 +104,11 @@
       --background: var(--color-azure-100);
       --background-surface: var(--color-white-100);
       --foreground: var(--color-azure-900);
-      --text-primary: var(--color-azure-900);
+      --text-primary: var(--color-azure-950);
       --text-primary-inverse: var(--color-white-100);
-      --text-secondary: var(--color-azure-600);
+      --text-secondary: var(--color-azure-dark-alpha-700);
       --text-link: var(--color-royal-blue-600);
-      --border: var(--color-pale-sky-100);
+      --border: var(--color-pale-sky-200);
       --border-dark:var(--color-azure-300);
       --accent-success: #126930;
       --accent-success-bg: #eaf7f0;
@@ -120,8 +132,8 @@
       --radius-xl: 1.125rem;
 
       /* === Component Variables === */
-      --section-padding: 16px 24px 16px 16px;
-      --section-gap: 16px;
+      --section-padding: var(--space-16);
+      --section-gap: var(--space-16);
       --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
       --input-radius: var(--radius-xs);
@@ -140,7 +152,7 @@
       --container-gap: var(--space-4);
       --variant-card-bg: var(--color-azure-dark-alpha-25);
       --variant-card-hover-bg: var(--button-secondary-hover-bg);
-      --variant-card-border: var(--border);
+      --variant-card-border: 1px solid var(--border);
       --variant-card-shadow: 0 2px 8px 0 rgba(40,60,90,0.06);
       --variant-traffic-bg: #eaf7f0;
       --variant-traffic-border: #b6e2c6;
@@ -153,8 +165,8 @@
       --input-field-hover-border: var(--input-field-border-color);
       --input-field-focus-border: var(--color-electric-violet-500);
       --input-field-focus-shadow: 0 0 0 2px rgba(111, 76, 255, 0.15);
-      --input-field-border: 1px solid var(--color-azure-dark-alpha-100); /* === dropdown border === */
-      --input-field-border-color: var(--color-azure-dark-alpha-100);
+      --input-field-border: 1px solid var(--border); 
+      --input-field-border-color: var(--border);
       --input-field-border-no-color: var(--color-transparent);
       --input-field-radius: var(--radius-xs);
       --input-field-padding-x: var(--input-padding-x);
@@ -164,7 +176,7 @@
       --input-field-horizontal-gap: 12px;
       --input-field-text-color: var(--text-secondary);
       --input-field-placeholder-opacity: 0.7;
-      --input-field-suffix-opacity: 0.5;
+      --input-field-suffix-opacity: 0.75;
       
 
       /* === SelectField Component (from Figma node 678-78897) === */
@@ -234,7 +246,7 @@
       font-size: var(--body-md-size);
       font-weight: var(--body-md-weight);
       line-height: var(--body-md-line-height);
-      color: var(--text-secondary);
+      color: var(--text-primary);
     }
     
     /* Body Large */
@@ -242,7 +254,7 @@
       font-size: var(--body-lg-size);
       font-weight: var(--body-lg-weight);
       line-height: var(--body-lg-line-height);
-      color: var(--text-secondary);
+      color: var(--text-primary);
     }
     
     /* Body Small */
@@ -250,7 +262,7 @@
       font-size: var(--body-sm-size);
       font-weight: var(--body-sm-weight);
       line-height: var(--body-sm-line-height);
-      color: var(--text-secondary);
+      color: var(--text-primary);
     }
     
     /* Form Elements */
@@ -344,8 +356,8 @@
     }
 
     .icon-btn svg {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
     }
 
     /* Danger hover variant for delete/remove buttons */
@@ -356,7 +368,7 @@
 
     /* Add Event Button */
     .btn-add-event {
-      border-radius: var(--button-radius);
+      border-radius: var(--radius-xs);
     }
 
     .metrics-header-left {
@@ -385,6 +397,16 @@
       gap: var(--space-8);
       /* padding-bottom: var(--space-16);
       border-bottom: 1px dashed transparent;*/
+    }
+
+    /* Show actions on hover */
+    .metric-row .icon-btn {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .metric-row:hover .icon-btn {
+      opacity: 1;
     }
 
     .metric-row:not(:last-child) {
@@ -574,7 +596,7 @@
       left: 50%;
       transform: translateX(-50%);
       width: 1px;
-      height: 16px;
+      height: 19px;
       border-left: 1px dashed var(--border-dark);
     }
 
@@ -597,6 +619,12 @@
       display: flex;
       align-items: center;
       gap: var(--space-2);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .event-row-main:hover .event-actions {
+      opacity: 1;
     }
 
     /* Event action buttons - use .icon-btn, .icon-btn--danger for delete */
@@ -644,27 +672,22 @@
       gap: var(--space-8);
       padding: var(--space-12);
       background: var(--variant-card-bg);
-      /* border-bottom: 1px dashed var(--border);*/
+      border: 1px solid var(--color-transparent);
       border-radius: var(--radius-md);
-      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       min-width: 0;
       width: 100%;
       cursor: grab;
       user-select: none;
     }
 
-    .variant-card:last-child {
-      border-bottom: none;
-    }
-
     /* Hover state */
     .variant-card:hover {
       background: var(--variant-card-hover-bg);
+      border: 1px solid var(--border);
     }
 
     /* Dragging state */
     .variant-card.dragging {
-       /* border-top: 0.5px solid var(--text-secondary);*/
       box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
       cursor: grabbing;
     }
@@ -672,6 +695,7 @@
     /* Active/pressed state */
     .variant-card:active {
       background: var(--color-royal-blue-50);
+      border: 1px solid var(--border);
       cursor: grabbing;
     }
 
@@ -931,7 +955,7 @@
 
     /* Label */
     .SelectField__label {
-      font-size: 9px;
+      font-size: var(--body-xs-size);
       font-weight: 400;
       line-height: 100%;
       letter-spacing: 0.09px;
@@ -1132,7 +1156,7 @@
       border-radius: var(--input-field-radius);
       font-size: 11px;
       font-weight: 400;
-      color: var(--input-field-text-color);
+      color: var(--text-primary);
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
       text-align: left;
@@ -1225,7 +1249,7 @@
       padding: 6px var(--input-field-padding-x);
       font-size: 11px;
       font-weight: 400;
-      color: var(--input-field-text-color);
+      color: var(--text-primary);
       cursor: pointer;
       transition: background 0.15s;
       border: none;
@@ -1276,6 +1300,12 @@
       align-items: center;
       gap: var(--space-4);
       flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .variant-card:hover .variant-actions {
+      opacity: 1;
     }
 
     /* Variant action buttons - use .icon-btn, .icon-btn--danger for remove */
@@ -1295,7 +1325,7 @@
     .Button {
       height: var(--button-height);
       padding: var(--button-padding) var(--space-12);
-      border-radius: var(--button-radius);
+      border-radius: var(--radius-md);
       font-size: var(--body-lg-size);
       font-weight: var(--body-lg-weight);
       cursor: pointer;
@@ -1403,8 +1433,8 @@
 
     /* Left text (prefix like "(CR)") */
     .InputField__prefix {
-      font-size: 10px;
-      font-weight: 600;
+      font-size: var(--body-sm-size);
+      font-weight: 400;
       line-height: 100%;
       color: var(--text-secondary);
       opacity: var(--input-field-suffix-opacity);
@@ -1444,8 +1474,8 @@
 
     /* Right text (suffix) */
     .InputField__suffix {
-      font-size: 10px;
-      font-weight: 500;
+      font-size: var(--body-sm-size);
+      font-weight: 400;
       line-height: 100%;
       color: var(--text-secondary);
       opacity: var(--input-field-suffix-opacity);
@@ -1505,7 +1535,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-4);
-      margin-bottom: var(--space-12);
+      margin-bottom: var(--space-8);
       margin-top: var(--space-4);
       cursor: pointer;
       user-select: none;
@@ -1516,8 +1546,8 @@
     }
 
     .links-header__label {
-      font-size: 9px;
-      font-weight: 500;
+      font-size: var(--body-xs-size);
+      font-weight: 400;
       line-height: 100%;
       letter-spacing: 0.09px;
       color: var(--input-field-text-color);
@@ -2587,11 +2617,11 @@
       rangeContainer.appendChild(separator);
       rangeContainer.appendChild(maxFieldDiv);
 
-      // Delete button (Lucide: trash-2)
+      // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn icon-btn--danger';
       deleteBtn.type = 'button';
-      deleteBtn.innerHTML = getIcon('trash-2');
+      deleteBtn.innerHTML = getIcon('minus');
       deleteBtn.title = 'Delete metric';
       deleteBtn.onclick = (e) => {
         e.preventDefault();
@@ -2891,7 +2921,7 @@
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'icon-btn icon-btn--danger';
-      removeBtn.innerHTML = getIcon('trash-2');
+      removeBtn.innerHTML = getIcon('minus');
       removeBtn.title = 'Remove variant';
       removeBtn.onclick = () => {
         events[eventIndex].variants.splice(variantIndex, 1);
@@ -3021,11 +3051,11 @@
         renderEvents(events);
       };
 
-      // Delete button (Lucide: trash-2)
+      // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'icon-btn icon-btn--danger';
-      deleteBtn.innerHTML = getIcon('trash-2');
+      deleteBtn.innerHTML = getIcon('minus');
       deleteBtn.title = 'Delete event';
       deleteBtn.onclick = () => {
         events.splice(eventIndex, 1);
@@ -3473,7 +3503,7 @@
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'link-row__action delete';
-        deleteBtn.innerHTML = getIcon('trash-2', { size: 14 });
+        deleteBtn.innerHTML = getIcon('minus', { size: 14 });
         deleteBtn.title = 'Remove link';
         deleteBtn.onclick = (e) => {
           e.stopPropagation();
