@@ -275,7 +275,9 @@
     /* App Container */
     .app {
       background: var(--background);
-      min-height: 100vh;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Section Header (from Figma: padding=16px, spacing=16px) */
@@ -302,6 +304,15 @@
     .form-container {
       display: flex;
       flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Scrollable content area (everything except footer) */
+    .form-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     /* Section Metrics & Events */
@@ -1801,8 +1812,9 @@
       flex-direction: row-reverse;
       gap: var(--space-16);
       background: var(--background-surface);
-      border-bottom: 1px solid var(--border);
-      padding: var(--section-padding);
+      border-top: 1px solid var(--border);
+      padding: var(--space-12) var(--section-padding);
+      flex-shrink: 0;
     }
 
     /* Buttons */
@@ -2338,6 +2350,8 @@
 <body>
   <div class="app" id="container">
     <form id="exp-form" autocomplete="off" class="form-container">
+      <!-- Scrollable content area -->
+      <div class="form-content">
       <!-- Header Section -->
       <section class="section-header">
         <div class="header-content">
@@ -2494,6 +2508,7 @@
           <p>No events yet. Click the + button to add your first event.</p>
         </div>
       </section>
+      </div><!-- /.form-content -->
 
       <!-- Footer Section -->
       <footer class="section-footer">
@@ -2510,6 +2525,8 @@
      * @see https://lucide.dev/icons
      */
     const lucideIcons = {
+        // https://lucide.dev/icons/users
+        'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
       // https://lucide.dev/icons/plus
       'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
       // https://lucide.dev/icons/minus
@@ -2696,11 +2713,16 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'InputField__wrapper';
 
-      // Create left icon (brand icons like figma, miro, jira)
+      // Create left icon (Lucide or brand icons)
       if (showLIcon && leftIcon) {
         const iconEl = document.createElement('span');
         iconEl.className = `InputField__left-icon ${leftIcon}`;
-        iconEl.innerHTML = getBrandIcon(leftIcon, { size: 14 });
+        // Use Lucide icon if available, else fallback to brand icon
+        if (lucideIcons[leftIcon]) {
+          iconEl.innerHTML = getIcon(leftIcon, { size: 14 });
+        } else {
+          iconEl.innerHTML = getBrandIcon(leftIcon, { size: 14 });
+        }
         wrapper.appendChild(iconEl);
       }
 
@@ -3267,7 +3289,9 @@
       treeToggle.type = 'button';
       treeToggle.className = 'variant-tree-toggle';
       treeToggle.innerHTML = getIcon('chevron-down', { size: 12 });
-      treeToggle.title = 'Toggle variant details';
+      treeToggle.setAttribute('data-tooltip', 'Toggle details');
+      treeToggle.setAttribute('data-tooltip-position', 'bottom');
+      treeToggle.setAttribute('data-tooltip-cursor', 'pointer');
 
       // Color indicator button with popover (to be used as prefix)
       const colorIndicator = document.createElement('button');
@@ -3328,6 +3352,8 @@
         label: 'Traffic',
         showLabel: false,
         showRText: false,
+        showLIcon: true,
+        leftIcon: 'users',
         suffix: '',
         help: '50%',
         text: variant.traffic !== undefined ? `${variant.traffic}%` : '',
@@ -3337,15 +3363,20 @@
           variant.traffic = parseFloat(value.replace('%', '')) || 0;
         }
       });
-      // Add blur handler to append % after editing
+      // Add tooltip and blur handler to traffic input
       const trafficInput = trafficField.querySelector('.InputField__input');
-      trafficInput.addEventListener('blur', () => {
-        const numValue = parseFloat(trafficInput.value.replace('%', '')) || 0;
-        if (trafficInput.value.trim() !== '') {
-          trafficInput.value = `${numValue}%`;
-          variant.traffic = numValue;
-        }
-      });
+      if (trafficInput) {
+        trafficInput.setAttribute('data-tooltip', 'Traffic allocation for this variant');
+        trafficInput.setAttribute('data-tooltip-position', 'bottom');
+        trafficInput.setAttribute('data-tooltip-cursor', 'pointer');
+        trafficInput.addEventListener('blur', () => {
+          const numValue = parseFloat(trafficInput.value.replace('%', '')) || 0;
+          if (trafficInput.value.trim() !== '') {
+            trafficInput.value = `${numValue}%`;
+            variant.traffic = numValue;
+          }
+        });
+      }
       trafficFieldDiv.appendChild(trafficField);
 
       row1.appendChild(treeToggle);
