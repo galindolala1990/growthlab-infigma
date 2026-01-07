@@ -1164,7 +1164,7 @@
 
     .CustomDropdown__trigger:hover {
       background: var(--input-field-hover-bg);
-      border-color: var(--input-field-hover-border);
+      border-color: var(--input-field-border-no-color);
     }
 
     .CustomDropdown__trigger:focus {
@@ -1463,8 +1463,15 @@
     }
 
     .InputField__input::placeholder {
-      color: var(--input-field-text-color);
-      opacity: var(--input-field-placeholder-opacity);
+      color: #22272fb2 !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: #22272fb2;
+    }
+
+    .InputField__input::-webkit-input-placeholder {
+      color: #22272fb2 !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: #22272fb2;
     }
 
     /* State: entered - placeholder hidden, value shown */
@@ -1928,32 +1935,34 @@
           </div>
 
           <!-- Related links subsection -->
-        <div class="links-subsection" id="linksSubsection">
-          <div class="links-header" id="linksHeader">
-            <span class="links-header__chevron">
-              <!-- Lucide: chevron-down -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m6 9 6 6 6-6"/>
-              </svg>
-            </span>
-            <span class="links-header__label">Related links</span>
-          </div>
-          <div class="links-content">
-            <!-- Links list (dynamically populated) -->
-            <div class="links-list" id="linksList"></div>
-            <!-- Add link input -->
-            <div class="link-input-wrapper">
-              <div class="link-input-row">
-                <div class="InputField" data-state="default" data-variant="horizontal">
-                  <div class="InputField__wrapper">
-                    <input class="InputField__input" type="url" id="linkInput" placeholder="Paste a link...">
+          <div class="links-subsection" id="linksSubsection">
+            <div class="links-header" id="linksHeader">
+              <span class="links-header__chevron">
+                <!-- Lucide: chevron-down -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+              <span class="links-header__label">Related links</span>
+            </div>
+            <div class="links-content">
+              <!-- Links list (dynamically populated) -->
+              <div class="links-list" id="linksList"></div>
+              <!-- Add link input -->
+              <div class="link-input-wrapper">
+                <div class="link-input-row">
+                  <div class="InputField" data-state="default" data-variant="horizontal">
+                    <div class="InputField__wrapper">
+                      <input class="InputField__input" type="text" id="linkInput" placeholder="Paste a link...">
+                    </div>
                   </div>
                 </div>
+                <div class="link-input-error" id="linkInputError" style="display: none;"></div>
               </div>
-              <div class="link-input-error" id="linkInputError" style="display: none;"></div>
             </div>
           </div>
-        </div>
+
+
         </div>
 
         
