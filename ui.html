@@ -202,10 +202,10 @@
       --variant-color-gray: #6b7280;
 
       /* === Semantic Status Colors === */
+      --status-draft: #ca8a04;
       --status-running: #2563eb;
-      --status-rollout: #16a34a;
-      --status-inconclusive: #ca8a04;
-      --status-stopped: #dc2626;
+      --status-paused: #dc2626;
+      --status-completed: #16a34a;
 
       /* === Danger/Error Colors === */
       --danger: #f24e1e;
@@ -1336,7 +1336,7 @@
     }
 
     .variant-traffic-field {
-      width: 44px;
+      width: 66px !important;
       flex-shrink: 0;
     }
 
@@ -1609,10 +1609,10 @@
     }
 
     /* Status-specific badge colors */
+    .SelectField__select option[value="draft"] { color: var(--status-draft); }
     .SelectField__select option[value="running"] { color: var(--status-running); }
-    .SelectField__select option[value="rollout"] { color: var(--status-rollout); }
-    .SelectField__select option[value="inconclusive"] { color: var(--status-inconclusive); }
-    .SelectField__select option[value="stopped"] { color: var(--status-stopped); }
+    .SelectField__select option[value="paused"] { color: var(--status-paused); }
+    .SelectField__select option[value="completed"] { color: var(--status-completed); }  
 
     /* Status indicator dot */
     .status-indicator {
@@ -1628,10 +1628,10 @@
       flex-shrink: 0;
     }
 
+    .status-dot.draft { background-color: var(--status-draft); }
     .status-dot.running { background-color: var(--status-running); }
-    .status-dot.rollout { background-color: var(--status-rollout); }
-    .status-dot.inconclusive { background-color: var(--status-inconclusive); }
-    .status-dot.stopped { background-color: var(--status-stopped); }
+    .status-dot.paused { background-color: var(--status-paused); }
+    .status-dot.completed { background-color: var(--status-completed); }
 
     /* Custom Dropdown (used for Status and Variant dropdowns) */
     .CustomDropdown {
@@ -2357,7 +2357,7 @@
       <section class="section-header">
         <div class="header-content">
           <h1>Create experiment</h1>
-          <p class="body-md">Group design variants and streamline your growth experiments.</p>
+          <p class="body-md">Define design variants, flow, and success metrics.</p>
         </div>
         <div class="header-inputs">
           <!-- InputField Component: Vertical variant, default state -->
@@ -2411,7 +2411,7 @@
                 </div>
               </div>
 
-              <!-- Rolled-out Variant Dropdown (shown only when status is "rollout") -->
+              <!-- Rolled-out Variant Dropdown (shown only when status is "completed") -->
               <div class="rolledout-field hidden" id="rolledoutField">
                 <div class="SelectField">
                   <label class="SelectField__label">Rolled-out</label>
@@ -2437,7 +2437,7 @@
           <!-- Related links subsection -->
           <div class="links-subsection" id="linksSubsection">
             <div class="links-header" id="linksHeader">
-              <span class="links-header__label">Related links</span>
+              <span class="links-header__label">Artifacts</span>
             </div>
             <div class="links-content">
               <!-- Links list (dynamically populated) -->
@@ -2842,7 +2842,7 @@
      *   label: 'Status',
      *   options: [
      *     { value: 'running', label: 'Running' },
-     *     { value: 'stopped', label: 'Stopped' }
+     *     { value: 'paused', label: 'Paused' }
      *   ],
      *   onChange: (value) => console.log('Selected:', value)
      * });
@@ -3336,9 +3336,9 @@
         prefixElement: colorIndicator,
         onChange: (value) => {
           variant.name = value;
-          // Update rolled-out dropdown if status is rollout
+          // Update rolled-out dropdown if status is completed
           const statusInput = document.getElementById('experimentStatus');
-          if (statusInput.value === 'rollout') {
+          if (statusInput.value === 'completed') {
             updateRolledoutOptions();
           }
         }
@@ -4199,7 +4199,7 @@
           experimentName,
           experimentDescription,
           experimentStatus,
-          rolledoutVariant: experimentStatus === 'rollout' ? rolledoutVariant : null,
+          rolledoutVariant: experimentStatus === 'completed' ? rolledoutVariant : null,
           links: relatedLinks.map(link => ({
             url: link.url,
             provider: link.provider,
@@ -4390,10 +4390,10 @@
 
     // Status dropdown configuration
     const statusOptions = [
+      { value: 'draft', label: 'Draft', color: '#ca8a04' },  
       { value: 'running', label: 'Running', color: '#2563eb' },
-      { value: 'rollout', label: 'Rollout', color: '#16a34a' },
-      { value: 'inconclusive', label: 'Inconclusive', color: '#ca8a04' },
-      { value: 'stopped', label: 'Stopped/Reverted', color: '#dc2626' }
+      { value: 'paused', label: 'Paused', color: '#dc2626' },
+      { value: 'completed', label: 'Completed', color: '#16a34a' },
     ];
 
     /**
@@ -4478,7 +4478,7 @@
       const statusInput = document.getElementById('experimentStatus');
       const rolledoutField = document.getElementById('rolledoutField');
       
-      if (statusInput.value === 'rollout') {
+      if (statusInput.value === 'completed') {
         rolledoutField.classList.remove('hidden');
         updateRolledoutOptions();
       } else {
@@ -4501,7 +4501,7 @@
       originalRenderEvents(eventsList);
       // Update rolled-out dropdown if it's visible
       const statusInput = document.getElementById('experimentStatus');
-      if (statusInput.value === 'rollout') {
+      if (statusInput.value === 'completed') {
         updateRolledoutOptions();
       }
     };
