@@ -1102,7 +1102,7 @@
       display: flex;
       align-items: flex-start;
       gap: var(--space-8);
-      padding: var(--space-2) var(--space-4) var(--space-2) var(--space-8);
+      padding: var(--space-4) var(--space-0) var(--space-4) var(--space-0);
       background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
       border-radius: var(--radius-sm);
@@ -1114,7 +1114,7 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: var(--variant-card-hover-bg);
+      background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
     }
 
@@ -1340,9 +1340,9 @@
       flex-shrink: 0;
     }
 
-    .variant-content .InputField__wrapper {
+    /* .variant-content .InputField__wrapper {
       background: var(--background-transparent) !important;
-    }
+    }*/
 
     .variant-traffic-field .InputField__input {
       text-align: left;
@@ -2324,11 +2324,12 @@
       justify-content: center;
       flex-shrink: 0;
       border-radius: var(--radius-xs);
+      color: var(--text-secondary);
     }
 
     .InputField__left-icon svg {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
     }
 
     /* Brand colors from Simple Icons - https://simpleicons.org */
