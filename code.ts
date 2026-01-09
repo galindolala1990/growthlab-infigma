@@ -87,7 +87,7 @@
 
     // "Event" label
     const eventLabel = figma.createText();
-    eventLabel.fontName = { family: TOKENS.fontFamily, style: "Medium" };
+    eventLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
     eventLabel.fontSize = TOKENS.fontSizeBodyMd;
     eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -108,15 +108,57 @@
 
     card.appendChild(topRow);
 
-    // Thumbnail area (placeholder)
-    const thumb = figma.createFrame();
-    thumb.resize(268, 160);
-    thumb.cornerRadius = 16;
-    thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
-    thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-    thumb.strokeWeight = 1;
-    thumb.name = 'Thumbnail';
-    thumb.layoutAlign = 'MIN';
+    // Thumbnail area: use selected image if available, else placeholder
+    let thumb: FrameNode | SceneNode;
+    const selection = figma.currentPage.selection;
+    let imageNode: RectangleNode | null = null;
+    if (
+      selection &&
+      selection.length > 0 &&
+      selection[0].type === 'RECTANGLE'
+    ) {
+      const rect = selection[0] as RectangleNode;
+      const fills = rect.fills;
+      if (Array.isArray(fills) && fills.length > 0 && fills[0].type === 'IMAGE') {
+        imageNode = rect;
+      }
+    }
+    if (imageNode) {
+      // Clone the selected image node and resize for thumbnail
+      thumb = imageNode.clone();
+      thumb.resize(268, 160);
+      if ('cornerRadius' in thumb) thumb.cornerRadius = 16;
+      thumb.name = 'Thumbnail';
+      thumb.layoutAlign = 'MIN';
+    } else {
+      // Fallback: checkerboard placeholder frame
+      const placeholder = figma.createFrame();
+      placeholder.resize(268, 160);
+      placeholder.cornerRadius = 16;
+      placeholder.name = 'Thumbnail';
+      placeholder.layoutAlign = 'MIN';
+      placeholder.clipsContent = true;
+      // Checkerboard pattern: 8x8 grid, 32x32px squares
+      const squareSize = 32;
+      const cols = Math.ceil(268 / squareSize);
+      const rows = Math.ceil(160 / squareSize);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const square = figma.createRectangle();
+          square.resize(squareSize, squareSize);
+          square.x = x * squareSize;
+          square.y = y * squareSize;
+          square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? { r: 0.96, g: 0.96, b: 0.96 } : { r: 0.89, g: 0.89, b: 0.89 } }];
+          square.strokes = [];
+          square.strokeWeight = 0;
+          square.name = 'Checker';
+          placeholder.appendChild(square);
+        }
+      }
+      placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+      placeholder.strokeWeight = 1;
+      thumb = placeholder;
+    }
     card.appendChild(thumb);
 
     // Event name as heading
@@ -133,7 +175,7 @@
     const subtitleText = figma.createText();
     subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
     subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     subtitleText.characters = '0 variants';
     subtitleText.name = 'Variants Subtitle';
@@ -441,9 +483,10 @@ if (figma.editorType === 'figma') {
     metricsRow.fills = [];
     metricsRow.strokes = [];
     metricsRow.name = 'Metrics Row';
-    metricsRow.appendChild(createMetricChip('CTR', variant.metrics.ctr));
-    metricsRow.appendChild(createMetricChip('CR', variant.metrics.cr));
-    metricsRow.appendChild(createMetricChip('SU', variant.metrics.su));
+    const metrics = variant.metrics || { ctr: 0, cr: 0, su: 0 };
+    metricsRow.appendChild(createMetricChip('CTR', metrics.ctr));
+    metricsRow.appendChild(createMetricChip('CR', metrics.cr));
+    metricsRow.appendChild(createMetricChip('SU', metrics.su));
     card.appendChild(metricsRow);
 
     return card;
@@ -567,7 +610,7 @@ if (figma.editorType === 'figma') {
         roundNumber,
         role: 'experiment-flow',
       };
-      const flowFrame = createFrame(flowFrameMeta, {
+      let flowFrame = createFrame(flowFrameMeta, {
         layoutMode: 'HORIZONTAL',
         counterAxisSizingMode: 'AUTO',
         primaryAxisSizingMode: 'AUTO',
@@ -681,19 +724,70 @@ if (figma.editorType === 'figma') {
 
 
       // Remove from parent if already present to avoid double-append
-      if (infoCard.parent) infoCard.remove();
-      if (flowFrame.parent) flowFrame.remove();
+      // Remove from parent if already present to avoid double-append
+      // Remove from parent if already present to avoid double-append
+      let infoCardValid = infoCard && infoCard.parent;
+      let flowFrameValid = flowFrame && flowFrame.parent;
+      if (!infoCardValid) {
+        infoCard = await createExperimentInfoCard(
+          experimentName,
+          experimentDescription || '',
+          figmaLink || '',
+          jiraLink || '',
+          miroLink || ''
+        );
+        attachNodeMeta(infoCard, {
+          name: infoCardName,
+          type: 'frame' as const,
+          experimentName,
+          role: 'experiment-info',
+        });
+      }
+      if (!flowFrameValid) {
+        const flowFrameMeta = {
+          name: flowFrameName,
+          type: 'frame' as const,
+          experimentName,
+          roundNumber,
+          role: 'experiment-flow',
+        };
+        flowFrame = createFrame(flowFrameMeta, {
+          layoutMode: 'HORIZONTAL',
+          counterAxisSizingMode: 'AUTO',
+          primaryAxisSizingMode: 'AUTO',
+          itemSpacing: 64,
+          padding: 32,
+          paddingLeft: 48,
+          paddingRight: 48,
+          fills: [],
+          cornerRadius: 24,
+        });
+        flowFrame.appendChild(roundBadge);
+        flowFrame.appendChild(entryCard);
+        flowFrame.appendChild(variantsContainer);
+        flowFrame.appendChild(exitCard);
+      }
 
-      infoCard.x = startX;
-      infoCard.y = center.y - infoCard.height / 2;
-      flowFrame.x = startX + infoCard.width + gap;
-      flowFrame.y = center.y - flowFrame.height / 2;
+      // Only set position and append if node is valid
+      if (infoCard && infoCard.parent === null) {
+        infoCard.x = startX;
+        infoCard.y = center.y - infoCard.height / 2;
+        figma.currentPage.appendChild(infoCard);
+      }
+      if (flowFrame && flowFrame.parent === null) {
+        flowFrame.x = startX + infoCard.width + gap;
+        flowFrame.y = center.y - flowFrame.height / 2;
+        figma.currentPage.appendChild(flowFrame);
+      }
 
       figma.currentPage.appendChild(infoCard);
       figma.currentPage.appendChild(flowFrame);
 
       figma.currentPage.selection = [flowFrame];
       figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
+
+        // --- Visual QA: Send node data to UI ---
+        figma.ui.postMessage({ type: 'qa-node', payload: serializeNode(flowFrame) });
 
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(entryCard, variantNodes[i], {
@@ -965,6 +1059,28 @@ export function getNodeMeta(node: BaseNode): CanvasNodeMeta | null {
   } catch {
     return null;
   }
+}
+
+// --- Visual QA Helper ---
+function serializeNode(node: SceneNode): any {
+  return {
+    id: node.id,
+    type: node.type,
+    name: node.name,
+    layoutMode: 'layoutMode' in node ? node.layoutMode : undefined,
+    fills: 'fills' in node ? node.fills : undefined,
+    fontName: 'fontName' in node ? node.fontName : undefined,
+    characters: 'characters' in node ? node.characters : undefined,
+    children: 'children' in node ? node.children.map(child => serializeNode(child)) : undefined,
+    width: node.width,
+    height: node.height,
+    paddingLeft: 'paddingLeft' in node ? node.paddingLeft : undefined,
+    paddingRight: 'paddingRight' in node ? node.paddingRight : undefined,
+    paddingTop: 'paddingTop' in node ? node.paddingTop : undefined,
+    paddingBottom: 'paddingBottom' in node ? node.paddingBottom : undefined,
+    itemSpacing: 'itemSpacing' in node ? node.itemSpacing : undefined,
+    cornerRadius: 'cornerRadius' in node ? node.cornerRadius : undefined,
+  };
 }
 
 // Example usage (to be replaced with actual plugin logic):

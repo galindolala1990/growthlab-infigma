@@ -2349,6 +2349,14 @@
   </style>
 </head>
 <body>
+  <!-- Visual QA Debug Panel -->
+  <div id="qaDebugPanel" style="display:none; width:100%; max-width:700px; margin:24px auto 0 auto; background:#fff; border:1px solid #d8dbdf; box-shadow:0 2px 16px rgba(0,0,0,0.08); font-family:monospace; font-size:13px; border-radius:12px; transition:max-height 0.3s, box-shadow 0.3s; overflow:hidden;">
+    <button id="qaDebugToggle" style="width:100%; padding:14px 20px; background:#f6f7f9; border:none; border-bottom:1px solid #d8dbdf; font-weight:bold; font-size:14px; cursor:pointer; border-top-left-radius:12px; border-top-right-radius:12px; display:flex; align-items:center; justify-content:space-between;">
+      <span>Canvas Node Debug</span>
+      <span id="qaDebugChevron" style="transition:transform 0.2s;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+    </button>
+    <div id="qaDebugPanelBody" style="display:block; padding:18px 20px; margin:0; background:#f7f7fa; border-radius:0 0 12px 12px; font-size:13px; color:#222; line-height:1.6; overflow-x:auto; white-space:pre-wrap; word-break:break-word; max-height:320px;"></div>
+  </div>
   <div class="app" id="container">
     <form id="exp-form" autocomplete="off" class="form-container">
       <!-- Scrollable content area -->
@@ -2516,10 +2524,96 @@
         <button type="submit" class="Button brand">Create flow</button>
         <button type="button" id="cancel" class="Button secondary">Cancel</button>
       </footer>
+      <!-- Debug Panel (collapsible, below footer) -->
+      <div id="qaDebugPanelContainer"></div>
     </form>
   </div>
 
   <script>
+        // Visual QA: Listen for node data from plugin
+        // Move debug panel below footer
+        document.addEventListener('DOMContentLoaded', () => {
+          const footer = document.querySelector('.section-footer');
+          const panel = document.getElementById('qaDebugPanel');
+          const container = document.getElementById('qaDebugPanelContainer');
+          if (footer && panel && container) {
+            container.appendChild(panel);
+          }
+          // Collapsible logic
+          const toggle = document.getElementById('qaDebugToggle');
+          const body = document.getElementById('qaDebugPanelBody');
+          const chevron = document.getElementById('qaDebugChevron');
+          let expanded = true;
+          if (toggle && body && chevron) {
+            toggle.addEventListener('click', () => {
+              expanded = !expanded;
+              body.style.display = expanded ? 'block' : 'none';
+              chevron.style.transform = expanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+            });
+          }
+        });
+
+        window.onmessage = (event) => {
+          const msg = event.data.pluginMessage;
+          console.log('Received pluginMessage:', msg);
+          if (msg && msg.type === 'qa-node') {
+            const panel = document.getElementById('qaDebugPanel');
+            const body = document.getElementById('qaDebugPanelBody');
+            panel.style.display = 'block';
+            // Helper: Convert Figma node JSON to CSS-like string
+            function nodeToCSS(node) {
+              if (!node) return '';
+              let css = '';
+              if (node.type === 'FRAME' || node.type === 'RECTANGLE') {
+                if (node.width) css += `width: ${node.width}px;\n`;
+                if (node.height) css += `height: ${node.height}px;\n`;
+                if (node.cornerRadius) css += `border-radius: ${node.cornerRadius}px;\n`;
+                if (node.fills && node.fills.length) {
+                  const fill = node.fills[0];
+                  if (fill.type === 'SOLID' && fill.color) {
+                    const r = Math.round(fill.color.r * 255);
+                    const g = Math.round(fill.color.g * 255);
+                    const b = Math.round(fill.color.b * 255);
+                    css += `background: rgb(${r},${g},${b});\n`;
+                  }
+                }
+                if (node.layoutMode) css += `display: flex; flex-direction: ${node.layoutMode === 'HORIZONTAL' ? 'row' : 'column'};\n`;
+                if (node.itemSpacing) css += `gap: ${node.itemSpacing}px;\n`;
+                if (node.paddingLeft) css += `padding-left: ${node.paddingLeft}px;\n`;
+                if (node.paddingRight) css += `padding-right: ${node.paddingRight}px;\n`;
+                if (node.paddingTop) css += `padding-top: ${node.paddingTop}px;\n`;
+                if (node.paddingBottom) css += `padding-bottom: ${node.paddingBottom}px;\n`;
+              }
+              if (node.type === 'TEXT' && node.fontName) {
+                css += `font-family: ${node.fontName.family};\n`;
+                css += `font-size: ${node.fontSize}px;\n`;
+                css += `font-weight: ${node.fontName.style};\n`;
+                if (node.fills && node.fills.length) {
+                  const fill = node.fills[0];
+                  if (fill.type === 'SOLID' && fill.color) {
+                    const r = Math.round(fill.color.r * 255);
+                    const g = Math.round(fill.color.g * 255);
+                    const b = Math.round(fill.color.b * 255);
+                    css += `color: rgb(${r},${g},${b});\n`;
+                  }
+                }
+              }
+              return css;
+            }
+
+            // Render JSON and CSS for each node (or array of nodes)
+            function renderDebug(node) {
+              if (Array.isArray(node)) {
+                return node.map(renderDebug).join('');
+              }
+              const json = `<div style='margin-bottom:18px;'><div style='font-weight:600; margin-bottom:6px;'>Node JSON:</div><pre style='background:#fff; border-radius:6px; padding:10px; font-size:12px; color:#333; line-height:1.5; overflow-x:auto;'>${JSON.stringify(node, null, 2)}</pre>`;
+              const css = `<div style='font-weight:600; margin:12px 0 6px 0;'>CSS Style:</div><pre style='background:#f3f3f7; border-radius:6px; padding:10px; font-size:12px; color:#1a1a1a; line-height:1.5; overflow-x:auto;'>${nodeToCSS(node)}</pre></div>`;
+              return json + css;
+            }
+
+            body.innerHTML = renderDebug(msg.payload);
+          }
+        };
     /**
      * Lucide Icons - Centralized icon definitions
      * Official SVG paths from https://github.com/lucide-icons/lucide/tree/main/icons
