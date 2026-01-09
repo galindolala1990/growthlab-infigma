@@ -1,3 +1,117 @@
+    // Create a Variant Group Card styled similarly to Event Card
+    function createVariantGroupCard(label: string): FrameNode {
+      // Card container
+      const card = figma.createFrame();
+      card.resize(300, 280);
+      card.layoutMode = 'VERTICAL';
+      card.counterAxisSizingMode = 'FIXED';
+      card.primaryAxisSizingMode = 'FIXED';
+      card.paddingLeft = card.paddingRight = TOKENS.space16;
+      card.paddingTop = card.paddingBottom = TOKENS.space16;
+      card.cornerRadius = TOKENS.radiusLG;
+      card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
+      card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+      card.strokeWeight = 0;
+      card.effects = [{
+        type: 'DROP_SHADOW',
+        color: { r: 0, g: 0, b: 0, a: 0.05 },
+        offset: { x: 0, y: 1 },
+        radius: 2,
+        spread: 0,
+        visible: true,
+        blendMode: 'NORMAL',
+      }];
+      card.name = `Variant Group: ${label}`;
+
+      // Top Row: Label
+      const topRow = figma.createFrame();
+      topRow.layoutMode = 'HORIZONTAL';
+      topRow.counterAxisSizingMode = 'AUTO';
+      topRow.primaryAxisSizingMode = 'AUTO';
+      topRow.itemSpacing = TOKENS.space4;
+      topRow.fills = [];
+      topRow.strokes = [];
+      topRow.name = 'Top Row';
+      topRow.layoutAlign = 'MIN';
+
+      // No icon for variant group, just label
+      const groupLabel = figma.createText();
+      groupLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+      groupLabel.fontSize = TOKENS.fontSizeBodyMd;
+      groupLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+      groupLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+      groupLabel.characters = label;
+      groupLabel.name = 'Variant Group Label';
+      topRow.appendChild(groupLabel);
+
+      // Spacer for alignment
+      const spacer = figma.createFrame();
+      spacer.layoutMode = 'HORIZONTAL';
+      spacer.counterAxisSizingMode = 'AUTO';
+      spacer.primaryAxisSizingMode = 'AUTO';
+      spacer.fills = [];
+      spacer.strokes = [];
+      spacer.name = 'Spacer';
+      spacer.resize(1, 1);
+      topRow.appendChild(spacer);
+
+      card.appendChild(topRow);
+      topRow.resize(topRow.width, 22);
+
+      // Thumbnail area: placeholder
+      const placeholder = figma.createFrame();
+      placeholder.resize(268, 160);
+      placeholder.cornerRadius = TOKENS.radiusSM;
+      placeholder.name = 'Thumbnail';
+      placeholder.layoutAlign = 'MIN';
+      placeholder.clipsContent = true;
+      // Checkerboard pattern: 8x8 grid, 32x32px squares
+      const squareSize = 32;
+      const cols = Math.ceil(268 / squareSize);
+      const rows = Math.ceil(160 / squareSize);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const square = figma.createRectangle();
+          square.resize(squareSize, squareSize);
+          square.x = x * squareSize;
+          square.y = y * squareSize;
+          square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? { r: 0.96, g: 0.96, b: 0.96 } : { r: 0.89, g: 0.89, b: 0.89 } }];
+          square.strokes = [];
+          square.strokeWeight = 0;
+          square.name = 'Checker';
+          placeholder.appendChild(square);
+        }
+      }
+      placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+      placeholder.strokeWeight = 1;
+      card.appendChild(placeholder);
+
+      // Variant group name as heading
+      const nameText = figma.createText();
+      nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+      nameText.fontSize = TOKENS.fontSizeBodyLg;
+      nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+      nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+      nameText.characters = label || '';
+      nameText.name = 'Variant Group Name';
+      card.appendChild(nameText);
+
+      // Subtitle for variants (default: empty)
+      const subtitleText = figma.createText();
+      subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
+      subtitleText.fontSize = TOKENS.fontSizeBodyMd;
+      subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+      subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
+      subtitleText.characters = '';
+      subtitleText.name = 'Number of Variants';
+      card.appendChild(subtitleText);
+
+      card.primaryAxisAlignItems = 'MIN';
+      card.counterAxisAlignItems = 'MIN';
+      card.itemSpacing = TOKENS.space12;
+
+      return card;
+    }
     // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
     function deleteExperimentFlowFrames() {
       // Match 'Sample Experiment Flow', any 'Experiment Flow' (with or without details), and 'Experiment Flow —  — Round undefined'
@@ -24,7 +138,7 @@
     };
   }
 
-  // Create an Event Card styled similarly to Variant Card
+  // Create an Event Card styled similarly to Variant Card -- ACTUAL CARD
   function createEventCard(eventName: string): FrameNode {
     // Card container
     const card = figma.createFrame();
@@ -55,7 +169,7 @@
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
     topRow.primaryAxisSizingMode = 'AUTO';
-    topRow.itemSpacing = TOKENS.space12;
+    topRow.itemSpacing = TOKENS.space4;
     topRow.fills = [];
     topRow.strokes = [];
     topRow.name = 'Top Row';
@@ -108,6 +222,9 @@
 
     card.appendChild(topRow);
 
+    // Force topRow to fixed height after children are added
+    topRow.resize(topRow.width, 22);
+
     // Thumbnail area: use selected image if available, else placeholder
     let thumb: FrameNode | SceneNode;
     const selection = figma.currentPage.selection;
@@ -134,7 +251,7 @@
       // Fallback: checkerboard placeholder frame
       const placeholder = figma.createFrame();
       placeholder.resize(268, 160);
-      placeholder.cornerRadius = 16;
+      placeholder.cornerRadius = TOKENS.radiusSM;
       placeholder.name = 'Thumbnail';
       placeholder.layoutAlign = 'MIN';
       placeholder.clipsContent = true;
@@ -167,7 +284,7 @@
     nameText.fontSize = TOKENS.fontSizeBodyLg;
     nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    nameText.characters = eventName;
+    nameText.characters = eventName || '';
     nameText.name = 'Event Name';
     card.appendChild(nameText);
 
@@ -178,7 +295,7 @@
     subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     subtitleText.characters = '0 variants';
-    subtitleText.name = 'Variants Subtitle';
+    subtitleText.name = 'Number of Variants';
     card.appendChild(subtitleText);
 
     // Alignment: distribute vertically, align all left
@@ -244,8 +361,33 @@ if (figma.editorType === 'figma') {
       name: 'Conversion button',
       hasVariants: true,
       variants: [
-        { key: 'A', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, status: 'none' as VariantStatus, metrics: { ctr: 0.695, cr: 0.425, su: 0.0 } },
-        { key: 'B', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, status: 'none' as VariantStatus, metrics: { ctr: 0.725, cr: 0.480, su: 0.0 } },
+        {
+          key: 'A',
+          name: 'Control',
+          description: 'Original version without changes',
+          color: '#2563eb',
+          traffic: 50,
+          status: 'none' as VariantStatus,
+          metrics: { ctr: 0.695, cr: 0.425, su: 0.0 }
+        },
+        {
+          key: 'B',
+          name: 'Variation A',
+          description: 'New CTA button design',
+          color: '#0eab43',
+          traffic: 30,
+          status: 'running' as VariantStatus,
+          metrics: { ctr: 0.725, cr: 0.480, su: 0.0 }
+        },
+        {
+          key: 'C',
+          name: 'Variation B',
+          description: 'CTA with icon',
+          color: '#f59e42',
+          traffic: 20,
+          status: 'winner' as VariantStatus,
+          metrics: { ctr: 0.755, cr: 0.510, su: 0.0 }
+        }
       ]
     },
     {
@@ -277,51 +419,18 @@ if (figma.editorType === 'figma') {
     flowFrame.fills = [];
     flowFrame.cornerRadius = 24;
 
-    // Loop through all events
     for (const [i, event] of sampleEvents.entries()) {
-      // Event Card
+      // Event Card (ungrouped)
       const eventCard = createEventCard(event.name);
-      eventCard.name = i === 0 ? 'Entry Event Node' : `Event: ${event.name}`;
+      flowFrame.appendChild(eventCard);
 
-      // Update subtitle to show correct variant count
-      const subtitleNode = eventCard.findOne(n => n.name === 'Variants Subtitle') as TextNode;
-      if (subtitleNode) {
-        subtitleNode.characters = `${event.variants.length} variant${event.variants.length === 1 ? '' : 's'}`;
-      }
-
-      // If event has variants, add a vertical container with variant cards
+      // Add variant cards directly to flowFrame (ungrouped)
       if (event.hasVariants && event.variants.length > 0) {
-        const variantsContainer = figma.createFrame();
-        variantsContainer.name = `${event.name} Variants`;
-        variantsContainer.layoutMode = 'VERTICAL';
-        variantsContainer.counterAxisSizingMode = 'AUTO';
-        variantsContainer.primaryAxisSizingMode = 'AUTO';
-        variantsContainer.itemSpacing = 16;
-        variantsContainer.paddingLeft = variantsContainer.paddingRight = 16;
-        variantsContainer.paddingTop = variantsContainer.paddingBottom = 16;
-        variantsContainer.cornerRadius = 16;
-        variantsContainer.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }];
-        variantsContainer.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-        variantsContainer.strokeWeight = 1;
-        for (const variant of event.variants) {
-          const variantCard = createVariantCard(variant);
-          variantsContainer.appendChild(variantCard);
+        for (let v = 0; v < event.variants.length; v++) {
+          const variant = event.variants[v];
+          const variantCard = createVariantCard(variant, v);
+          flowFrame.appendChild(variantCard);
         }
-        // Group event card and its variants vertically
-        const eventGroup = figma.createFrame();
-        eventGroup.layoutMode = 'VERTICAL';
-        eventGroup.counterAxisSizingMode = 'AUTO';
-        eventGroup.primaryAxisSizingMode = 'AUTO';
-        eventGroup.itemSpacing = 16;
-        eventGroup.fills = [];
-        eventGroup.strokes = [];
-        eventGroup.name = `Event Group: ${event.name}`;
-        eventGroup.appendChild(eventCard);
-        eventGroup.appendChild(variantsContainer);
-        flowFrame.appendChild(eventGroup);
-      } else {
-        // No variants: just add the event card
-        flowFrame.appendChild(eventCard);
       }
     }
 
@@ -404,7 +513,7 @@ if (figma.editorType === 'figma') {
     const txt = figma.createText();
     txt.fontSize = TOKENS.fontSizeBodyLg;
     try {
-      txt.fontName = { family: TOKENS.fontFamily, style: "Semibold" };
+      txt.fontName = { family: TOKENS.fontFamily, style: "Bold" };
     } catch {
       txt.fontName = { family: TOKENS.fontFamily, style: "Medium" };
     }
@@ -415,7 +524,8 @@ if (figma.editorType === 'figma') {
     return chip;
   }
 
-  function createVariantCard(variant: Variant): FrameNode {
+    // Old Experiment Flow Row Card -- ACTUAL Variant Card
+  function createVariantCard(variant: Variant, variantIndex?: number): FrameNode {
     const card = figma.createFrame();
     card.layoutMode = 'VERTICAL';
     card.counterAxisSizingMode = 'AUTO';
@@ -437,25 +547,56 @@ if (figma.editorType === 'figma') {
     }];
     card.name = `Variant: ${variant.name}`;
 
+
+    // --- Top Row: Match event card style ---
     const topRow = figma.createFrame();
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
     topRow.primaryAxisSizingMode = 'AUTO';
-    topRow.itemSpacing = TOKENS.space8;
+    topRow.itemSpacing = TOKENS.space4;
     topRow.fills = [];
     topRow.strokes = [];
     topRow.name = 'Top Row';
+    topRow.layoutAlign = 'MIN';
 
-    // Removed Key Circle and keyText
+    // Variant Label (A, B, C...) styled like event label
+    const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    let fallbackName = 'Variant';
+    if (typeof variantIndex === 'number' && variantIndex >= 0 && variantIndex < variantLetters.length) {
+      fallbackName = variantLetters[variantIndex];
+    }
+    const variantLabel = figma.createText();
+    variantLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantLabel.fontSize = TOKENS.fontSizeBodyMd;
+    variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+    variantLabel.characters = fallbackName;
+    variantLabel.name = 'Variant Label';
+    topRow.appendChild(variantLabel);
 
+    // Spacer for alignment (like event card)
+    const spacer = figma.createFrame();
+    spacer.layoutMode = 'HORIZONTAL';
+    spacer.counterAxisSizingMode = 'AUTO';
+    spacer.primaryAxisSizingMode = 'AUTO';
+    spacer.fills = [];
+    spacer.strokes = [];
+    spacer.name = 'Spacer';
+    spacer.resize(1, 1);
+    topRow.appendChild(spacer);
+
+    // Variant Name styled like event card
     const nameText = figma.createText();
     nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    nameText.fontSize = 18;
+    nameText.fontSize = TOKENS.fontSizeBodyMd;
     nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    nameText.characters = variant.name;
+    const variantDisplayName = variant.name || fallbackName;
+    nameText.characters = variantDisplayName;
+    nameText.name = 'Variant Name';
     topRow.appendChild(nameText);
 
+    // Status badge (winner/running)
     if (variant.status === 'winner' || variant.status === 'running') {
       const badgeColor = variant.status === 'winner' ? hexToRgb(TOKENS.malachite800) : hexToRgb(TOKENS.royalBlue600);
       const badgeLabel = variant.status.charAt(0).toUpperCase() + variant.status.slice(1);
@@ -465,16 +606,35 @@ if (figma.editorType === 'figma') {
     }
     card.appendChild(topRow);
 
+    // --- Thumbnail (large, like event card) ---
     const thumb = figma.createFrame();
-    thumb.layoutGrow = 1;
-    thumb.layoutAlign = 'STRETCH';
-    thumb.cornerRadius = TOKENS.radiusMD;
-    thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-    thumb.strokes = [];
-    thumb.strokeWeight = 0;
+    thumb.resize(268, 160);
+    thumb.cornerRadius = TOKENS.radiusSM;
     thumb.name = 'Thumbnail';
+    thumb.layoutAlign = 'MIN';
+    thumb.clipsContent = true;
+    // Checkerboard pattern for thumbnail
+    const squareSize = 32;
+    const cols = Math.ceil(268 / squareSize);
+    const rows = Math.ceil(160 / squareSize);
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const square = figma.createRectangle();
+        square.resize(squareSize, squareSize);
+        square.x = x * squareSize;
+        square.y = y * squareSize;
+        square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? { r: 0.96, g: 0.96, b: 0.96 } : { r: 0.89, g: 0.89, b: 0.89 } }];
+        square.strokes = [];
+        square.strokeWeight = 0;
+        square.name = 'Checker';
+        thumb.appendChild(square);
+      }
+    }
+    thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    thumb.strokeWeight = 1;
     card.appendChild(thumb);
 
+    // Metrics row (unchanged)
     const metricsRow = figma.createFrame();
     metricsRow.layoutMode = 'HORIZONTAL';
     metricsRow.counterAxisSizingMode = 'AUTO';
@@ -503,13 +663,13 @@ if (figma.editorType === 'figma') {
     card.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
     card.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
     card.strokeWeight = 1;
-    card.name = `Node: ${title || 'Untitled'}`;
+    card.name = title ? `Node: ${title}` : 'Node';
 
     const topRow = figma.createFrame();
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
     topRow.primaryAxisSizingMode = 'AUTO';
-    topRow.itemSpacing = 8;
+    topRow.itemSpacing = TOKENS.space4;
     topRow.fills = [];
     topRow.strokes = [];
     topRow.name = 'Top Row';
@@ -519,7 +679,7 @@ if (figma.editorType === 'figma') {
     titleText.fontSize = 18;
     titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    titleText.characters = title && title.length > 0 ? title : 'Untitled';
+    titleText.characters = title && title.length > 0 ? title : '';
     topRow.appendChild(titleText);
 
     if (trafficLabel) {
@@ -618,13 +778,10 @@ if (figma.editorType === 'figma') {
         padding: 32,
         paddingLeft: 48,
         paddingRight: 48,
-        fills: [],
-        cornerRadius: 24,
+        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }],
+        cornerRadius: 24
       });
 
-      const roundBadge = createPill(`ROUND #${roundNumber}`, { r: 1, g: 0.97, b: 0.8 }, { r: 0.5, g: 0.45, b: 0.1 });
-      roundBadge.name = 'Round Badge';
-      flowFrame.appendChild(roundBadge);
 
       const entryCard = createNodeCard(entryLabel, undefined, '100%');
       entryCard.name = 'Entry Node';
@@ -637,35 +794,23 @@ if (figma.editorType === 'figma') {
       });
 
 
-      // Example: group all variants under a single event for now
-      // In a real scenario, you would loop through events and their variants
-      const eventName = 'Event 1'; // Replace with actual event name from your data
-      const eventCard = createEventCard(eventName);
-      eventCard.name = 'Event Card';
-      const variantsContainer = createFrame({
-        name: 'Event 1 Variants',
-        type: 'frame' as const,
-        experimentName,
-        roundNumber,
-        role: 'variants-container',
-      }, {
-        layoutMode: 'VERTICAL',
-        primaryAxisSizingMode: 'AUTO',
-        counterAxisSizingMode: 'AUTO',
-        itemSpacing: 24,
-        paddingTop: 'var(--space-16, 16px)',
-        paddingBottom: 'var(--space-16, 16px)',
-        paddingLeft: 'var(--space-16, 16px)',
-        paddingRight: 'var(--space-16, 16px)',
-        cornerRadius: 24,
-        fills: [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }],
-        strokes: [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }],
-        strokeWeight: 1,
-      });
+      // Use the first variant's name, or entryLabel, or a fallback for the event card name
+      let eventCardName = entryLabel;
+      if (Array.isArray(variants) && variants.length > 0 && variants[0].name) {
+        eventCardName = variants[0].name;
+      }
+      if (!eventCardName) eventCardName = 'Event';
 
+      const eventCard = createEventCard(eventCardName);
+
+      // Event Card (ungrouped)
+      flowFrame.appendChild(eventCard);
+
+      // Add variant cards directly to flowFrame (ungrouped)
       const variantNodes: FrameNode[] = [];
       variants.forEach((variant: Variant, index: number) => {
-        const card = createVariantCard(variant);
+        const card = createVariantCard(variant, index);
+        card.name = `Variant: ${variant.name}`;
         attachNodeMeta(card, {
           name: variant.name,
           type: 'frame' as const,
@@ -676,7 +821,7 @@ if (figma.editorType === 'figma') {
           traffic: variant.traffic,
           status: variant.status,
         });
-        variantsContainer.appendChild(card);
+        flowFrame.appendChild(card);
         variantNodes.push(card);
 
         connectNodes(eventCard, card, {
@@ -685,18 +830,6 @@ if (figma.editorType === 'figma') {
           index,
         });
       });
-
-      // Group event card and its variants in a vertical stack
-      const eventGroup = figma.createFrame();
-      eventGroup.layoutMode = 'VERTICAL';
-      eventGroup.counterAxisSizingMode = 'AUTO';
-      eventGroup.primaryAxisSizingMode = 'AUTO';
-      eventGroup.itemSpacing = 24;
-      eventGroup.fills = [];
-      eventGroup.strokes = [];
-      eventGroup.name = 'Event Group';
-      eventGroup.appendChild(eventCard);
-      eventGroup.appendChild(variantsContainer);
 
       const exitCard = createNodeCard(exitLabel);
       exitCard.name = 'Exit Node';
@@ -708,23 +841,17 @@ if (figma.editorType === 'figma') {
         roundNumber,
       });
 
-      flowFrame.appendChild(entryCard);
-      flowFrame.appendChild(variantsContainer);
       flowFrame.appendChild(exitCard);
 
 
       // Horizontally align infoCard and flowFrame, centered vertically
       const center = figma.viewport.center;
 
-
       const gap = 100;
       // Compute total width and center both as a group
       const totalWidth = infoCard.width + gap + flowFrame.width;
       const startX = center.x - totalWidth / 2;
 
-
-      // Remove from parent if already present to avoid double-append
-      // Remove from parent if already present to avoid double-append
       // Remove from parent if already present to avoid double-append
       let infoCardValid = infoCard && infoCard.parent;
       let flowFrameValid = flowFrame && flowFrame.parent;
@@ -753,19 +880,17 @@ if (figma.editorType === 'figma') {
         };
         flowFrame = createFrame(flowFrameMeta, {
           layoutMode: 'HORIZONTAL',
-          counterAxisSizingMode: 'AUTO',
-          primaryAxisSizingMode: 'AUTO',
+          counterAxisSizingMode: 'AUTO', // hug content vertically
+          primaryAxisSizingMode: 'AUTO', // hug content horizontally
           itemSpacing: 64,
           padding: 32,
           paddingLeft: 48,
           paddingRight: 48,
           fills: [],
-          cornerRadius: 24,
+          cornerRadius: 24
         });
-        flowFrame.appendChild(roundBadge);
-        flowFrame.appendChild(entryCard);
-        flowFrame.appendChild(variantsContainer);
-        flowFrame.appendChild(exitCard);
+        // Removed reference to undefined roundBadge
+        // Entry card is not appended here, as eventGroup and variantGroup are appended independently
       }
 
       // Only set position and append if node is valid
@@ -820,12 +945,12 @@ if (figma.editorType === 'figma') {
       const flowFrame = figma.createFrame();
       flowFrame.name = `Experiment Flow: ${experimentName}`;
       flowFrame.layoutMode = 'HORIZONTAL';
-      flowFrame.counterAxisSizingMode = 'AUTO';
-      flowFrame.primaryAxisSizingMode = 'AUTO';
+      flowFrame.counterAxisSizingMode = 'AUTO'; // Hug content vertically
+      flowFrame.primaryAxisSizingMode = 'AUTO'; // Hug content horizontally
       flowFrame.itemSpacing = 32;
       flowFrame.paddingLeft = flowFrame.paddingRight = 32;
       flowFrame.paddingTop = flowFrame.paddingBottom = 32;
-      flowFrame.fills = [];
+      flowFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }];
       flowFrame.cornerRadius = 24;
 
       const roundBadge = createPill(`ROUND #${roundNumber}`, { r: 1, g: 0.97, b: 0.8 }, { r: 0.5, g: 0.45, b: 0.1 });
@@ -853,7 +978,7 @@ if (figma.editorType === 'figma') {
       roundContainer.paddingLeft = roundContainer.paddingRight = 24;
       roundContainer.paddingTop = roundContainer.paddingBottom = 24;
       roundContainer.cornerRadius = 24;
-      roundContainer.fills = [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }];
+      roundContainer.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }];
       roundContainer.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
       roundContainer.strokeWeight = 1;
 
@@ -864,7 +989,7 @@ if (figma.editorType === 'figma') {
         if (selection[i]) {
           const thumb = selection[i].clone();
           thumb.resize(240, 140);
-          if (thumb.type === 'FRAME') thumb.cornerRadius = 12;
+          if (thumb.type === 'FRAME') thumb.cornerRadius = TOKENS.radiusSM;
           thumb.name = 'Thumbnail';
           for (const child of Array.from(card.children)) {
             if (child.name === 'Thumbnail') child.remove();
@@ -1015,10 +1140,19 @@ export function attachNodeMeta(node: BaseNode, meta: CanvasNodeMeta) {
   node.setPluginData('meta', JSON.stringify(meta));
 }
 
+ //OLD EXPERIMENT FLOW ROW FRAME THAT HOLDS OLD FLOW
 export function createFrame(meta: CanvasNodeMeta, options: CanvasNodeOptions = {}): FrameNode {
   const frame = figma.createFrame();
   frame.name = meta.name;
-  if (options.width) frame.resizeWithoutConstraints(options.width, options.height || 100);
+  // Hug content logic for auto layout
+  if (options.width && options.height) {
+    frame.resizeWithoutConstraints(options.width, options.height);
+  } else if (options.width) {
+    frame.resizeWithoutConstraints(options.width, frame.height);
+  } else if (options.height) {
+    frame.resizeWithoutConstraints(frame.width, options.height);
+  }
+
   if (options.x !== undefined && options.y !== undefined) {
     frame.x = options.x;
     frame.y = options.y;
@@ -1029,6 +1163,21 @@ export function createFrame(meta: CanvasNodeMeta, options: CanvasNodeOptions = {
     frame.paddingLeft = frame.paddingRight = frame.paddingTop = frame.paddingBottom = options.padding;
   }
   if (options.itemSpacing !== undefined) frame.itemSpacing = options.itemSpacing;
+
+  // Hug content for auto layout
+  if (options.layoutMode === 'HORIZONTAL' || options.layoutMode === 'VERTICAL') {
+    if (options.primaryAxisSizingMode === 'AUTO' || options.primaryAxisSizingMode === 'HUG' || options.primaryAxisSizingMode === 'hug') {
+      frame.primaryAxisSizingMode = 'AUTO';
+    } else if (options.primaryAxisSizingMode === 'FIXED' || options.primaryAxisSizingMode === 'fixed') {
+      frame.primaryAxisSizingMode = 'FIXED';
+    }
+    if (options.counterAxisSizingMode === 'AUTO' || options.counterAxisSizingMode === 'HUG' || options.counterAxisSizingMode === 'hug') {
+      frame.counterAxisSizingMode = 'AUTO';
+    } else if (options.counterAxisSizingMode === 'FIXED' || options.counterAxisSizingMode === 'fixed') {
+      frame.counterAxisSizingMode = 'FIXED';
+    }
+  }
+
   attachNodeMeta(frame, meta);
   return frame;
 }
