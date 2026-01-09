@@ -1,3 +1,15 @@
+    // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
+    function deleteExperimentFlowFrames() {
+      // Match 'Sample Experiment Flow', any 'Experiment Flow' (with or without details), and 'Experiment Flow —  — Round undefined'
+      // Match 'Sample Experiment Flow', any 'Experiment Flow', and any with 'undefined' in the name
+      const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
+      const frames = figma.currentPage.findAll(node =>
+        node.type === "FRAME" && pattern.test(node.name)
+      );
+      for (const frame of frames) {
+        frame.remove();
+      }
+    }
   // Utility: Convert hex color to RGB
   function hexToRgb(hex: string): RGB {
     hex = hex.replace('#', '');
@@ -14,14 +26,17 @@
 
   // Create an Event Card styled similarly to Variant Card
   function createEventCard(eventName: string): FrameNode {
+    // Card container
     const card = figma.createFrame();
+    card.resize(300, 280);
     card.layoutMode = 'VERTICAL';
-    card.counterAxisSizingMode = 'AUTO';
-    card.primaryAxisSizingMode = 'AUTO';
-    card.paddingLeft = card.paddingRight = TOKENS.space12;
-    card.paddingTop = card.paddingBottom = TOKENS.space12;
+    card.counterAxisSizingMode = 'FIXED';
+    card.primaryAxisSizingMode = 'FIXED';
+    // Use design token variable for padding
+    card.paddingLeft = card.paddingRight = TOKENS.space16;
+    card.paddingTop = card.paddingBottom = TOKENS.space16;
     card.cornerRadius = TOKENS.radiusLG;
-    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
+    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
     card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     card.strokeWeight = 0;
     card.effects = [{
@@ -35,13 +50,96 @@
     }];
     card.name = `Event: ${eventName}`;
 
+    // Top Row: Icon and label
+    const topRow = figma.createFrame();
+    topRow.layoutMode = 'HORIZONTAL';
+    topRow.counterAxisSizingMode = 'AUTO';
+    topRow.primaryAxisSizingMode = 'AUTO';
+    topRow.itemSpacing = TOKENS.space4;
+    topRow.fills = [];
+    topRow.strokes = [];
+    topRow.name = 'Top Row';
+    topRow.layoutAlign = 'MIN';
+
+    // Icon (circle with asterisk)
+    const iconCircle = figma.createEllipse();
+    iconCircle.resize(36, 36);
+    iconCircle.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+    iconCircle.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+    iconCircle.strokeWeight = 0;
+    iconCircle.name = 'Event Icon Circle';
+
+    // Asterisk/star as text in the circle
+    const iconText = figma.createText();
+    iconText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    iconText.fontSize = 20;
+    iconText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
+    iconText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    iconText.characters = '*';
+    // Center iconText in iconCircle
+    iconText.x = iconCircle.width / 2 - iconText.width / 2;
+    iconText.y = iconCircle.height / 2 - iconText.height / 2;
+    const iconGroup = figma.group([iconCircle, iconText], figma.currentPage);
+    iconGroup.name = 'Event Icon';
+    topRow.appendChild(iconGroup);
+
+    // "Event" label
+    const eventLabel = figma.createText();
+    eventLabel.fontName = { family: TOKENS.fontFamily, style: "Medium" };
+    eventLabel.fontSize = TOKENS.fontSizeBodyMd;
+    eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+    eventLabel.characters = 'Event';
+    eventLabel.name = 'Event Label';
+    topRow.appendChild(eventLabel);
+
+    // Spacer for alignment
+    const spacer = figma.createFrame();
+    spacer.layoutMode = 'HORIZONTAL';
+    spacer.counterAxisSizingMode = 'AUTO';
+    spacer.primaryAxisSizingMode = 'AUTO';
+    spacer.fills = [];
+    spacer.strokes = [];
+    spacer.name = 'Spacer';
+    spacer.resize(1, 1);
+    topRow.appendChild(spacer);
+
+    card.appendChild(topRow);
+
+    // Thumbnail area (placeholder)
+    const thumb = figma.createFrame();
+    thumb.resize(252, 120);
+    thumb.cornerRadius = 16;
+    thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
+    thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    thumb.strokeWeight = 1;
+    thumb.name = 'Thumbnail';
+    thumb.layoutAlign = 'STRETCH';
+    card.appendChild(thumb);
+
+    // Event name as heading
     const nameText = figma.createText();
     nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    nameText.fontSize = 18;
+    nameText.fontSize = 22;
     nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
     nameText.characters = eventName;
+    nameText.name = 'Event Name';
     card.appendChild(nameText);
+
+    // Subtitle for variants (default: 0 variants)
+    const subtitleText = figma.createText();
+    subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
+    subtitleText.fontSize = 16;
+    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    subtitleText.characters = '0 variants';
+    subtitleText.name = 'Variants Subtitle';
+    card.appendChild(subtitleText);
+
+    // Alignment: distribute vertically, align all left
+    card.primaryAxisAlignItems = 'MIN';
+    card.counterAxisAlignItems = 'MIN';
 
     return card;
   }
@@ -116,7 +214,6 @@ if (figma.editorType === 'figma') {
   // --- DEMO: Create node cards for each event and its variants ---
   async function createSampleFlowFromData() {
     await loadFonts();
-    // Create Experiment Info Card (optional, can be commented out if not needed)
     const experimentInfoCard = await createExperimentInfoCard(
       'Sample Experiment',
       'This is a sample experiment info card.',
@@ -124,7 +221,6 @@ if (figma.editorType === 'figma') {
     );
     experimentInfoCard.name = 'Experiment Info — sample-experiment';
 
-    // Create the main flow frame
     const flowFrame = figma.createFrame();
     flowFrame.name = 'Sample Experiment Flow';
     flowFrame.layoutMode = 'HORIZONTAL';
@@ -136,21 +232,19 @@ if (figma.editorType === 'figma') {
     flowFrame.fills = [];
     flowFrame.cornerRadius = 24;
 
-    // Entry Node (first event) is always an event card
-    const entryEvent = sampleEvents[0];
-    const entryNode = createEventCard(entryEvent.name);
-    entryNode.name = 'Entry Event Node';
-    flowFrame.appendChild(entryNode);
-
-    // For each event after the entry, create event card and variants
-    for (let i = 1; i < sampleEvents.length; i++) {
-      const event = sampleEvents[i];
+    // Loop through all events
+    for (const [i, event] of sampleEvents.entries()) {
       // Event Card
       const eventCard = createEventCard(event.name);
-      eventCard.name = `Event: ${event.name}`;
-      flowFrame.appendChild(eventCard);
+      eventCard.name = i === 0 ? 'Entry Event Node' : `Event: ${event.name}`;
 
-      // Variants Container (if any)
+      // Update subtitle to show correct variant count
+      const subtitleNode = eventCard.findOne(n => n.name === 'Variants Subtitle') as TextNode;
+      if (subtitleNode) {
+        subtitleNode.characters = `${event.variants.length} variant${event.variants.length === 1 ? '' : 's'}`;
+      }
+
+      // If event has variants, add a vertical container with variant cards
       if (event.hasVariants && event.variants.length > 0) {
         const variantsContainer = figma.createFrame();
         variantsContainer.name = `${event.name} Variants`;
@@ -168,7 +262,21 @@ if (figma.editorType === 'figma') {
           const variantCard = createVariantCard(variant);
           variantsContainer.appendChild(variantCard);
         }
-        flowFrame.appendChild(variantsContainer);
+        // Group event card and its variants vertically
+        const eventGroup = figma.createFrame();
+        eventGroup.layoutMode = 'VERTICAL';
+        eventGroup.counterAxisSizingMode = 'AUTO';
+        eventGroup.primaryAxisSizingMode = 'AUTO';
+        eventGroup.itemSpacing = 16;
+        eventGroup.fills = [];
+        eventGroup.strokes = [];
+        eventGroup.name = `Event Group: ${event.name}`;
+        eventGroup.appendChild(eventCard);
+        eventGroup.appendChild(variantsContainer);
+        flowFrame.appendChild(eventGroup);
+      } else {
+        // No variants: just add the event card
+        flowFrame.appendChild(eventCard);
       }
     }
 
@@ -293,21 +401,7 @@ if (figma.editorType === 'figma') {
     topRow.strokes = [];
     topRow.name = 'Top Row';
 
-    const keyCircle = figma.createEllipse();
-    keyCircle.resize(28, 28);
-    keyCircle.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
-    keyCircle.strokes = [];
-    keyCircle.name = 'Key Circle';
-    const keyText = figma.createText();
-    keyText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    keyText.fontSize = 16;
-    keyText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
-    keyText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    keyText.characters = variant.key;
-    keyText.x = keyCircle.x + keyCircle.width / 2 - 8;
-    keyText.y = keyCircle.y + keyCircle.height / 2 - 10;
-    topRow.appendChild(keyCircle);
-    topRow.appendChild(keyText);
+    // Removed Key Circle and keyText
 
     const nameText = figma.createText();
     nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
@@ -411,6 +505,11 @@ if (figma.editorType === 'figma') {
   }
 
   figma.ui.onmessage = async (msg: PluginMessage) => {
+    if (msg.type === 'delete-experiment-flows') {
+      deleteExperimentFlowFrames();
+      figma.notify('Experiment Flow frames deleted (if any were found).');
+      return;
+    }
 
     if (msg.type === 'create-flow' && msg.payload) {
       const {
@@ -508,10 +607,10 @@ if (figma.editorType === 'figma') {
         primaryAxisSizingMode: 'AUTO',
         counterAxisSizingMode: 'AUTO',
         itemSpacing: 24,
-        paddingTop: 24,
-        paddingBottom: 24,
-        paddingLeft: 24,
-        paddingRight: 24,
+        paddingTop: 'var(--space-16, 16px)',
+        paddingBottom: 'var(--space-16, 16px)',
+        paddingLeft: 'var(--space-16, 16px)',
+        paddingRight: 'var(--space-16, 16px)',
         cornerRadius: 24,
         fills: [{ type: 'SOLID', color: { r: 0.95, g: 0.97, b: 1 } }],
         strokes: [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }],
