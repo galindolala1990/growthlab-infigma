@@ -19,11 +19,11 @@ export const TOKENS = {
   fillsBackground: '#eceff2', // --fills-background
   fillsSurface: '#ffffff',    // --fills-surface
   fillsBrand: '#6f4cff',     // --fills-brand
-  textPrimary: '#333b47',    // --text-primary-default
+  textPrimary: '#22272f',    // --text-primary-default
   textSecondary: '#506179',  // --text-secondary-default
   border: '#edeef1',         // --border-border
 
-  // Radii
+  // Radiis
   radiusXS: 4,
   radiusSM: 8,
   radiusMD: 12,

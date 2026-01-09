@@ -55,7 +55,7 @@
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
     topRow.primaryAxisSizingMode = 'AUTO';
-    topRow.itemSpacing = TOKENS.space4;
+    topRow.itemSpacing = TOKENS.space12;
     topRow.fills = [];
     topRow.strokes = [];
     topRow.name = 'Top Row';
@@ -76,11 +76,13 @@
     iconText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
     iconText.textAutoResize = 'WIDTH_AND_HEIGHT';
     iconText.characters = '*';
+    iconText.visible = false; // Hide asterisk icon for now
     // Center iconText in iconCircle
     iconText.x = iconCircle.width / 2 - iconText.width / 2;
     iconText.y = iconCircle.height / 2 - iconText.height / 2;
     const iconGroup = figma.group([iconCircle, iconText], figma.currentPage);
     iconGroup.name = 'Event Icon';
+    iconGroup.visible = false; // Hide Event Icon for now
     topRow.appendChild(iconGroup);
 
     // "Event" label
@@ -108,19 +110,19 @@
 
     // Thumbnail area (placeholder)
     const thumb = figma.createFrame();
-    thumb.resize(252, 120);
+    thumb.resize(268, 160);
     thumb.cornerRadius = 16;
     thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
     thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     thumb.strokeWeight = 1;
     thumb.name = 'Thumbnail';
-    thumb.layoutAlign = 'STRETCH';
+    thumb.layoutAlign = 'MIN';
     card.appendChild(thumb);
 
     // Event name as heading
     const nameText = figma.createText();
     nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    nameText.fontSize = 22;
+    nameText.fontSize = TOKENS.fontSizeBodyLg;
     nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
     nameText.characters = eventName;
@@ -130,7 +132,7 @@
     // Subtitle for variants (default: 0 variants)
     const subtitleText = figma.createText();
     subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
-    subtitleText.fontSize = 16;
+    subtitleText.fontSize = TOKENS.fontSizeBodyMd;
     subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
     subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     subtitleText.characters = '0 variants';
@@ -140,6 +142,7 @@
     // Alignment: distribute vertically, align all left
     card.primaryAxisAlignItems = 'MIN';
     card.counterAxisAlignItems = 'MIN';
+    card.itemSpacing = TOKENS.space12;
 
     return card;
   }
