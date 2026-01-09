@@ -3363,6 +3363,17 @@
      * Creates a variant card with unified color indicator + name, description, and metrics
      */
     function createVariantCard(variant, variantIndex, eventIndex) {
+        // Row 1: Tree toggle + Traffic split
+        const row1 = document.createElement('div');
+        row1.className = 'variant-row';
+
+        // Tree toggle chevron button
+        const treeToggle = document.createElement('button');
+        treeToggle.type = 'button';
+        treeToggle.className = 'tree-toggle';
+        treeToggle.title = 'Expand/collapse variant details';
+        treeToggle.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6L8 9L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
       const card = document.createElement('div');
       card.className = 'variant-card';
       card.id = variant.id;
@@ -3371,55 +3382,31 @@
       const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
       const currentColor = variant.color || defaultColor;
 
-      // Content area
-      const content = document.createElement('div');
-      content.className = 'variant-content';
 
-      // Row 1: Tree toggle + Color indicator + Variant name + Traffic split
-      const row1 = document.createElement('div');
-      row1.className = 'variant-row';
-
-      // Tree toggle button (chevron to expand/collapse subtree)
-      const treeToggle = document.createElement('button');
-      treeToggle.type = 'button';
-      treeToggle.className = 'variant-tree-toggle';
-      treeToggle.innerHTML = getIcon('chevron-down', { size: 12 });
-      treeToggle.setAttribute('data-tooltip', 'Toggle details');
-      treeToggle.setAttribute('data-tooltip-position', 'bottom');
-      treeToggle.setAttribute('data-tooltip-cursor', 'pointer');
-
-      // Color indicator button with popover (to be used as prefix)
+      // Variant name field (InputField with color indicator as prefix) - TOP OF CARD
+      const nameFieldDiv = document.createElement('div');
+      nameFieldDiv.className = 'variant-name-field';
       const colorIndicator = document.createElement('button');
       colorIndicator.type = 'button';
       colorIndicator.className = 'color-indicator';
       colorIndicator.style.backgroundColor = currentColor;
       colorIndicator.title = 'Select variant color';
-
-      // Create color popover
       const colorPopover = createColorPopover(currentColor, (newColor) => {
         colorIndicator.style.backgroundColor = newColor;
         variant.color = newColor;
         colorIndicator.classList.remove('active');
       });
       colorIndicator.appendChild(colorPopover);
-
-      // Toggle popover on click
       colorIndicator.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = colorPopover.classList.contains('open');
-        // Close all other open popovers
         document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
         document.querySelectorAll('.color-indicator.active').forEach(c => c.classList.remove('active'));
-        
         if (!isOpen) {
           colorPopover.classList.add('open');
           colorIndicator.classList.add('active');
         }
       });
-
-      // Variant name field (InputField with color indicator as prefix)
-      const nameFieldDiv = document.createElement('div');
-      nameFieldDiv.className = 'variant-name-field';
       const nameField = createInputField({
         id: `variant-name-${eventIndex}-${variantIndex}`,
         label: 'Variant name',
@@ -3430,14 +3417,16 @@
         prefixElement: colorIndicator,
         onChange: (value) => {
           variant.name = value;
-          // Update rolled-out dropdown if status is completed
           const statusInput = document.getElementById('experimentStatus');
-          if (statusInput.value === 'completed') {
+          if (statusInput && statusInput.value === 'completed') {
             updateRolledoutOptions();
           }
         }
       });
       nameFieldDiv.appendChild(nameField);
+      // Content area
+      const content = document.createElement('div');
+      content.className = 'variant-content';
 
       // Traffic field (percentage format: value displayed as "50%")
       const trafficFieldDiv = document.createElement('div');
@@ -3475,7 +3464,6 @@
       trafficFieldDiv.appendChild(trafficField);
 
       row1.appendChild(treeToggle);
-      row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
 
       // Subtree container for collapsible content (description + metrics)
@@ -3558,6 +3546,9 @@
       subtree.appendChild(row2);
       subtree.appendChild(metricsSection);
 
+      // Insert name field at the very top of the card
+      card.appendChild(nameFieldDiv);
+      card.appendChild(row1);
       content.appendChild(row1);
       content.appendChild(subtree);
 

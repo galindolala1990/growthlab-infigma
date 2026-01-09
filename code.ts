@@ -56,6 +56,7 @@
       topRow.appendChild(spacer);
 
       card.appendChild(topRow);
+        // (No variant name heading here; only group name is shown for group cards)
       topRow.resize(topRow.width, 22);
 
       // Thumbnail area: placeholder
@@ -87,14 +88,14 @@
       card.appendChild(placeholder);
 
       // Variant group name as heading
-      const nameText = figma.createText();
-      nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-      nameText.fontSize = TOKENS.fontSizeBodyLg;
-      nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-      nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-      nameText.characters = label || '';
-      nameText.name = 'Variant Group Name';
-      card.appendChild(nameText);
+      const variantNameText = figma.createText();
+      variantNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+      variantNameText.fontSize = TOKENS.fontSizeBodyLg;
+      variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+      variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+      variantNameText.characters = label || '';
+      variantNameText.name = 'Variant Name Text';
+      card.appendChild(variantNameText);
 
       // Subtitle for variants (default: empty)
       const subtitleText = figma.createText();
@@ -279,14 +280,14 @@
     card.appendChild(thumb);
 
     // Event name as heading
-    const nameText = figma.createText();
-    nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    nameText.fontSize = TOKENS.fontSizeBodyLg;
-    nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-    nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    nameText.characters = eventName || '';
-    nameText.name = 'Event Name';
-    card.appendChild(nameText);
+    const eventNameText = figma.createText();
+    eventNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    eventNameText.fontSize = TOKENS.fontSizeBodyLg;
+    eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    eventNameText.characters = eventName || '';
+    eventNameText.name = 'Event Name Text';
+    card.appendChild(eventNameText);
 
     // Subtitle for variants (default: 0 variants)
     const subtitleText = figma.createText();
@@ -526,14 +527,16 @@ if (figma.editorType === 'figma') {
 
     // Old Experiment Flow Row Card -- ACTUAL Variant Card
   function createVariantCard(variant: Variant, variantIndex?: number): FrameNode {
+    // Card container (match event card)
     const card = figma.createFrame();
+    card.resize(300, 280);
     card.layoutMode = 'VERTICAL';
-    card.counterAxisSizingMode = 'AUTO';
-    card.primaryAxisSizingMode = 'AUTO';
-    card.paddingLeft = card.paddingRight = TOKENS.space12;
-    card.paddingTop = card.paddingBottom = TOKENS.space12;
+    card.counterAxisSizingMode = 'FIXED';
+    card.primaryAxisSizingMode = 'FIXED';
+    card.paddingLeft = card.paddingRight = TOKENS.space16;
+    card.paddingTop = card.paddingBottom = TOKENS.space16;
     card.cornerRadius = TOKENS.radiusLG;
-    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
+    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
     card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     card.strokeWeight = 0;
     card.effects = [{
@@ -547,8 +550,7 @@ if (figma.editorType === 'figma') {
     }];
     card.name = `Variant: ${variant.name}`;
 
-
-    // --- Top Row: Match event card style ---
+    // Top Row: label (A/B/C), "Variant", spacer
     const topRow = figma.createFrame();
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
@@ -559,22 +561,32 @@ if (figma.editorType === 'figma') {
     topRow.name = 'Top Row';
     topRow.layoutAlign = 'MIN';
 
-    // Variant Label (A, B, C...) styled like event label
+    // Variant label (A/B/C...)
     const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     let fallbackName = 'Variant';
     if (typeof variantIndex === 'number' && variantIndex >= 0 && variantIndex < variantLetters.length) {
       fallbackName = variantLetters[variantIndex];
     }
-    const variantLabel = figma.createText();
-    variantLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    variantLabel.fontSize = TOKENS.fontSizeBodyMd;
-    variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-    variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-    variantLabel.characters = fallbackName;
-    variantLabel.name = 'Variant Label';
-    topRow.appendChild(variantLabel);
+    const variantName = figma.createText();
+    variantName.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantName.fontSize = TOKENS.fontSizeBodyMd;
+    variantName.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    variantName.textAutoResize = 'WIDTH_AND_HEIGHT';
+    variantName.characters = fallbackName;
+    variantName.name = 'Variant Name Text';
+    topRow.appendChild(variantName);
 
-    // Spacer for alignment (like event card)
+    // "Variant" label
+    const variantTypeLabel = figma.createText();
+    variantTypeLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantTypeLabel.fontSize = TOKENS.fontSizeBodyMd;
+    variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+    variantTypeLabel.characters = 'Variant';
+    variantTypeLabel.name = 'Variant Type Label';
+    topRow.appendChild(variantTypeLabel);
+
+    // Spacer for alignment
     const spacer = figma.createFrame();
     spacer.layoutMode = 'HORIZONTAL';
     spacer.counterAxisSizingMode = 'AUTO';
@@ -585,35 +597,16 @@ if (figma.editorType === 'figma') {
     spacer.resize(1, 1);
     topRow.appendChild(spacer);
 
-    // Variant Name styled like event card
-    const nameText = figma.createText();
-    nameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    nameText.fontSize = TOKENS.fontSizeBodyMd;
-    nameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-    nameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    const variantDisplayName = variant.name || fallbackName;
-    nameText.characters = variantDisplayName;
-    nameText.name = 'Variant Name';
-    topRow.appendChild(nameText);
-
-    // Status badge (winner/running)
-    if (variant.status === 'winner' || variant.status === 'running') {
-      const badgeColor = variant.status === 'winner' ? hexToRgb(TOKENS.malachite800) : hexToRgb(TOKENS.royalBlue600);
-      const badgeLabel = variant.status.charAt(0).toUpperCase() + variant.status.slice(1);
-      const badge = createPill(badgeLabel, badgeColor, hexToRgb(TOKENS.white));
-      badge.name = 'Status Badge';
-      topRow.appendChild(badge);
-    }
     card.appendChild(topRow);
+    topRow.resize(topRow.width, 22);
 
-    // --- Thumbnail (large, like event card) ---
+    // Thumbnail area: checkerboard placeholder (match event card)
     const thumb = figma.createFrame();
     thumb.resize(268, 160);
     thumb.cornerRadius = TOKENS.radiusSM;
     thumb.name = 'Thumbnail';
     thumb.layoutAlign = 'MIN';
     thumb.clipsContent = true;
-    // Checkerboard pattern for thumbnail
     const squareSize = 32;
     const cols = Math.ceil(268 / squareSize);
     const rows = Math.ceil(160 / squareSize);
@@ -634,20 +627,21 @@ if (figma.editorType === 'figma') {
     thumb.strokeWeight = 1;
     card.appendChild(thumb);
 
-    // Metrics row (unchanged)
-    const metricsRow = figma.createFrame();
-    metricsRow.layoutMode = 'HORIZONTAL';
-    metricsRow.counterAxisSizingMode = 'AUTO';
-    metricsRow.primaryAxisSizingMode = 'AUTO';
-    metricsRow.itemSpacing = TOKENS.space8;
-    metricsRow.fills = [];
-    metricsRow.strokes = [];
-    metricsRow.name = 'Metrics Row';
-    const metrics = variant.metrics || { ctr: 0, cr: 0, su: 0 };
-    metricsRow.appendChild(createMetricChip('CTR', metrics.ctr));
-    metricsRow.appendChild(createMetricChip('CR', metrics.cr));
-    metricsRow.appendChild(createMetricChip('SU', metrics.su));
-    card.appendChild(metricsRow);
+
+    // Subtitle for metrics (match event card subtitle style)
+    const subtitleText = figma.createText();
+    subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
+    subtitleText.fontSize = TOKENS.fontSizeBodyMd;
+    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    subtitleText.characters = `CTR: ${variant.metrics?.ctr ?? 0}  CR: ${variant.metrics?.cr ?? 0}  SU: ${variant.metrics?.su ?? 0}`;
+    subtitleText.name = 'Variant Metrics Subtitle';
+    card.appendChild(subtitleText);
+
+    // Alignment: distribute vertically, align all left
+    card.primaryAxisAlignItems = 'MIN';
+    card.counterAxisAlignItems = 'MIN';
+    card.itemSpacing = TOKENS.space12;
 
     return card;
   }
