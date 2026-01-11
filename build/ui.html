@@ -4285,37 +4285,132 @@
 
     document.getElementById('exp-form').onsubmit = (e) => {
       e.preventDefault();
+      // --- Gather form values ---
       const experimentName = document.getElementById('experimentName').value.trim();
       const experimentDescription = document.getElementById('experimentDescription').value.trim();
       const experimentStatus = document.getElementById('experimentStatus').value;
       const rolledoutVariant = document.getElementById('rolledoutVariant').value;
 
-      // Collect filled metrics only
+      // --- Build experiment object (v2 schema) ---
+      const experimentId = `exp-${Date.now()}`;
+      const experiment = {
+        id: experimentId,
+        name: experimentName,
+        roundNumber: 1,
+        description: experimentDescription,
+        links: {
+          // Only include known providers
+          figma: (relatedLinks.find(l => l.provider === 'figma') || {}).url || '',
+          jira: (relatedLinks.find(l => l.provider === 'jira') || {}).url || '',
+          miro: (relatedLinks.find(l => l.provider === 'miro') || {}).url || ''
+        },
+        outcomes: experimentStatus === 'completed' && rolledoutVariant ? {
+          winningPaths: [], // Could be filled if you want
+          notes: '' // Could be filled if you want
+        } : undefined
+      };
+
+      // --- Build metrics array (optional, not used in flow structure directly) ---
       const filledMetrics = metrics
         .filter(m => m.name)
-        .map(m => ({ 
-          name: m.name, 
+        .map(m => ({
+          id: m.id || `metric-${Math.random().toString(36).slice(2)}`,
+          name: m.name,
           abbreviation: m.abbreviation,
           min: m.min,
           max: m.max
         }));
 
+      // --- Build flow object (v2 schema) ---
+      // Entry node
+      const entryNode = {
+        id: `entry-${experimentId}`,
+        label: 'Entry',
+        note: '',
+        nodeType: 'ENTRY_NODE'
+      };
+      // Exit node
+      const exitNode = {
+        id: `exit-${experimentId}`,
+        label: 'Exit',
+        nodeType: 'EXIT_NODE'
+      };
+      // Events and variants
+      const sanitizedEvents = JSON.parse(JSON.stringify(events)).map((event, eventIdx) => {
+        if (!event.variants) event.variants = [];
+        event.variants = event.variants.map((variant, vIdx) => {
+          let safeName = typeof variant.name === 'string' && variant.name.trim().length > 0
+            ? variant.name
+            : `Variant ${String.fromCharCode(65 + vIdx)}`;
+          return {
+            id: variant.id || `variant-${eventIdx}-${vIdx}-${Date.now()}`,
+            parentEventId: event.id || `event-${eventIdx}`,
+            key: String.fromCharCode(65 + vIdx),
+            name: safeName,
+            description: variant.description || '',
+            traffic: Number(variant.traffic) || 0,
+            metrics: variant.metrics || {},
+            style: variant.color ? { variantColor: variant.color } : undefined
+          };
+        });
+        let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
+          ? event.name
+          : `Event ${eventIdx + 1}`;
+        return {
+          id: event.id || `event-${eventIdx}`,
+          name: safeEventName,
+          nodeType: 'EVENT_NODE',
+          entryNote: undefined, // Could be filled if you want
+          variants: event.variants
+        };
+      });
+
+      // --- Build connectors (simple linear for now) ---
+      const connectors = [];
+      // Entry to first event
+      if (sanitizedEvents.length > 0) {
+        connectors.push({
+          id: `conn-entry-0-${Date.now()}`,
+          type: 'PRIMARY_FLOW_LINE',
+          from: { nodeType: 'ENTRY_NODE', id: entryNode.id },
+          to: { nodeType: 'EVENT_NODE', id: sanitizedEvents[0].id },
+          arrowhead: true
+        });
+      }
+      // Event to event
+      for (let i = 0; i < sanitizedEvents.length - 1; i++) {
+        connectors.push({
+          id: `conn-event-${i}-${i+1}-${Date.now()}`,
+          type: 'PRIMARY_FLOW_LINE',
+          from: { nodeType: 'EVENT_NODE', id: sanitizedEvents[i].id },
+          to: { nodeType: 'EVENT_NODE', id: sanitizedEvents[i+1].id },
+          arrowhead: true
+        });
+      }
+      // Last event to exit
+      if (sanitizedEvents.length > 0) {
+        connectors.push({
+          id: `conn-exit-${Date.now()}`,
+          type: 'PRIMARY_FLOW_LINE',
+          from: { nodeType: 'EVENT_NODE', id: sanitizedEvents[sanitizedEvents.length-1].id },
+          to: { nodeType: 'EXIT_NODE', id: exitNode.id },
+          arrowhead: true
+        });
+      }
+
+      const flow = {
+        id: `flow-${experimentId}`,
+        layout: { direction: 'VERTICAL', eventSpacing: 64, variantSpacing: 24 },
+        entry: entryNode,
+        events: sanitizedEvents,
+        exit: exitNode,
+        connectors
+      };
+
+      // --- Send v2 payload ---
       parent.postMessage({ pluginMessage: {
-        type: 'create-flow',
-        payload: {
-          experimentName,
-          experimentDescription,
-          experimentStatus,
-          rolledoutVariant: experimentStatus === 'completed' ? rolledoutVariant : null,
-          links: relatedLinks.map(link => ({
-            url: link.url,
-            provider: link.provider,
-            name: link.name,
-            domain: link.domain
-          })),
-          metrics: filledMetrics,
-          variants: JSON.parse(JSON.stringify(events))
-        }
+        type: 'create-flow-v2',
+        payload: { experiment, flow }
       } }, '*');
     };
 

@@ -15,21 +15,111 @@
 
   // Create an Event Card styled similarly to Variant Card -- ACTUAL CARD
   // ...existing code...
-interface CreateFlowPayload {
-  experimentName: string;
+
+// --- V2 Experiment Flow Types ---
+export interface ExperimentV2 {
+  id: string;
+  name: string;
   roundNumber: number;
-  entryLabel: string;
-  exitLabel: string;
-  variants: Variant[];
-  experimentDescription?: string;
-  figmaLink?: string;
-  jiraLink?: string;
-  miroLink?: string;
+  description?: string;
+  links?: {
+    figma?: string;
+    jira?: string;
+    miro?: string;
+  };
+  outcomes?: {
+    winningPaths?: Array<{ eventId: string; variantId: string }>;
+    notes?: string;
+  };
+}
+
+export interface EntryNodeV2 {
+  id: string;
+  label: string;
+  note?: string;
+  nodeType: 'ENTRY_NODE';
+}
+
+export interface ExitNodeV2 {
+  id: string;
+  label: string;
+  nodeType: 'EXIT_NODE';
+}
+
+export interface VariantV2 {
+  id: string;
+  parentEventId: string;
+  key: string;
+  name: string;
+  description?: string;
+  traffic: number;
+  metrics?: VariantMetrics;
+  style?: {
+    variantColor?: string;
+  };
+}
+
+export interface EventNodeV2 {
+  id: string;
+  name: string;
+  nodeType: 'EVENT_NODE';
+  entryNote?: EntryNoteV2;
+  variants?: VariantV2[];
+}
+
+export interface EntryNoteV2 {
+  id: string;
+  text: string;
+  attachTo: {
+    target: 'EVENT_NODE' | 'PRIMARY_FLOW_LINE';
+    targetId?: string;
+    fromId?: string;
+    toId?: string;
+    anchor?: string;
+  };
+}
+
+export type ConnectorTypeV2 = 'PRIMARY_FLOW_LINE' | 'BRANCH_LINE' | 'MERGE_LINE';
+
+export interface ConnectorV2 {
+  id: string;
+  type: ConnectorTypeV2;
+  from: { nodeType: string; id: string };
+  to: { nodeType: string; id: string };
+  label?: string;
+  arrowhead?: boolean;
+  style?: Record<string, any>;
+}
+
+export interface FlowLayoutV2 {
+  direction?: 'HORIZONTAL' | 'VERTICAL';
+  eventSpacing?: number;
+  variantSpacing?: number;
+  branchDepth?: number;
+}
+
+export interface FlowV2 {
+  id: string;
+  layout?: FlowLayoutV2;
+  entry: EntryNodeV2;
+  events: EventNodeV2[];
+  exit: ExitNodeV2;
+  connectors: ConnectorV2[];
+}
+
+export interface CreateFlowV2Payload {
+  experiment: ExperimentV2;
+  flow: FlowV2;
+}
+
+export interface PluginMessageV2 {
+  type: 'create-flow-v2';
+  payload: CreateFlowV2Payload;
 }
 
 interface PluginMessage {
   type: string;
-  payload?: CreateFlowPayload;
+  payload?: CreateFlowV2Payload;
 }
 /// <reference types="@figma/plugin-typings" />
 /* eslint-disable no-inner-declarations */
@@ -235,14 +325,464 @@ if (figma.editorType === 'figma') {
     return card;
   }
 
-  figma.ui.onmessage = async (msg: PluginMessage) => {
+  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2) => {
+    if (msg.type === 'create-flow-v2' && msg.payload) {
+      figma.notify('Handler: create-flow-v2 (NEW SCHEMA)');
+      console.log('Handler: create-flow-v2 (NEW SCHEMA)');
+      // --- NEW V2 FLOW HANDLER ---
+      const { experiment, flow } = msg.payload as CreateFlowV2Payload;
+      await loadFonts();
+
+      // Remove any existing flow frames with the same name/id
+      const flowFrameName = `NEW NEW NEW Experiment Flow — ${experiment.name} — Round ${experiment.roundNumber}`;
+      const infoCardName = `NEW NEW NEW Experiment Info — ${experiment.name}`;
+      const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
+      if (existingFlow) existingFlow.remove();
+      let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
+      if (infoCard) infoCard.remove();
+
+      // Create experiment info card (optional, for context)
+      infoCard = await createExperimentInfoCard(
+        experiment.name,
+        experiment.description || '',
+        experiment.links?.figma || '',
+        experiment.links?.jira || '',
+        experiment.links?.miro || ''
+      );
+      attachNodeMeta(infoCard, {
+        name: infoCardName,
+        type: 'frame' as CanvasNodeType,
+        description: experiment.description || '',
+        extra: { experimentId: experiment.id, role: 'experiment-info' },
+      });
+
+      // Create main flow frame (spine)
+      const flowFrameMeta = {
+        name: flowFrameName,
+        type: 'frame' as const,
+        experimentId: experiment.id,
+        roundNumber: experiment.roundNumber,
+        role: 'experiment-flow',
+      };
+      const flowFrame = createFrame(flowFrameMeta, {
+        layoutMode: flow.layout?.direction === 'HORIZONTAL' ? 'HORIZONTAL' : 'VERTICAL',
+        itemSpacing: flow.layout?.eventSpacing ?? 64,
+        padding: 32,
+        paddingLeft: 48,
+        paddingRight: 48,
+        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }],
+        cornerRadius: 24,
+        extra: {
+          primaryAxisSizingMode: 'AUTO',
+          counterAxisSizingMode: 'AUTO',
+        },
+      });
+
+      // --- Entry Node ---
+      const entry = flow.entry;
+      const entryCard = createNodeCard(entry.label, undefined, undefined);
+      entryCard.name = 'Entry Node';
+      attachNodeMeta(entryCard, {
+        name: entry.label,
+        type: 'frame' as CanvasNodeType,
+        description: entry.note || '',
+        extra: {
+          role: 'entry',
+          entryId: entry.id,
+          experimentId: experiment.id,
+          nodeType: 'ENTRY_NODE',
+        },
+      });
+      flowFrame.appendChild(entryCard);
+
+      // --- Event Nodes + Variants ---
+      for (const event of flow.events) {
+                // Debug: Log event object before processing
+                try {
+                  if (!event || typeof event !== 'object') {
+                    console.error('[v2 handler] Event is not an object:', event);
+                  } else if (!('name' in event)) {
+                    console.error('[v2 handler] Event missing name property:', event);
+                  }
+                } catch (err) {
+                  console.error('[v2 handler] Error inspecting event:', err);
+                }
+        // Defensive: Ensure event.name is always a string
+        const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
+          ? event.name
+          : `Event ${flow.events.indexOf(event) + 1}`;
+        const eventGroup = figma.createFrame();
+        eventGroup.layoutMode = 'VERTICAL';
+        eventGroup.counterAxisSizingMode = 'AUTO';
+        eventGroup.primaryAxisSizingMode = 'AUTO';
+        eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 24;
+        eventGroup.paddingLeft = eventGroup.paddingRight = 0;
+        eventGroup.paddingTop = eventGroup.paddingBottom = 0;
+        eventGroup.fills = [];
+        eventGroup.strokes = [];
+        eventGroup.name = `EventGroup: ${safeEventName}`;
+
+        // Event card (main node)
+        const eventCard = createEventCard(safeEventName);
+        eventCard.name = `Event: ${safeEventName}`;
+        attachNodeMeta(eventCard, {
+          name: safeEventName,
+          type: 'frame' as CanvasNodeType,
+          description: event.entryNote?.text || '',
+          extra: {
+            role: 'event',
+            eventId: event.id,
+            experimentId: experiment.id,
+            hasVariants: !!event.variants?.length,
+            nodeType: 'EVENT_NODE',
+            entryNoteId: event.entryNote?.id,
+          },
+        });
+        eventGroup.appendChild(eventCard);
+
+        // Variants (if any)
+        if (event.variants && event.variants.length > 0) {
+          const variantsContainer = figma.createFrame();
+          variantsContainer.layoutMode = 'HORIZONTAL';
+          variantsContainer.counterAxisSizingMode = 'AUTO';
+          variantsContainer.primaryAxisSizingMode = 'AUTO';
+          variantsContainer.itemSpacing = flow.layout?.variantSpacing ?? 24;
+          variantsContainer.paddingLeft = variantsContainer.paddingRight = 0;
+          variantsContainer.paddingTop = variantsContainer.paddingBottom = 0;
+          variantsContainer.fills = [];
+          variantsContainer.strokes = [];
+          variantsContainer.name = `Variants: ${safeEventName}`;
+
+          for (const [vIdx, variant] of event.variants.entries()) {
+                        // Debug: Log variant object before processing
+                        try {
+                          if (!variant || typeof variant !== 'object') {
+                            console.error(`[v2 handler] Variant is not an object (event: ${event?.name}):`, variant);
+                          } else if (!('name' in variant)) {
+                            console.error(`[v2 handler] Variant missing name property (event: ${event?.name}):`, variant);
+                          }
+                        } catch (err) {
+                          console.error('[v2 handler] Error inspecting variant:', err);
+                        }
+            // Defensive: Ensure variant.name is always a string
+            const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
+              ? variant.name
+              : `Variant ${String.fromCharCode(65 + vIdx)}`;
+            const variantForCard = {
+              ...variant,
+              name: safeVariantName,
+              status: (variant as any).status || 'none',
+              metrics: variant.metrics || { ctr: 0, cr: 0, su: 0 },
+            };
+            const variantCard = createVariantCard(variantForCard, vIdx);
+            variantCard.name = `Variant: ${safeVariantName}`;
+            attachNodeMeta(variantCard, {
+              name: safeVariantName,
+              type: 'frame' as CanvasNodeType,
+              description: variant.description || '',
+              extra: {
+                role: 'variant',
+                eventId: event.id,
+                variantId: variant.id,
+                experimentId: experiment.id,
+                variantIndex: vIdx,
+                traffic: variant.traffic,
+                nodeType: 'VARIANT_NODE',
+                parentEventId: variant.parentEventId,
+              },
+            });
+            variantsContainer.appendChild(variantCard);
+          }
+          eventGroup.appendChild(variantsContainer);
+        }
+
+        flowFrame.appendChild(eventGroup);
+      }
+
+      // --- Exit Node ---
+      const exit = flow.exit;
+      const exitCard = createNodeCard(exit.label);
+      exitCard.name = 'Exit Node';
+      attachNodeMeta(exitCard, {
+        name: exit.label,
+        type: 'frame' as CanvasNodeType,
+        description: '',
+        extra: {
+          role: 'exit',
+          exitId: exit.id,
+          experimentId: experiment.id,
+          nodeType: 'EXIT_NODE',
+        },
+      });
+      flowFrame.appendChild(exitCard);
+
+      // --- Position and append to canvas ---
+      const center = figma.viewport.center;
+      const gap = 100;
+      const totalWidth = (infoCard ? infoCard.width : 0) + gap + flowFrame.width;
+      const startX = center.x - totalWidth / 2;
+
+      if (infoCard && infoCard.parent === null) {
+        infoCard.x = startX;
+        infoCard.y = center.y - infoCard.height / 2;
+        figma.currentPage.appendChild(infoCard);
+      }
+      if (flowFrame && flowFrame.parent === null) {
+        flowFrame.x = startX + (infoCard ? infoCard.width : 0) + gap;
+        flowFrame.y = center.y - flowFrame.height / 2;
+        figma.currentPage.appendChild(flowFrame);
+      }
+
+      figma.currentPage.selection = [flowFrame];
+      if (infoCard) {
+        figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
+      } else {
+        figma.viewport.scrollAndZoomIntoView([flowFrame]);
+      }
+
+      // --- Connector Rendering ---
+      // Build a map from node id to Figma node for quick lookup
+      const nodeMap: Record<string, SceneNode> = {};
+      // Entry
+      nodeMap[flow.entry.id] = entryCard;
+      // Events and variants
+      for (const eventGroup of flowFrame.children) {
+        if (eventGroup.type === 'FRAME' && eventGroup.name.startsWith('EventGroup: ')) {
+          const eventCard = eventGroup.findOne(n => typeof n.name === 'string' && n.name.startsWith('Event: '));
+          if (eventCard) {
+            const eventId = (getNodeMeta(eventCard)?.extra as any)?.eventId;
+            if (eventId) nodeMap[eventId] = eventCard as SceneNode;
+          }
+          const variantsContainer = eventGroup.findOne(n => typeof n.name === 'string' && n.name.startsWith('Variants: '));
+          if (variantsContainer && variantsContainer.type === 'FRAME') {
+            for (const variantCard of variantsContainer.children) {
+              const variantId = (getNodeMeta(variantCard)?.extra as any)?.variantId;
+              if (variantId) nodeMap[variantId] = variantCard as SceneNode;
+            }
+          }
+        }
+      }
+      // Exit
+      nodeMap[flow.exit.id] = exitCard;
+
+      // Draw connectors
+      for (const connector of flow.connectors) {
+        const fromNode = nodeMap[connector.from.id];
+        const toNode = nodeMap[connector.to.id];
+        if (!fromNode || !toNode) continue;
+
+        // Determine color and stroke based on connector type
+        let color = { r: 0.18, g: 0.45, b: 0.85 };
+        let strokeWeight = 4;
+        if (connector.type === 'MERGE_LINE') {
+          color = { r: 0.22, g: 0.7, b: 0.36 };
+          strokeWeight = 7;
+        }
+        // TODO: Use style tokens if provided in connector.style
+
+        // Calculate start/end points (center right/left or bottom/top as needed)
+        let startX = fromNode.x + fromNode.width;
+        let startY = fromNode.y + fromNode.height / 2;
+        let endX = toNode.x;
+        let endY = toNode.y + toNode.height / 2;
+
+        // For vertical layout, adjust to bottom/top
+        if (flow.layout?.direction === 'VERTICAL') {
+          startX = fromNode.x + fromNode.width / 2;
+          startY = fromNode.y + fromNode.height;
+          endX = toNode.x + toNode.width / 2;
+          endY = toNode.y;
+        }
+
+        // For branch/merge, offset for visual clarity
+        if (connector.type === 'BRANCH_LINE') {
+          // Branch down or right from event to variant
+          if (flow.layout?.direction === 'VERTICAL') {
+            startY = fromNode.y + fromNode.height;
+            endY = toNode.y;
+          } else {
+            startX = fromNode.x + fromNode.width;
+            endX = toNode.x;
+          }
+        } else if (connector.type === 'MERGE_LINE') {
+          // Merge up or left from variant to event
+          if (flow.layout?.direction === 'VERTICAL') {
+            startY = fromNode.y + fromNode.height;
+            endY = toNode.y;
+          } else {
+            startX = fromNode.x + fromNode.width;
+            endX = toNode.x;
+          }
+        }
+
+        // Draw polyline (simple straight for now, can be improved for curves)
+        const pathData = `M ${startX} ${startY} L ${endX} ${endY}`;
+        const line = figma.createVector();
+        line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+        line.strokes = [{ type: "SOLID", color }];
+        line.strokeWeight = strokeWeight;
+        line.strokeAlign = "CENTER";
+        line.name = "Flow Line";
+        attachNodeMeta(line, {
+          name: 'Flow Line',
+          type: 'shape',
+          extra: {
+            role: 'connector',
+            connectorId: connector.id,
+            connectorType: connector.type,
+            fromId: connector.from.id,
+            toId: connector.to.id,
+            experimentId: experiment.id,
+          },
+        });
+        figma.currentPage.appendChild(line);
+
+        // Arrowhead at end
+        if (connector.arrowhead !== false) {
+          const size = 10;
+          let arrowPath = '';
+          if (flow.layout?.direction === 'VERTICAL') {
+            arrowPath = `M ${endX} ${endY} L ${endX - size / 2} ${endY - size} L ${endX + size / 2} ${endY - size} Z`;
+          } else {
+            arrowPath = `M ${endX} ${endY} L ${endX - size} ${endY - size / 2} L ${endX - size} ${endY + size / 2} Z`;
+          }
+          const arrow = figma.createVector();
+          arrow.vectorPaths = [
+            {
+              windingRule: "NONZERO",
+              data: arrowPath,
+            },
+          ];
+          arrow.fills = [{ type: "SOLID", color }];
+          arrow.strokes = [];
+          arrow.name = "Arrowhead";
+          attachNodeMeta(arrow, {
+            name: 'Arrowhead',
+            type: 'shape',
+            extra: {
+              role: 'arrowhead',
+              connectorId: connector.id,
+              connectorType: connector.type,
+              fromId: connector.from.id,
+              toId: connector.to.id,
+              experimentId: experiment.id,
+            },
+          });
+          figma.currentPage.appendChild(arrow);
+        }
+      }
+
+      // --- Entry Notes Rendering ---
+      // In v2 schema, entry notes may be on flow.entryNotes or experiment.flow.entryNotes or not present
+      const entryNotes = (flow as any).entryNotes || (experiment as any).entryNotes || [];
+      if (Array.isArray(entryNotes)) {
+        for (const note of entryNotes) {
+          // Create a sticky note frame
+          const noteFrame = figma.createFrame();
+          noteFrame.layoutMode = 'VERTICAL';
+          noteFrame.counterAxisSizingMode = 'AUTO';
+          noteFrame.primaryAxisSizingMode = 'AUTO';
+          noteFrame.paddingLeft = noteFrame.paddingRight = 12;
+          noteFrame.paddingTop = noteFrame.paddingBottom = 8;
+          noteFrame.cornerRadius = 8;
+          noteFrame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 0.7 } }];
+          noteFrame.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.8, b: 0.2 } }];
+          noteFrame.strokeWeight = 1;
+          noteFrame.name = `EntryNote: ${note.text}`;
+
+          const noteText = figma.createText();
+          noteText.fontName = { family: 'Figtree', style: 'Regular' };
+          noteText.fontSize = 13;
+          noteText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.1 } }];
+          noteText.characters = note.text;
+          noteText.textAutoResize = 'WIDTH_AND_HEIGHT';
+          noteFrame.appendChild(noteText);
+
+          attachNodeMeta(noteFrame, {
+            name: note.text,
+            type: 'frame',
+            description: 'Entry Note',
+            extra: {
+              role: 'entry-note',
+              entryNoteId: note.id,
+              anchor: note.anchor,
+              experimentId: experiment.id,
+            },
+          });
+
+          // Position note near its anchor
+          let anchorNode: SceneNode | undefined = undefined;
+          if (note.anchor?.type === 'event' && note.anchor.targetId) {
+            anchorNode = nodeMap[note.anchor.targetId];
+          } else if (note.anchor?.type === 'incomingPrimaryEdge' && note.anchor.targetId) {
+            anchorNode = nodeMap[note.anchor.targetId];
+          }
+          if (anchorNode) {
+            // Place above or to the left of anchor node
+            noteFrame.x = anchorNode.x - 40;
+            noteFrame.y = anchorNode.y - 40;
+          } else {
+            // Default: place near flowFrame
+            noteFrame.x = flowFrame.x - 60;
+            noteFrame.y = flowFrame.y - 60;
+          }
+          figma.currentPage.appendChild(noteFrame);
+        }
+      }
+
+      // --- Outcome Annotation Rendering ---
+      if (experiment.outcomes?.notes) {
+        const outcomeFrame = figma.createFrame();
+        outcomeFrame.layoutMode = 'VERTICAL';
+        outcomeFrame.counterAxisSizingMode = 'AUTO';
+        outcomeFrame.primaryAxisSizingMode = 'AUTO';
+        outcomeFrame.paddingLeft = outcomeFrame.paddingRight = 16;
+        outcomeFrame.paddingTop = outcomeFrame.paddingBottom = 10;
+        outcomeFrame.cornerRadius = 10;
+        outcomeFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 1, b: 0.9 } }];
+        outcomeFrame.strokes = [{ type: 'SOLID', color: { r: 0.3, g: 0.7, b: 0.3 } }];
+        outcomeFrame.strokeWeight = 1;
+        outcomeFrame.name = 'Outcome Note';
+
+        const outcomeText = figma.createText();
+        outcomeText.fontName = { family: 'Figtree', style: 'Regular' };
+        outcomeText.fontSize = 14;
+        outcomeText.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.3, b: 0.1 } }];
+        outcomeText.characters = experiment.outcomes.notes;
+        outcomeText.textAutoResize = 'WIDTH_AND_HEIGHT';
+        outcomeFrame.appendChild(outcomeText);
+
+        attachNodeMeta(outcomeFrame, {
+          name: 'Outcome Note',
+          type: 'frame',
+          description: 'Outcome annotation',
+          extra: {
+            role: 'outcome-note',
+            experimentId: experiment.id,
+          },
+        });
+
+        // Place outcome note above the flowFrame
+        outcomeFrame.x = flowFrame.x + flowFrame.width / 2 - 80;
+        outcomeFrame.y = flowFrame.y - 80;
+        figma.currentPage.appendChild(outcomeFrame);
+      }
+
+      figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
+      return;
+    }
+
+    // --- OLD HANDLERS BELOW ---
     if (msg.type === 'delete-experiment-flows') {
       deleteExperimentFlowFrames();
       figma.notify('Experiment Flow frames deleted (if any were found).');
       return;
     }
 
+
     if (msg.type === 'create-flow' && msg.payload) {
+      figma.notify('Handler: create-flow (OLD SCHEMA)');
+      console.log('Handler: create-flow (OLD SCHEMA)');
       const {
         experimentName,
         roundNumber,
@@ -253,7 +793,7 @@ if (figma.editorType === 'figma') {
         figmaLink,
         jiraLink,
         miroLink
-      } = msg.payload as CreateFlowPayload;
+      } = msg.payload as any;
 
       if (!Array.isArray(variants) || variants.length === 0) {
         figma.notify('You must add at least one variant to create a flow.');
@@ -301,7 +841,7 @@ if (figma.editorType === 'figma') {
         padding: 32,
         paddingLeft: 48,
         paddingRight: 48,
-        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }],
+        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }],
         cornerRadius: 24,
         // Ensure hugging content
         extra: {
@@ -462,7 +1002,7 @@ if (figma.editorType === 'figma') {
         figma.notify('Please fill the experiment form and click \"Create from selection\" again.');
         return;
       }
-      const { experimentName, roundNumber, entryLabel, exitLabel, variants } = msg.payload as CreateFlowPayload;
+      const { experimentName, roundNumber, entryLabel, exitLabel, variants } = msg.payload as any;
 
       await loadFonts();
       const flowFrame = figma.createFrame();
@@ -473,14 +1013,14 @@ if (figma.editorType === 'figma') {
       flowFrame.itemSpacing = 32;
       flowFrame.paddingLeft = flowFrame.paddingRight = 32;
       flowFrame.paddingTop = flowFrame.paddingBottom = 32;
-      flowFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }];
+      flowFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
       flowFrame.cornerRadius = 24;
 
       // Removed Pill: roundBadge
 
       // Detect if entryLabel matches a variant name
       let entryCard: FrameNode;
-      const matchingVariant = variants.find(v => v.name === entryLabel);
+      const matchingVariant = variants.find((v: any) => v.name === entryLabel);
       if (matchingVariant) {
         entryCard = createVariantCard(matchingVariant);
         entryCard.name = 'Entry Variant Node';
@@ -499,7 +1039,7 @@ if (figma.editorType === 'figma') {
       roundContainer.paddingLeft = roundContainer.paddingRight = 24;
       roundContainer.paddingTop = roundContainer.paddingBottom = 24;
       roundContainer.cornerRadius = 24;
-      roundContainer.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }];
+      roundContainer.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
       roundContainer.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
       roundContainer.strokeWeight = 1;
 
