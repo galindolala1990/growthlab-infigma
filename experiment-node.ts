@@ -122,7 +122,9 @@ export function createEventCard(eventName: string): FrameNode {
   return card;
 }
 
-export function createVariantCard(variant: any, variantIndex?: number): FrameNode {
+import type { Variant } from './code';
+
+export function createVariantCard(variant: Variant, variantIndex?: number): FrameNode {
   const card = figma.createFrame();
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';

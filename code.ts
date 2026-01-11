@@ -1,4 +1,5 @@
 // ...existing code...
+  import { createExperimentInfoCard } from './experiment-info-card';
   // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
   function deleteExperimentFlowFrames() {
     const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
@@ -41,7 +42,7 @@ type VariantMetrics = {
   su: number;
 };
 
-type Variant = {
+export type Variant = {
   key: string;        // "A", "B", "C"
   name: string;       // "Black btn"
   traffic: number;    // 50, 25, etc
@@ -53,7 +54,6 @@ const KEEP_OPEN = true;
 
 
 import { TOKENS } from './design-tokens';
-import { createExperimentInfoCard } from './experiment-info-card';
 import { hexToRgb, getFontStyle } from './layout-utils';
 import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
 
@@ -283,9 +283,9 @@ if (figma.editorType === 'figma') {
       );
       attachNodeMeta(infoCard, {
         name: infoCardName,
-        type: 'frame' as const,
-        experimentName,
-        role: 'experiment-info',
+        type: 'frame' as CanvasNodeType,
+        description: experimentDescription || '',
+        extra: { experimentName, role: 'experiment-info' },
       });
 
       const flowFrameMeta = {
@@ -297,14 +297,17 @@ if (figma.editorType === 'figma') {
       };
       let flowFrame = createFrame(flowFrameMeta, {
         layoutMode: 'HORIZONTAL',
-        counterAxisSizingMode: 'AUTO',
-        primaryAxisSizingMode: 'AUTO',
         itemSpacing: 64,
         padding: 32,
         paddingLeft: 48,
         paddingRight: 48,
         fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }],
-        cornerRadius: 24
+        cornerRadius: 24,
+        // Ensure hugging content
+        extra: {
+          primaryAxisSizingMode: 'AUTO',
+          counterAxisSizingMode: 'AUTO'
+        }
       });
 
 
@@ -312,10 +315,8 @@ if (figma.editorType === 'figma') {
       entryCard.name = 'Entry Node';
       attachNodeMeta(entryCard, {
         name: entryLabel,
-        type: 'frame' as const,
-        role: 'entry',
-        experimentName,
-        roundNumber,
+        type: 'frame' as CanvasNodeType,
+        extra: { role: 'entry', experimentName, roundNumber },
       });
 
 
@@ -337,13 +338,8 @@ if (figma.editorType === 'figma') {
         card.name = `Variant: ${displayName}`;
         attachNodeMeta(card, {
           name: displayName,
-          type: 'frame' as const,
-          role: 'variant',
-          experimentName,
-          roundNumber,
-          variantIndex: index,
-          traffic: variant.traffic,
-          status: variant.status,
+          type: 'frame' as CanvasNodeType,
+          extra: { role: 'variant', experimentName, roundNumber, variantIndex: index, traffic: variant.traffic, status: variant.status },
         });
         flowFrame.appendChild(card);
         variantNodes.push(card);
@@ -359,10 +355,8 @@ if (figma.editorType === 'figma') {
       exitCard.name = 'Exit Node';
       attachNodeMeta(exitCard, {
         name: exitLabel,
-        type: 'frame' as const,
-        role: 'exit',
-        experimentName,
-        roundNumber,
+        type: 'frame' as CanvasNodeType,
+        extra: { role: 'exit', experimentName, roundNumber },
       });
 
       flowFrame.appendChild(exitCard);
@@ -373,7 +367,7 @@ if (figma.editorType === 'figma') {
 
       const gap = 100;
       // Compute total width and center both as a group
-      const totalWidth = infoCard.width + gap + flowFrame.width;
+      const totalWidth = (infoCard ? infoCard.width : 0) + gap + flowFrame.width;
       const startX = center.x - totalWidth / 2;
 
       // Remove from parent if already present to avoid double-append
@@ -389,29 +383,30 @@ if (figma.editorType === 'figma') {
         );
         attachNodeMeta(infoCard, {
           name: infoCardName,
-          type: 'frame' as const,
-          experimentName,
-          role: 'experiment-info',
+          type: 'frame' as CanvasNodeType,
+          description: experimentDescription || '',
+          extra: { experimentName, role: 'experiment-info' },
         });
       }
       if (!flowFrameValid) {
         const flowFrameMeta = {
           name: flowFrameName,
-          type: 'frame' as const,
-          experimentName,
-          roundNumber,
-          role: 'experiment-flow',
+          type: 'frame' as CanvasNodeType,
+          extra: { experimentName, roundNumber, role: 'experiment-flow' },
         };
         flowFrame = createFrame(flowFrameMeta, {
           layoutMode: 'HORIZONTAL',
-          counterAxisSizingMode: 'AUTO', // hug content vertically
-          primaryAxisSizingMode: 'AUTO', // hug content horizontally
           itemSpacing: 64,
           padding: 32,
           paddingLeft: 48,
           paddingRight: 48,
           fills: [],
-          cornerRadius: 24
+          cornerRadius: 24,
+          // Ensure hugging content
+          extra: {
+            primaryAxisSizingMode: 'AUTO',
+            counterAxisSizingMode: 'AUTO'
+          }
         });
         // Removed reference to undefined roundBadge
         // Entry card is not appended here, as eventGroup and variantGroup are appended independently
@@ -424,16 +419,20 @@ if (figma.editorType === 'figma') {
         figma.currentPage.appendChild(infoCard);
       }
       if (flowFrame && flowFrame.parent === null) {
-        flowFrame.x = startX + infoCard.width + gap;
+        flowFrame.x = startX + (infoCard ? infoCard.width : 0) + gap;
         flowFrame.y = center.y - flowFrame.height / 2;
         figma.currentPage.appendChild(flowFrame);
       }
 
-      figma.currentPage.appendChild(infoCard);
+      if (infoCard) figma.currentPage.appendChild(infoCard);
       figma.currentPage.appendChild(flowFrame);
 
       figma.currentPage.selection = [flowFrame];
-      figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
+      if (infoCard) {
+        figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
+      } else {
+        figma.viewport.scrollAndZoomIntoView([flowFrame]);
+      }
 
         // --- Visual QA: Send node data to UI ---
         // figma.ui.postMessage({ type: 'qa-node', payload: serializeNode(flowFrame) }); // Debug output hidden
@@ -632,13 +631,15 @@ if (figma.editorType === 'figma') {
 
 export type CanvasNodeType = 'frame' | 'component' | 'group' | 'text' | 'shape';
 
+// Removed duplicate CanvasNodeType
+
 export interface CanvasNodeMeta {
   id?: string;
   name: string;
   type: CanvasNodeType;
   description?: string;
   tags?: string[];
-  [key: string]: any;
+  extra?: Record<string, unknown>;
 }
 
 export interface CanvasNodeOptions {
@@ -650,7 +651,12 @@ export interface CanvasNodeOptions {
   layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL';
   padding?: number;
   itemSpacing?: number;
-  [key: string]: any;
+  paddingLeft?: number;
+  paddingRight?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  cornerRadius?: number;
+  extra?: Record<string, unknown>;
 }
 
 export function attachNodeMeta(node: BaseNode, meta: CanvasNodeMeta) {
@@ -660,6 +666,16 @@ export function attachNodeMeta(node: BaseNode, meta: CanvasNodeMeta) {
  //OLD EXPERIMENT FLOW ROW FRAME THAT HOLDS OLD FLOW
 export function createFrame(meta: CanvasNodeMeta, options: CanvasNodeOptions = {}): FrameNode {
   const frame = figma.createFrame();
+  frame.name = meta.name;
+  // Set axis sizing modes if provided in extra
+  if (options.extra) {
+    if ('primaryAxisSizingMode' in options.extra && typeof options.extra.primaryAxisSizingMode === 'string') {
+      frame.primaryAxisSizingMode = options.extra.primaryAxisSizingMode === 'AUTO' ? 'AUTO' : 'FIXED';
+    }
+    if ('counterAxisSizingMode' in options.extra && typeof options.extra.counterAxisSizingMode === 'string') {
+      frame.counterAxisSizingMode = options.extra.counterAxisSizingMode === 'AUTO' ? 'AUTO' : 'FIXED';
+    }
+  }
   frame.name = meta.name;
   // Hug content logic for auto layout
   if (options.width && options.height) {
@@ -679,21 +695,12 @@ export function createFrame(meta: CanvasNodeMeta, options: CanvasNodeOptions = {
   if (options.padding !== undefined) {
     frame.paddingLeft = frame.paddingRight = frame.paddingTop = frame.paddingBottom = options.padding;
   }
+  if (options.paddingLeft !== undefined) frame.paddingLeft = options.paddingLeft;
+  if (options.paddingRight !== undefined) frame.paddingRight = options.paddingRight;
+  if (options.paddingTop !== undefined) frame.paddingTop = options.paddingTop;
+  if (options.paddingBottom !== undefined) frame.paddingBottom = options.paddingBottom;
   if (options.itemSpacing !== undefined) frame.itemSpacing = options.itemSpacing;
-
-  // Hug content for auto layout
-  if (options.layoutMode === 'HORIZONTAL' || options.layoutMode === 'VERTICAL') {
-    if (options.primaryAxisSizingMode === 'AUTO' || options.primaryAxisSizingMode === 'HUG' || options.primaryAxisSizingMode === 'hug') {
-      frame.primaryAxisSizingMode = 'AUTO';
-    } else if (options.primaryAxisSizingMode === 'FIXED' || options.primaryAxisSizingMode === 'fixed') {
-      frame.primaryAxisSizingMode = 'FIXED';
-    }
-    if (options.counterAxisSizingMode === 'AUTO' || options.counterAxisSizingMode === 'HUG' || options.counterAxisSizingMode === 'hug') {
-      frame.counterAxisSizingMode = 'AUTO';
-    } else if (options.counterAxisSizingMode === 'FIXED' || options.counterAxisSizingMode === 'fixed') {
-      frame.counterAxisSizingMode = 'FIXED';
-    }
-  }
+  if (options.cornerRadius !== undefined) frame.cornerRadius = options.cornerRadius;
 
   attachNodeMeta(frame, meta);
   return frame;
@@ -728,14 +735,33 @@ export function getNodeMeta(node: BaseNode): CanvasNodeMeta | null {
 }
 
 // --- Visual QA Helper ---
-function serializeNode(node: SceneNode): any {
+export type SerializeNode = {
+  id: string;
+  type: string;
+  name: string;
+  layoutMode?: string;
+  fills?: Paint[];
+  fontName?: FontName;
+  characters?: string;
+  children?: SerializeNode[];
+  width: number;
+  height: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  itemSpacing?: number;
+  cornerRadius?: number;
+};
+
+function serializeNode(node: SceneNode): SerializeNode {
   return {
     id: node.id,
     type: node.type,
     name: node.name,
     layoutMode: 'layoutMode' in node ? node.layoutMode : undefined,
-    fills: 'fills' in node ? node.fills : undefined,
-    fontName: 'fontName' in node ? node.fontName : undefined,
+    fills: Array.isArray((node as any).fills) ? (node as any).fills as Paint[] : undefined,
+    fontName: typeof (node as any).fontName === 'object' ? (node as any).fontName as FontName : undefined,
     characters: 'characters' in node ? node.characters : undefined,
     children: 'children' in node ? node.children.map(child => serializeNode(child)) : undefined,
     width: node.width,
@@ -745,7 +771,7 @@ function serializeNode(node: SceneNode): any {
     paddingTop: 'paddingTop' in node ? node.paddingTop : undefined,
     paddingBottom: 'paddingBottom' in node ? node.paddingBottom : undefined,
     itemSpacing: 'itemSpacing' in node ? node.itemSpacing : undefined,
-    cornerRadius: 'cornerRadius' in node ? node.cornerRadius : undefined,
+    cornerRadius: typeof (node as any).cornerRadius === 'number' ? (node as any).cornerRadius : undefined,
   };
 }
 
