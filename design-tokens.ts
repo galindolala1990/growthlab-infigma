@@ -22,6 +22,9 @@ export const TOKENS = {
   textPrimary: '#22272f',    // --text-primary-default
   textSecondary: '#506179',  // --text-secondary-default
   border: '#edeef1',         // --border-border
+  shadowColor: { r: 0, g: 0, b: 0, a: 0.05 },
+  checkerLight: { r: 0.96, g: 0.96, b: 0.96 },
+  checkerDark: { r: 0.89, g: 0.89, b: 0.89 },
 
   // Radiis
   radiusXS: 4,
