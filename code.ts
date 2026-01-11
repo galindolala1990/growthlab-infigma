@@ -1,130 +1,14 @@
-    // Create a Variant Group Card styled similarly to Event Card
-    function createVariantGroupCard(label: string): FrameNode {
-      // Card container
-      const card = figma.createFrame();
-      card.resize(300, 280);
-      card.layoutMode = 'VERTICAL';
-      card.counterAxisSizingMode = 'FIXED';
-      card.primaryAxisSizingMode = 'FIXED';
-      card.paddingLeft = card.paddingRight = TOKENS.space16;
-      card.paddingTop = card.paddingBottom = TOKENS.space16;
-      card.cornerRadius = TOKENS.radiusLG;
-      card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-      card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-      card.strokeWeight = 0;
-      card.effects = [{
-        type: 'DROP_SHADOW',
-        color: { r: 0, g: 0, b: 0, a: 0.05 },
-        offset: { x: 0, y: 1 },
-        radius: 2,
-        spread: 0,
-        visible: true,
-        blendMode: 'NORMAL',
-      }];
-      card.name = `Variant Group: ${label}`;
-
-      // Top Row: Label
-      const topRow = figma.createFrame();
-      topRow.layoutMode = 'HORIZONTAL';
-      topRow.counterAxisSizingMode = 'AUTO';
-      topRow.primaryAxisSizingMode = 'AUTO';
-      topRow.itemSpacing = TOKENS.space4;
-      topRow.fills = [];
-      topRow.strokes = [];
-      topRow.name = 'Top Row';
-      topRow.layoutAlign = 'MIN';
-
-      // No icon for variant group, just label
-      const groupLabel = figma.createText();
-      groupLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-      groupLabel.fontSize = TOKENS.fontSizeBodyMd;
-      groupLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-      groupLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-      groupLabel.characters = label;
-      groupLabel.name = 'Variant Group Label';
-      topRow.appendChild(groupLabel);
-
-      // Spacer for alignment
-      const spacer = figma.createFrame();
-      spacer.layoutMode = 'HORIZONTAL';
-      spacer.counterAxisSizingMode = 'AUTO';
-      spacer.primaryAxisSizingMode = 'AUTO';
-      spacer.fills = [];
-      spacer.strokes = [];
-      spacer.name = 'Spacer';
-      spacer.resize(1, 1);
-      topRow.appendChild(spacer);
-
-      card.appendChild(topRow);
-        // (No variant name heading here; only group name is shown for group cards)
-      topRow.resize(topRow.width, 22);
-
-      // Thumbnail area: placeholder
-      const placeholder = figma.createFrame();
-      placeholder.resize(268, 160);
-      placeholder.cornerRadius = TOKENS.radiusSM;
-      placeholder.name = 'Thumbnail';
-      placeholder.layoutAlign = 'MIN';
-      placeholder.clipsContent = true;
-      // Checkerboard pattern: 8x8 grid, 32x32px squares
-      const squareSize = 32;
-      const cols = Math.ceil(268 / squareSize);
-      const rows = Math.ceil(160 / squareSize);
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const square = figma.createRectangle();
-          square.resize(squareSize, squareSize);
-          square.x = x * squareSize;
-          square.y = y * squareSize;
-          square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? { r: 0.96, g: 0.96, b: 0.96 } : { r: 0.89, g: 0.89, b: 0.89 } }];
-          square.strokes = [];
-          square.strokeWeight = 0;
-          square.name = 'Checker';
-          placeholder.appendChild(square);
-        }
-      }
-      placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-      placeholder.strokeWeight = 1;
-      card.appendChild(placeholder);
-
-      // Variant group name as heading
-      const variantNameText = figma.createText();
-      variantNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-      variantNameText.fontSize = TOKENS.fontSizeBodyLg;
-      variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-      variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-      variantNameText.characters = label || '';
-      variantNameText.name = 'Variant Name Text';
-      card.appendChild(variantNameText);
-
-      // Subtitle for variants (default: empty)
-      const subtitleText = figma.createText();
-      subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
-      subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-      subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-      subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-      subtitleText.characters = '';
-      subtitleText.name = 'Number of Variants';
-      card.appendChild(subtitleText);
-
-      card.primaryAxisAlignItems = 'MIN';
-      card.counterAxisAlignItems = 'MIN';
-      card.itemSpacing = TOKENS.space12;
-
-      return card;
+// ...existing code...
+  // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
+  function deleteExperimentFlowFrames() {
+    const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
+    const frames = figma.currentPage.findAll(node =>
+      node.type === "FRAME" && pattern.test(node.name)
+    );
+    for (const frame of frames) {
+      frame.remove();
     }
-    // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
-    function deleteExperimentFlowFrames() {
-      // Match 'Sample Experiment Flow', any 'Experiment Flow' (with or without details), and 'Experiment Flow —  — Round undefined'
-      // Match 'Sample Experiment Flow', any 'Experiment Flow', and any with 'undefined' in the name
-      const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
-      const frames = figma.currentPage.findAll(node =>
-        node.type === "FRAME" && pattern.test(node.name)
-      );
-      for (const frame of frames) {
-        frame.remove();
-      }
-    }
+  }
   // Utility: Convert hex color to RGB
   function hexToRgb(hex: string): RGB {
     hex = hex.replace('#', '');
@@ -176,29 +60,7 @@
     topRow.name = 'Top Row';
     topRow.layoutAlign = 'MIN';
 
-    // Icon (circle with asterisk)
-    const iconCircle = figma.createEllipse();
-    iconCircle.resize(36, 36);
-    iconCircle.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
-    iconCircle.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
-    iconCircle.strokeWeight = 0;
-    iconCircle.name = 'Event Icon Circle';
-
-    // Asterisk/star as text in the circle
-    const iconText = figma.createText();
-    iconText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    iconText.fontSize = 20;
-    iconText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
-    iconText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    iconText.characters = '*';
-    iconText.visible = false; // Hide asterisk icon for now
-    // Center iconText in iconCircle
-    iconText.x = iconCircle.width / 2 - iconText.width / 2;
-    iconText.y = iconCircle.height / 2 - iconText.height / 2;
-    const iconGroup = figma.group([iconCircle, iconText], figma.currentPage);
-    iconGroup.name = 'Event Icon';
-    iconGroup.visible = false; // Hide Event Icon for now
-    topRow.appendChild(iconGroup);
+    // Removed Event Icon
 
     // "Event" label
     const eventLabel = figma.createText();
@@ -210,21 +72,7 @@
     eventLabel.name = 'Event Label';
     topRow.appendChild(eventLabel);
 
-    // Spacer for alignment
-    const spacer = figma.createFrame();
-    spacer.layoutMode = 'HORIZONTAL';
-    spacer.counterAxisSizingMode = 'AUTO';
-    spacer.primaryAxisSizingMode = 'AUTO';
-    spacer.fills = [];
-    spacer.strokes = [];
-    spacer.name = 'Spacer';
-    spacer.resize(1, 1);
-    topRow.appendChild(spacer);
-
     card.appendChild(topRow);
-
-    // Force topRow to fixed height after children are added
-    topRow.resize(topRow.width, 22);
 
     // Thumbnail area: use selected image if available, else placeholder
     let thumb: FrameNode | SceneNode;
@@ -279,15 +127,19 @@
     }
     card.appendChild(thumb);
 
+    // No variant name heading in event card; only event name is shown
+
     // Event name as heading
     const eventNameText = figma.createText();
     eventNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
     eventNameText.fontSize = TOKENS.fontSizeBodyLg;
     eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    eventNameText.characters = eventName || '';
+    eventNameText.characters = 'Event Name';
     eventNameText.name = 'Event Name Text';
     card.appendChild(eventNameText);
+
+
 
     // Subtitle for variants (default: 0 variants)
     const subtitleText = figma.createText();
@@ -352,50 +204,50 @@ if (figma.editorType === 'figma') {
   // --- SAMPLE DATA (mirrors UI sample) ---
   const sampleEvents = [
     {
-      id: 'event-0',
-      name: 'Landing page',
-      hasVariants: false,
-      variants: []
+      id: 'event-0', // THIS IS AN EVENT ID IN AN EVENT CARD
+      name: 'Landing page', // THIS IS THE EVENT NAME IN AN EVENT CARD
+      hasVariants: false, // THIS IS AN EVENT WITHOUT VARIANTS  
+      variants: [] // THIS IS AN EMPTY VARIANTS ARRAY FOR AN EVENT WITHOUT VARIANTS
     },
     {
-      id: 'event-1',
-      name: 'Conversion button',
-      hasVariants: true,
+      id: 'event-1', // THIS IS AN EVENT ID IN AN EVENT CARD
+      name: 'Conversion button', // THIS IS THE EVENT NAME IN AN EVENT CARD
+      hasVariants: true, // THIS IS AN EVENT WITH VARIANTS
       variants: [
         {
-          key: 'A',
-          name: 'Control',
-          description: 'Original version without changes',
-          color: '#2563eb',
-          traffic: 50,
-          status: 'none' as VariantStatus,
-          metrics: { ctr: 0.695, cr: 0.425, su: 0.0 }
+          key: 'A', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
+          name: 'Control', // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
+          description: 'Original version without changes', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT
+          color: '#2563eb', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          traffic: 50, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD
+          status: 'none' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
+          metrics: { ctr: 0.695, cr: 0.425, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
         },
         {
-          key: 'B',
-          name: 'Variation A',
-          description: 'New CTA button design',
-          color: '#0eab43',
-          traffic: 30,
-          status: 'running' as VariantStatus,
-          metrics: { ctr: 0.725, cr: 0.480, su: 0.0 }
+          key: 'B', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
+          name: 'Variation A',  // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
+          description: 'New CTA button design', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT  
+          color: '#0eab43', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          traffic: 30, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD  
+          status: 'running' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
+          metrics: { ctr: 0.725, cr: 0.480, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
         },
         {
-          key: 'C',
-          name: 'Variation B',
-          description: 'CTA with icon',
-          color: '#f59e42',
-          traffic: 20,
-          status: 'winner' as VariantStatus,
-          metrics: { ctr: 0.755, cr: 0.510, su: 0.0 }
+          key: 'C', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
+          name: 'Variation B', // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
+          description: 'CTA with icon', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT
+          color: '#f59e42', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          traffic: 20, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD
+          status: 'winner' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
+          metrics: { ctr: 0.755, cr: 0.510, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
         }
       ]
     },
     {
-      id: 'event-2',
-      name: 'Checkout page',
-      hasVariants: false,
-      variants: []
+      id: 'event-2', // THIS IS AN EVENT ID IN AN EVENT CARD
+      name: 'Checkout page', // THIS IS THE EVENT NAME IN AN EVENT CARD
+      hasVariants: false, // THIS IS AN EVENT WITHOUT VARIANTS    
+      variants: [] // THIS IS AN EMPTY VARIANTS ARRAY FOR AN EVENT WITHOUT VARIANTS
     },
   ];
 
@@ -471,26 +323,6 @@ if (figma.editorType === 'figma') {
     };
   }
 
-  function createPill(text: string, fillColor: RGB, textColor: RGB): FrameNode {
-    const pill = figma.createFrame();
-    pill.layoutMode = 'HORIZONTAL';
-    pill.counterAxisSizingMode = 'AUTO';
-    pill.primaryAxisSizingMode = 'AUTO';
-    pill.paddingLeft = pill.paddingRight = TOKENS.space12;
-    pill.paddingTop = pill.paddingBottom = TOKENS.space4;
-    pill.cornerRadius = TOKENS.radiusMD;
-    pill.fills = [{ type: 'SOLID', color: fillColor }];
-    pill.strokes = [];
-    pill.name = 'Pill';
-    const txt = figma.createText();
-    txt.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    txt.fontSize = TOKENS.fontSizeBodyLg;
-    txt.fills = [{ type: 'SOLID', color: textColor }];
-    txt.textAutoResize = 'WIDTH_AND_HEIGHT';
-    txt.characters = text;
-    pill.appendChild(txt);
-    return pill;
-  }
 
   figma.showUI(__html__, {
     width: 400,
@@ -527,18 +359,18 @@ if (figma.editorType === 'figma') {
 
     // Old Experiment Flow Row Card -- ACTUAL Variant Card
   function createVariantCard(variant: Variant, variantIndex?: number): FrameNode {
-    // Card container (match event card)
+    // Card container (modern auto layout)
     const card = figma.createFrame();
-    card.resize(300, 280);
     card.layoutMode = 'VERTICAL';
-    card.counterAxisSizingMode = 'FIXED';
-    card.primaryAxisSizingMode = 'FIXED';
+    card.counterAxisSizingMode = 'AUTO';
+    card.primaryAxisSizingMode = 'AUTO';
     card.paddingLeft = card.paddingRight = TOKENS.space16;
     card.paddingTop = card.paddingBottom = TOKENS.space16;
     card.cornerRadius = TOKENS.radiusLG;
     card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
     card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     card.strokeWeight = 0;
+    card.resize(300, 280);
     card.effects = [{
       type: 'DROP_SHADOW',
       color: { r: 0, g: 0, b: 0, a: 0.05 },
@@ -548,9 +380,8 @@ if (figma.editorType === 'figma') {
       visible: true,
       blendMode: 'NORMAL',
     }];
-    card.name = `Variant: ${variant.name}`;
 
-    // Top Row: label (A/B/C), "Variant", spacer
+    // Top Row: label (A/B/C), "Variant"
     const topRow = figma.createFrame();
     topRow.layoutMode = 'HORIZONTAL';
     topRow.counterAxisSizingMode = 'AUTO';
@@ -561,20 +392,6 @@ if (figma.editorType === 'figma') {
     topRow.name = 'Top Row';
     topRow.layoutAlign = 'MIN';
 
-    // Variant label (A/B/C...)
-    const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-    let fallbackName = 'Variant';
-    if (typeof variantIndex === 'number' && variantIndex >= 0 && variantIndex < variantLetters.length) {
-      fallbackName = variantLetters[variantIndex];
-    }
-    const variantName = figma.createText();
-    variantName.fontName = { family: TOKENS.fontFamily, style: "Bold" };
-    variantName.fontSize = TOKENS.fontSizeBodyMd;
-    variantName.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-    variantName.textAutoResize = 'WIDTH_AND_HEIGHT';
-    variantName.characters = fallbackName;
-    variantName.name = 'Variant Name Text';
-    topRow.appendChild(variantName);
 
     // "Variant" label
     const variantTypeLabel = figma.createText();
@@ -586,22 +403,11 @@ if (figma.editorType === 'figma') {
     variantTypeLabel.name = 'Variant Type Label';
     topRow.appendChild(variantTypeLabel);
 
-    // Spacer for alignment
-    const spacer = figma.createFrame();
-    spacer.layoutMode = 'HORIZONTAL';
-    spacer.counterAxisSizingMode = 'AUTO';
-    spacer.primaryAxisSizingMode = 'AUTO';
-    spacer.fills = [];
-    spacer.strokes = [];
-    spacer.name = 'Spacer';
-    spacer.resize(1, 1);
-    topRow.appendChild(spacer);
-
     card.appendChild(topRow);
-    topRow.resize(topRow.width, 22);
 
     // Thumbnail area: checkerboard placeholder (match event card)
     const thumb = figma.createFrame();
+    thumb.layoutMode = 'NONE';
     thumb.resize(268, 160);
     thumb.cornerRadius = TOKENS.radiusSM;
     thumb.name = 'Thumbnail';
@@ -627,6 +433,15 @@ if (figma.editorType === 'figma') {
     thumb.strokeWeight = 1;
     card.appendChild(thumb);
 
+    // Variant name heading above metrics
+    const variantNameText = figma.createText();
+    variantNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantNameText.fontSize = TOKENS.fontSizeBodyLg;
+    variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    variantNameText.characters = 'Variant Name';
+    variantNameText.name = 'Variant Name';
+    card.appendChild(variantNameText);
 
     // Subtitle for metrics (match event card subtitle style)
     const subtitleText = figma.createText();
@@ -677,9 +492,7 @@ if (figma.editorType === 'figma') {
     topRow.appendChild(titleText);
 
     if (trafficLabel) {
-      const chip = createPill(trafficLabel, { r: 0.18, g: 0.45, b: 0.85 }, { r: 1, g: 1, b: 1 });
-      chip.name = 'Traffic Chip';
-      topRow.appendChild(chip);
+      // Removed Pill: traffic chip
     }
     card.appendChild(topRow);
 
@@ -688,11 +501,8 @@ if (figma.editorType === 'figma') {
     thumb.cornerRadius = 12;
     thumb.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.95, b: 0.99 } }];
     thumb.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-    thumb.strokeWeight = 1;
-    thumb.name = 'Thumbnail';
-    card.appendChild(thumb);
-
-    if (subtitle) {
+      if (trafficLabel) {
+        // Removed Pill: traffic chip
       const subtitleText = figma.createText();
       subtitleText.fontName = { family: "Figtree", style: "Regular" };
       subtitleText.fontSize = 14;
@@ -788,25 +598,24 @@ if (figma.editorType === 'figma') {
       });
 
 
-      // Use the first variant's name, or entryLabel, or a fallback for the event card name
-      let eventCardName = entryLabel;
-      if (Array.isArray(variants) && variants.length > 0 && variants[0].name) {
-        eventCardName = variants[0].name;
-      }
-      if (!eventCardName) eventCardName = 'Event';
-
-      const eventCard = createEventCard(eventCardName);
-
-      // Event Card (ungrouped)
+      // Always use entryLabel for the event card name (never a variant name)
+      const eventCard = createEventCard(entryLabel || 'Event');
       flowFrame.appendChild(eventCard);
 
       // Add variant cards directly to flowFrame (ungrouped)
       const variantNodes: FrameNode[] = [];
       variants.forEach((variant: Variant, index: number) => {
         const card = createVariantCard(variant, index);
-        card.name = `Variant: ${variant.name}`;
+        // Compute fallback display name for meta and node name
+        const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        let fallbackName = 'Variant';
+        if (typeof index === 'number' && index >= 0 && index < variantLetters.length) {
+          fallbackName = variantLetters[index];
+        }
+        const displayName = (variant.name && variant.name.trim().length > 0) ? variant.name : fallbackName;
+        card.name = `Variant: ${displayName}`;
         attachNodeMeta(card, {
-          name: variant.name,
+          name: displayName,
           type: 'frame' as const,
           role: 'variant',
           experimentName,
@@ -906,7 +715,7 @@ if (figma.editorType === 'figma') {
       figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
 
         // --- Visual QA: Send node data to UI ---
-        figma.ui.postMessage({ type: 'qa-node', payload: serializeNode(flowFrame) });
+        // figma.ui.postMessage({ type: 'qa-node', payload: serializeNode(flowFrame) }); // Debug output hidden
 
       for (let i = 0; i < variantNodes.length; i++) {
         connectNodes(entryCard, variantNodes[i], {
@@ -947,9 +756,7 @@ if (figma.editorType === 'figma') {
       flowFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.coralRed500) }];
       flowFrame.cornerRadius = 24;
 
-      const roundBadge = createPill(`ROUND #${roundNumber}`, { r: 1, g: 0.97, b: 0.8 }, { r: 0.5, g: 0.45, b: 0.1 });
-      roundBadge.name = 'Round Badge';
-      flowFrame.appendChild(roundBadge);
+      // Removed Pill: roundBadge
 
       // Detect if entryLabel matches a variant name
       let entryCard: FrameNode;
@@ -1067,12 +874,7 @@ if (figma.editorType === 'figma') {
     figma.currentPage.appendChild(line);
 
     if (options?.label) {
-      const pill = createPill(options.label, { r: 1, g: 1, b: 1 }, color);
-      pill.strokes = [{ type: "SOLID", color }];
-      pill.strokeWeight = 1;
-      pill.x = midX + 6;
-      pill.y = startY - pill.height / 2;
-      figma.currentPage.appendChild(pill);
+      // Removed Pill: label chip
     }
 
     const arrow = figma.createVector();
