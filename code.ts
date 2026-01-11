@@ -547,164 +547,20 @@ if (figma.editorType === 'figma') {
         figma.viewport.scrollAndZoomIntoView([flowFrame]);
       }
 
-      // --- Connector Rendering ---
-      // --- Build nodeMap after all layout and forced update ---
-      // (Ensures all nodes are present and positioned)
-      const nodeMap: Record<string, SceneNode> = {};
-      nodeMap[flow.entry.id] = entryCard;
-      for (const eventGroup of flowFrame.children) {
-        if (eventGroup.type === 'FRAME' && eventGroup.name.startsWith('EventGroup: ')) {
-          const eventCard = eventGroup.findOne(n => typeof n.name === 'string' && n.name.startsWith('Event: '));
-          if (eventCard) {
-            const eventId = (getNodeMeta(eventCard)?.extra as any)?.eventId;
-            if (eventId) nodeMap[eventId] = eventCard as SceneNode;
-          }
-          const variantsContainer = eventGroup.findOne(n => typeof n.name === 'string' && n.name.startsWith('Variants: '));
-          if (variantsContainer && variantsContainer.type === 'FRAME') {
-            for (const variantCard of variantsContainer.children) {
-              const variantId = (getNodeMeta(variantCard)?.extra as any)?.variantId;
-              if (variantId) nodeMap[variantId] = variantCard as SceneNode;
-            }
-          }
-        }
-      }
-      nodeMap[flow.exit.id] = exitCard;
-
-      // Draw connectors
-      // Only allow a single incoming connection to the exit node (from the last event or merge)
-      // Find connectors that target the exit node
-      const exitConnectors = flow.connectors.filter(c => c.to.id === flow.exit.id);
-      let allowedExitConnector: ConnectorV2 | undefined = undefined;
-      if (exitConnectors.length > 0) {
-        // Prefer a merge line if present, else the last primary flow line
-        allowedExitConnector = exitConnectors.find(c => c.type === 'MERGE_LINE') || exitConnectors[exitConnectors.length - 1];
-      }
-      // After all nodes are appended and positioned, draw connectors using absolute positions
-      for (const connector of flow.connectors) {
-        if (connector.to.id === flow.exit.id && connector !== allowedExitConnector) continue;
-        const fromNode = nodeMap[connector.from.id];
-        const toNode = nodeMap[connector.to.id];
-        if (!fromNode || !toNode) continue;
-
-        // Style: distinct color, shadow, and arrowhead size per connector type
-        let color = { r: 0.18, g: 0.45, b: 0.85 };
-        let strokeWeight = 4;
-        let shadow: Effect | undefined = undefined;
-        let arrowColor = color;
-        let arrowSize = 14;
-        if (connector.type === 'MERGE_LINE') {
-          color = { r: 0.22, g: 0.7, b: 0.36 };
-          strokeWeight = 7;
-          shadow = { type: 'DROP_SHADOW', color: { r: 0.22, g: 0.7, b: 0.36, a: 0.18 }, offset: { x: 0, y: 2 }, radius: 4, visible: true, blendMode: 'NORMAL' };
-          arrowColor = color;
-          arrowSize = 18;
-        } else if (connector.type === 'BRANCH_LINE') {
-          color = { r: 0.98, g: 0.67, b: 0.18 };
-          strokeWeight = 5;
-          shadow = { type: 'DROP_SHADOW', color: { r: 0.98, g: 0.67, b: 0.18, a: 0.15 }, offset: { x: 0, y: 2 }, radius: 3, visible: true, blendMode: 'NORMAL' };
-          arrowColor = color;
-          arrowSize = 14;
-        } else if (connector.type === 'PRIMARY_FLOW_LINE') {
-          color = { r: 0.18, g: 0.45, b: 0.85 };
-          strokeWeight = 4;
-          shadow = { type: 'DROP_SHADOW', color: { r: 0.18, g: 0.45, b: 0.85, a: 0.13 }, offset: { x: 0, y: 2 }, radius: 2, visible: true, blendMode: 'NORMAL' };
-          arrowColor = color;
-          arrowSize = 14;
-        }
-
-        // Use absolute positions for connector lines
-        const fromAbs = fromNode.absoluteTransform;
-        const toAbs = toNode.absoluteTransform;
-        const fromX = fromAbs[0][2];
-        const fromY = fromAbs[1][2];
-        const toX = toAbs[0][2];
-        const toY = toAbs[1][2];
-
-        let startX = fromX + fromNode.width / 2;
-        let startY = fromY + fromNode.height;
-        let endX = toX + toNode.width / 2;
-        let endY = toY;
-
-        if (connector.type === 'PRIMARY_FLOW_LINE') {
-          startX = fromX + fromNode.width;
-          startY = fromY + fromNode.height / 2;
-          endX = toX;
-          endY = toY + toNode.height / 2;
-        }
-        if (connector.type === 'BRANCH_LINE') {
-          startX = fromX + fromNode.width / 2;
-          startY = fromY + fromNode.height;
-          endX = toX + toNode.width / 2;
-          endY = toY;
-        }
-        if (connector.type === 'MERGE_LINE') {
-          startX = fromX + fromNode.width / 2;
-          startY = fromY + fromNode.height;
-          endX = toX + toNode.width / 2;
-          endY = toY;
-        }
-
-        const pathData = `M ${startX} ${startY} L ${endX} ${endY}`;
-        const line = figma.createVector();
-        line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
-        line.strokes = [{ type: "SOLID", color }];
-        line.strokeWeight = strokeWeight;
-        line.strokeAlign = "CENTER";
-        line.name = "Flow Line";
-        if (shadow) line.effects = [shadow];
-        attachNodeMeta(line, {
-          name: 'Flow Line',
-          type: 'shape',
-          extra: {
-            role: 'connector',
-            connectorId: connector.id,
-            connectorType: connector.type,
-            fromId: connector.from.id,
-            toId: connector.to.id,
-            experimentId: experiment.id,
-          },
-        });
-        figma.currentPage.appendChild(line);
-
-        if (connector.arrowhead !== false) {
-          let arrowPath = '';
-          if (connector.type === 'PRIMARY_FLOW_LINE') {
-            arrowPath = `M ${endX} ${endY} L ${endX - arrowSize} ${endY - arrowSize / 2} L ${endX - arrowSize} ${endY + arrowSize / 2} Z`;
-          } else {
-            arrowPath = `M ${endX} ${endY} L ${endX - arrowSize / 2} ${endY - arrowSize} L ${endX + arrowSize / 2} ${endY - arrowSize} Z`;
-          }
-          const arrow = figma.createVector();
-          arrow.vectorPaths = [
-            {
-              windingRule: "NONZERO",
-              data: arrowPath,
-            },
-          ];
-          arrow.fills = [{ type: "SOLID", color: arrowColor }];
-          arrow.strokes = [];
-          arrow.name = "Arrowhead";
-          if (shadow) arrow.effects = [shadow];
-          attachNodeMeta(arrow, {
-            name: 'Arrowhead',
-            type: 'shape',
-            extra: {
-              role: 'arrowhead',
-              connectorId: connector.id,
-              connectorType: connector.type,
-              fromId: connector.from.id,
-              toId: connector.to.id,
-              experimentId: experiment.id,
-            },
-          });
-          figma.currentPage.appendChild(arrow);
-        }
-      }
-
       // --- Entry Notes Rendering ---
       // In v2 schema, entry notes may be on flow.entryNotes or experiment.flow.entryNotes or not present
-      const entryNotes = (flow as any).entryNotes || (experiment as any).entryNotes || [];
-      if (Array.isArray(entryNotes)) {
-        for (const note of entryNotes) {
+      const entryNotesV2 = (flow as any).entryNotes || (experiment as any).entryNotes || [];
+      // Build nodeMap for anchor lookup (always available)
+      const nodeMap: Record<string, SceneNode> = {};
+      nodeMap[flow.entry.id] = flowFrame.children[0];
+      let eventIdx = 1;
+      for (const event of flow.events) {
+        nodeMap[event.id] = flowFrame.children[eventIdx];
+        eventIdx++;
+      }
+      nodeMap[flow.exit.id] = flowFrame.children[flowFrame.children.length - 1];
+      if (Array.isArray(entryNotesV2)) {
+        for (const note of entryNotesV2) {
           // Create a sticky note frame
           const noteFrame = figma.createFrame();
           noteFrame.layoutMode = 'VERTICAL';
@@ -744,19 +600,16 @@ if (figma.editorType === 'figma') {
           let anchorId = note.attachTo?.targetId;
           if (anchorType === 'EVENT_NODE' && anchorId) {
             anchorNode = nodeMap[anchorId];
-          } else if (anchorType === 'PRIMARY_FLOW_LINE' && anchorId) {
-            // Try to find the connector line by meta
-            anchorNode = figma.currentPage.findOne(n => n.type === 'VECTOR' && getNodeMeta(n)?.extra?.connectorId === anchorId) as SceneNode;
           }
           if (anchorNode) {
             // Place note above or to the left of anchor node, depending on layout
             // For horizontal spine, place above; for vertical, place left
             if (flow.layout?.direction === 'VERTICAL') {
-              noteFrame.x = anchorNode.x - noteFrame.width - 24;
-              noteFrame.y = anchorNode.y + anchorNode.height / 2 - noteFrame.height / 2;
+              noteFrame.x = (anchorNode?.x ?? 0) - noteFrame.width - 24;
+              noteFrame.y = (anchorNode?.y ?? 0) + (anchorNode?.height ?? 0) / 2 - noteFrame.height / 2;
             } else {
-              noteFrame.x = anchorNode.x + anchorNode.width / 2 - noteFrame.width / 2;
-              noteFrame.y = anchorNode.y - noteFrame.height - 24;
+              noteFrame.x = (anchorNode?.x ?? 0) + (anchorNode?.width ?? 0) / 2 - noteFrame.width / 2;
+              noteFrame.y = (anchorNode?.y ?? 0) - noteFrame.height - 24;
             }
           } else {
             // Default: place near flowFrame
@@ -768,7 +621,7 @@ if (figma.editorType === 'figma') {
       }
 
       // --- Outcome Annotation Rendering ---
-      if (experiment.outcomes?.notes) {
+      if (experiment.outcomes && typeof experiment.outcomes.notes === 'string') {
         const outcomeFrame = figma.createFrame();
         outcomeFrame.layoutMode = 'VERTICAL';
         outcomeFrame.counterAxisSizingMode = 'AUTO';
@@ -785,7 +638,7 @@ if (figma.editorType === 'figma') {
         outcomeText.fontName = { family: 'Figtree', style: 'Regular' };
         outcomeText.fontSize = 14;
         outcomeText.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.3, b: 0.1 } }];
-        outcomeText.characters = experiment.outcomes.notes;
+        outcomeText.characters = experiment.outcomes.notes || '';
         outcomeText.textAutoResize = 'WIDTH_AND_HEIGHT';
         outcomeFrame.appendChild(outcomeText);
 
@@ -806,7 +659,6 @@ if (figma.editorType === 'figma') {
       }
 
       figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
-      return;
     }
 
     // --- OLD HANDLERS BELOW ---
