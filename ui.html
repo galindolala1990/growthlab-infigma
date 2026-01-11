@@ -1101,6 +1101,7 @@
     .variant-card {
       display: flex;
       align-items: flex-start;
+      flex-direction: column;
       gap: var(--space-8);
       padding: var(--space-4) var(--space-0) var(--space-4) var(--space-0);
       background: var(--color-transparent);
@@ -3363,50 +3364,50 @@
      * Creates a variant card with unified color indicator + name, description, and metrics
      */
     function createVariantCard(variant, variantIndex, eventIndex) {
-        // Row 1: Tree toggle + Traffic split
+        // Row 1: Tree toggle + Name + Traffic split
         const row1 = document.createElement('div');
         row1.className = 'variant-row';
 
         // Tree toggle chevron button
         const treeToggle = document.createElement('button');
         treeToggle.type = 'button';
-        treeToggle.className = 'tree-toggle';
+        treeToggle.className = 'variant-tree-toggle';
         treeToggle.title = 'Expand/collapse variant details';
         treeToggle.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6L8 9L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-      const card = document.createElement('div');
-      card.className = 'variant-card';
-      card.id = variant.id;
+        const card = document.createElement('div');
+        card.className = 'variant-card';
+        card.id = variant.id;
 
-      // Get default color based on index if not set
-      const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
-      const currentColor = variant.color || defaultColor;
+        // Get default color based on index if not set
+        const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
+        const currentColor = variant.color || defaultColor;
 
 
-      // Variant name field (InputField with color indicator as prefix) - TOP OF CARD
-      const nameFieldDiv = document.createElement('div');
-      nameFieldDiv.className = 'variant-name-field';
-      const colorIndicator = document.createElement('button');
-      colorIndicator.type = 'button';
-      colorIndicator.className = 'color-indicator';
-      colorIndicator.style.backgroundColor = currentColor;
-      colorIndicator.title = 'Select variant color';
-      const colorPopover = createColorPopover(currentColor, (newColor) => {
-        colorIndicator.style.backgroundColor = newColor;
-        variant.color = newColor;
-        colorIndicator.classList.remove('active');
-      });
-      colorIndicator.appendChild(colorPopover);
-      colorIndicator.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = colorPopover.classList.contains('open');
-        document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
-        document.querySelectorAll('.color-indicator.active').forEach(c => c.classList.remove('active'));
-        if (!isOpen) {
-          colorPopover.classList.add('open');
-          colorIndicator.classList.add('active');
-        }
-      });
+        // Variant name field (InputField with color indicator as prefix) - TOP OF CARD
+        const nameFieldDiv = document.createElement('div');
+        nameFieldDiv.className = 'variant-name-field';
+        const colorIndicator = document.createElement('button');
+        colorIndicator.type = 'button';
+        colorIndicator.className = 'color-indicator';
+        colorIndicator.style.backgroundColor = currentColor;
+        colorIndicator.title = 'Select variant color';
+        const colorPopover = createColorPopover(currentColor, (newColor) => {
+          colorIndicator.style.backgroundColor = newColor;
+          variant.color = newColor;
+          colorIndicator.classList.remove('active');
+        });
+        colorIndicator.appendChild(colorPopover);
+        colorIndicator.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isOpen = colorPopover.classList.contains('open');
+          document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+          document.querySelectorAll('.color-indicator.active').forEach(c => c.classList.remove('active'));
+          if (!isOpen) {
+            colorPopover.classList.add('open');
+            colorIndicator.classList.add('active');
+          }
+        });
       const nameField = createInputField({
         id: `variant-name-${eventIndex}-${variantIndex}`,
         label: 'Variant name',
@@ -3464,7 +3465,31 @@
       trafficFieldDiv.appendChild(trafficField);
 
       row1.appendChild(treeToggle);
+      row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
+
+      // Actions (remove variant)
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'variant-actions';
+
+      const removeBtnEl = document.createElement('button');
+      removeBtnEl.type = 'button';
+      removeBtnEl.className = 'icon-btn';
+      removeBtnEl.innerHTML = getIcon('minus');
+      removeBtnEl.setAttribute('data-tooltip', 'Remove variant');
+      removeBtnEl.setAttribute('data-tooltip-position', 'left');
+      removeBtnEl.setAttribute('data-tooltip-align', 'end');
+      removeBtnEl.setAttribute('data-tooltip-cursor', 'pointer');
+      removeBtnEl.onclick = () => {
+        events[eventIndex].variants.splice(variantIndex, 1);
+        if (events[eventIndex].variants.length === 0) {
+          events[eventIndex].hasVariants = false;
+        }
+        renderEvents(events);
+      };
+
+      actionsDiv.appendChild(removeBtnEl);
+      row1.appendChild(actionsDiv);
 
       // Subtree container for collapsible content (description + metrics)
       const subtree = document.createElement('div');
@@ -3546,9 +3571,7 @@
       subtree.appendChild(row2);
       subtree.appendChild(metricsSection);
 
-      // Insert name field at the very top of the card
-      card.appendChild(nameFieldDiv);
-      card.appendChild(row1);
+      // Insert row1 (with name field) at the top of the content area
       content.appendChild(row1);
       content.appendChild(subtree);
 
@@ -3576,7 +3599,6 @@
 
       // Assemble card
       card.appendChild(content);
-      card.appendChild(actions);
 
       // Drag and drop functionality
       card.draggable = true;
