@@ -60,16 +60,13 @@ export async function createExperimentInfoCard(
   titleText.fontSize = 28;
   titleText.fills = [{ type: "SOLID", color: { r: 0.07, g: 0.09, b: 0.16 } }];
   titleText.textAutoResize = "WIDTH_AND_HEIGHT";
-  titleText.characters = experimentName;
+  titleText.characters = experimentName && experimentName.length > 0 ? experimentName : 'Experiment name';
   titleRow.appendChild(titleText);
   card.appendChild(titleRow);
 
   // Description section
   const descSection = await createSection("Description", description || "", true);
   card.appendChild(descSection);
-  // Hypothesis section
-  const hypSection = await createSection("Hypothesis", "Lorem ipsum", true);
-  card.appendChild(hypSection);
 
   // Metrics section
   const metricsSection = figma.createFrame();

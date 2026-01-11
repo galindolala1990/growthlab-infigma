@@ -211,7 +211,7 @@ if (figma.editorType === 'figma') {
     experimentInfoCard.name = 'Experiment Info — sample-experiment';
 
     const flowFrame = figma.createFrame();
-    flowFrame.name = 'Sample Experiment Flow';
+    flowFrame.name = 'Experiment Flow — sample-experiment';
     flowFrame.layoutMode = 'HORIZONTAL';
     flowFrame.counterAxisSizingMode = 'AUTO';
     flowFrame.primaryAxisSizingMode = 'AUTO';
@@ -335,7 +335,7 @@ if (figma.editorType === 'figma') {
       await loadFonts();
 
       // Remove any existing flow frames with the same name/id
-      const flowFrameName = `Experiment Flow — ${experiment.name} — Round ${experiment.roundNumber}`;
+      const flowFrameName = `Experiment Flow — ${experiment.name}`;
       const infoCardName = `Experiment Info — ${experiment.name}`;
       const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
       if (existingFlow) existingFlow.remove();
@@ -362,7 +362,6 @@ if (figma.editorType === 'figma') {
         name: flowFrameName,
         type: 'frame' as const,
         experimentId: experiment.id,
-        roundNumber: experiment.roundNumber,
         role: 'experiment-flow',
       };
       const flowFrame = createFrame(flowFrameMeta, {
@@ -695,8 +694,8 @@ if (figma.editorType === 'figma') {
         return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       }
       const slug = slugify(experimentName);
-      const flowFrameName = `Experiment Flow — ${slug} — Round ${roundNumber}`;
-      const infoCardName = `Experiment Info — ${slug}`;
+      const flowFrameName = `Experiment Flow — ${experimentName}`;
+      const infoCardName = `Experiment Info — ${experimentName}`;
 
       const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
       if (existingFlow) existingFlow.remove();
@@ -721,7 +720,6 @@ if (figma.editorType === 'figma') {
         name: flowFrameName,
         type: 'frame' as const,
         experimentName,
-        roundNumber,
         role: 'experiment-flow',
       };
       let flowFrame = createFrame(flowFrameMeta, {
@@ -745,7 +743,7 @@ if (figma.editorType === 'figma') {
       attachNodeMeta(entryCard, {
         name: entryLabel,
         type: 'frame' as CanvasNodeType,
-        extra: { role: 'entry', experimentName, roundNumber },
+        extra: { role: 'entry', experimentName },
       });
 
 
@@ -768,7 +766,7 @@ if (figma.editorType === 'figma') {
         attachNodeMeta(card, {
           name: displayName,
           type: 'frame' as CanvasNodeType,
-          extra: { role: 'variant', experimentName, roundNumber, variantIndex: index, traffic: variant.traffic, status: variant.status },
+          extra: { role: 'variant', experimentName, variantIndex: index, traffic: variant.traffic, status: variant.status },
         });
         flowFrame.appendChild(card);
         variantNodes.push(card);
@@ -785,7 +783,7 @@ if (figma.editorType === 'figma') {
       attachNodeMeta(exitCard, {
         name: exitLabel,
         type: 'frame' as CanvasNodeType,
-        extra: { role: 'exit', experimentName, roundNumber },
+        extra: { role: 'exit', experimentName },
       });
 
       flowFrame.appendChild(exitCard);
@@ -821,7 +819,7 @@ if (figma.editorType === 'figma') {
         const flowFrameMeta = {
           name: flowFrameName,
           type: 'frame' as CanvasNodeType,
-          extra: { experimentName, roundNumber, role: 'experiment-flow' },
+          extra: { experimentName, role: 'experiment-flow' },
         };
         flowFrame = createFrame(flowFrameMeta, {
           layoutMode: 'HORIZONTAL',
