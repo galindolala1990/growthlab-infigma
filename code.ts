@@ -106,6 +106,7 @@ export interface FlowV2 {
   exit: ExitNodeV2;
   connectors: ConnectorV2[];
 }
+let selectedEventIndex = 0; // Default to first event selected
 
 export interface CreateFlowV2Payload {
   experiment: ExperimentV2;
@@ -356,7 +357,7 @@ if (figma.editorType === 'figma') {
         extra: { experimentId: experiment.id, role: 'experiment-info' },
       });
 
-      // Create main flow frame (spine)
+      // Create main flow frame (spine) - HORIZONTAL LAYOUT
       const flowFrameMeta = {
         name: flowFrameName,
         type: 'frame' as const,
@@ -365,12 +366,12 @@ if (figma.editorType === 'figma') {
         role: 'experiment-flow',
       };
       const flowFrame = createFrame(flowFrameMeta, {
-        layoutMode: flow.layout?.direction === 'HORIZONTAL' ? 'HORIZONTAL' : 'VERTICAL',
-        itemSpacing: flow.layout?.eventSpacing ?? 64,
+        layoutMode: 'HORIZONTAL', // Force horizontal layout for event spine
+        itemSpacing: flow.layout?.eventSpacing ?? 160, // Wider spacing for horizontal
         padding: 32,
         paddingLeft: 48,
         paddingRight: 48,
-        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }],
+        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }],
         cornerRadius: 24,
         extra: {
           primaryAxisSizingMode: 'AUTO',
@@ -396,18 +397,9 @@ if (figma.editorType === 'figma') {
       flowFrame.appendChild(entryCard);
 
       // --- Event Nodes + Variants ---
+      // Lay out eventGroups side by side in flowFrame (horizontal auto layout will do this)
       for (const event of flow.events) {
-                // Debug: Log event object before processing
-                try {
-                  if (!event || typeof event !== 'object') {
-                    console.error('[v2 handler] Event is not an object:', event);
-                  } else if (!('name' in event)) {
-                    console.error('[v2 handler] Event missing name property:', event);
-                  }
-                } catch (err) {
-                  console.error('[v2 handler] Error inspecting event:', err);
-                }
-        // Defensive: Ensure event.name is always a string
+        // ...existing code for eventGroup creation...
         const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
           ? event.name
           : `Event ${flow.events.indexOf(event) + 1}`;
@@ -415,14 +407,14 @@ if (figma.editorType === 'figma') {
         eventGroup.layoutMode = 'VERTICAL';
         eventGroup.counterAxisSizingMode = 'AUTO';
         eventGroup.primaryAxisSizingMode = 'AUTO';
-        eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 24;
+        eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 32;
         eventGroup.paddingLeft = eventGroup.paddingRight = 0;
         eventGroup.paddingTop = eventGroup.paddingBottom = 0;
         eventGroup.fills = [];
         eventGroup.strokes = [];
         eventGroup.name = `EventGroup: ${safeEventName}`;
+        eventGroup.resizeWithoutConstraints(220, 300);
 
-        // Event card (main node)
         const eventCard = createEventCard(safeEventName);
         eventCard.name = `Event: ${safeEventName}`;
         attachNodeMeta(eventCard, {
@@ -440,10 +432,9 @@ if (figma.editorType === 'figma') {
         });
         eventGroup.appendChild(eventCard);
 
-        // Variants (if any)
         if (event.variants && event.variants.length > 0) {
           const variantsContainer = figma.createFrame();
-          variantsContainer.layoutMode = 'HORIZONTAL';
+          variantsContainer.layoutMode = 'VERTICAL';
           variantsContainer.counterAxisSizingMode = 'AUTO';
           variantsContainer.primaryAxisSizingMode = 'AUTO';
           variantsContainer.itemSpacing = flow.layout?.variantSpacing ?? 24;
@@ -452,19 +443,7 @@ if (figma.editorType === 'figma') {
           variantsContainer.fills = [];
           variantsContainer.strokes = [];
           variantsContainer.name = `Variants: ${safeEventName}`;
-
           for (const [vIdx, variant] of event.variants.entries()) {
-                        // Debug: Log variant object before processing
-                        try {
-                          if (!variant || typeof variant !== 'object') {
-                            console.error(`[v2 handler] Variant is not an object (event: ${event?.name}):`, variant);
-                          } else if (!('name' in variant)) {
-                            console.error(`[v2 handler] Variant missing name property (event: ${event?.name}):`, variant);
-                          }
-                        } catch (err) {
-                          console.error('[v2 handler] Error inspecting variant:', err);
-                        }
-            // Defensive: Ensure variant.name is always a string
             const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
               ? variant.name
               : `Variant ${String.fromCharCode(65 + vIdx)}`;
@@ -476,6 +455,7 @@ if (figma.editorType === 'figma') {
             };
             const variantCard = createVariantCard(variantForCard, vIdx);
             variantCard.name = `Variant: ${safeVariantName}`;
+            variantCard.resizeWithoutConstraints(180, 80);
             attachNodeMeta(variantCard, {
               name: safeVariantName,
               type: 'frame' as CanvasNodeType,
@@ -495,7 +475,6 @@ if (figma.editorType === 'figma') {
           }
           eventGroup.appendChild(variantsContainer);
         }
-
         flowFrame.appendChild(eventGroup);
       }
 
@@ -514,24 +493,52 @@ if (figma.editorType === 'figma') {
           nodeType: 'EXIT_NODE',
         },
       });
-      flowFrame.appendChild(exitCard);
+      // Always place exit node at the end of the spine (rightmost in horizontal layout)
+      // Remove and re-append to ensure it's last
+      if (flowFrame.children.length > 0 && flowFrame.children[flowFrame.children.length - 1] !== exitCard) {
+        if (exitCard.parent) exitCard.remove();
+        flowFrame.appendChild(exitCard);
+      }
 
       // --- Position and append to canvas ---
+
       const center = figma.viewport.center;
       const gap = 100;
-      const totalWidth = (infoCard ? infoCard.width : 0) + gap + flowFrame.width;
-      const startX = center.x - totalWidth / 2;
-
+      // Always append both to the canvas before setting positions
       if (infoCard && infoCard.parent === null) {
-        infoCard.x = startX;
-        infoCard.y = center.y - infoCard.height / 2;
         figma.currentPage.appendChild(infoCard);
       }
       if (flowFrame && flowFrame.parent === null) {
-        flowFrame.x = startX + (infoCard ? infoCard.width : 0) + gap;
-        flowFrame.y = center.y - flowFrame.height / 2;
         figma.currentPage.appendChild(flowFrame);
       }
+      // Guarantee both are visible and never overlap by enforcing a minimum width
+      const minInfoWidth = 240;
+      const minFlowWidth = 600;
+      const infoWidth = infoCard ? Math.max(infoCard.width, minInfoWidth) : minInfoWidth;
+      const infoHeight = infoCard ? infoCard.height : 0;
+      const flowWidth = Math.max(flowFrame.width, minFlowWidth);
+      const flowHeight = flowFrame.height;
+      const totalWidth = infoWidth + gap + flowWidth;
+      const startX = center.x - totalWidth / 2;
+      const sharedY = center.y;
+      if (infoCard) {
+        infoCard.x = 100;
+        infoCard.y = sharedY - infoHeight / 2;
+        if (infoCard.width < minInfoWidth) infoCard.resizeWithoutConstraints(minInfoWidth, infoCard.height);
+      }
+      if (flowFrame) {
+        flowFrame.x = 450;
+        flowFrame.y = sharedY - flowHeight / 2;
+        if (flowFrame.width < minFlowWidth) flowFrame.resizeWithoutConstraints(minFlowWidth, flowFrame.height);
+      }
+
+      // Align all eventGroups (children of flowFrame) to the shared Y axis
+      // No manual y alignment needed; horizontal auto layout will handle side-by-side arrangement
+
+      // --- Force Figma to update layout before drawing connectors ---
+      // This ensures all node positions are correct for absolute connector lines
+      await new Promise(resolve => setTimeout(resolve, 0));
+      figma.viewport.scrollAndZoomIntoView([flowFrame]);
 
       figma.currentPage.selection = [flowFrame];
       if (infoCard) {
@@ -541,11 +548,10 @@ if (figma.editorType === 'figma') {
       }
 
       // --- Connector Rendering ---
-      // Build a map from node id to Figma node for quick lookup
+      // --- Build nodeMap after all layout and forced update ---
+      // (Ensures all nodes are present and positioned)
       const nodeMap: Record<string, SceneNode> = {};
-      // Entry
       nodeMap[flow.entry.id] = entryCard;
-      // Events and variants
       for (const eventGroup of flowFrame.children) {
         if (eventGroup.type === 'FRAME' && eventGroup.name.startsWith('EventGroup: ')) {
           const eventCard = eventGroup.findOne(n => typeof n.name === 'string' && n.name.startsWith('Event: '));
@@ -562,60 +568,82 @@ if (figma.editorType === 'figma') {
           }
         }
       }
-      // Exit
       nodeMap[flow.exit.id] = exitCard;
 
       // Draw connectors
+      // Only allow a single incoming connection to the exit node (from the last event or merge)
+      // Find connectors that target the exit node
+      const exitConnectors = flow.connectors.filter(c => c.to.id === flow.exit.id);
+      let allowedExitConnector: ConnectorV2 | undefined = undefined;
+      if (exitConnectors.length > 0) {
+        // Prefer a merge line if present, else the last primary flow line
+        allowedExitConnector = exitConnectors.find(c => c.type === 'MERGE_LINE') || exitConnectors[exitConnectors.length - 1];
+      }
+      // After all nodes are appended and positioned, draw connectors using absolute positions
       for (const connector of flow.connectors) {
+        if (connector.to.id === flow.exit.id && connector !== allowedExitConnector) continue;
         const fromNode = nodeMap[connector.from.id];
         const toNode = nodeMap[connector.to.id];
         if (!fromNode || !toNode) continue;
 
-        // Determine color and stroke based on connector type
+        // Style: distinct color, shadow, and arrowhead size per connector type
         let color = { r: 0.18, g: 0.45, b: 0.85 };
         let strokeWeight = 4;
+        let shadow: Effect | undefined = undefined;
+        let arrowColor = color;
+        let arrowSize = 14;
         if (connector.type === 'MERGE_LINE') {
           color = { r: 0.22, g: 0.7, b: 0.36 };
           strokeWeight = 7;
+          shadow = { type: 'DROP_SHADOW', color: { r: 0.22, g: 0.7, b: 0.36, a: 0.18 }, offset: { x: 0, y: 2 }, radius: 4, visible: true, blendMode: 'NORMAL' };
+          arrowColor = color;
+          arrowSize = 18;
+        } else if (connector.type === 'BRANCH_LINE') {
+          color = { r: 0.98, g: 0.67, b: 0.18 };
+          strokeWeight = 5;
+          shadow = { type: 'DROP_SHADOW', color: { r: 0.98, g: 0.67, b: 0.18, a: 0.15 }, offset: { x: 0, y: 2 }, radius: 3, visible: true, blendMode: 'NORMAL' };
+          arrowColor = color;
+          arrowSize = 14;
+        } else if (connector.type === 'PRIMARY_FLOW_LINE') {
+          color = { r: 0.18, g: 0.45, b: 0.85 };
+          strokeWeight = 4;
+          shadow = { type: 'DROP_SHADOW', color: { r: 0.18, g: 0.45, b: 0.85, a: 0.13 }, offset: { x: 0, y: 2 }, radius: 2, visible: true, blendMode: 'NORMAL' };
+          arrowColor = color;
+          arrowSize = 14;
         }
-        // TODO: Use style tokens if provided in connector.style
 
-        // Calculate start/end points (center right/left or bottom/top as needed)
-        let startX = fromNode.x + fromNode.width;
-        let startY = fromNode.y + fromNode.height / 2;
-        let endX = toNode.x;
-        let endY = toNode.y + toNode.height / 2;
+        // Use absolute positions for connector lines
+        const fromAbs = fromNode.absoluteTransform;
+        const toAbs = toNode.absoluteTransform;
+        const fromX = fromAbs[0][2];
+        const fromY = fromAbs[1][2];
+        const toX = toAbs[0][2];
+        const toY = toAbs[1][2];
 
-        // For vertical layout, adjust to bottom/top
-        if (flow.layout?.direction === 'VERTICAL') {
-          startX = fromNode.x + fromNode.width / 2;
-          startY = fromNode.y + fromNode.height;
-          endX = toNode.x + toNode.width / 2;
-          endY = toNode.y;
+        let startX = fromX + fromNode.width / 2;
+        let startY = fromY + fromNode.height;
+        let endX = toX + toNode.width / 2;
+        let endY = toY;
+
+        if (connector.type === 'PRIMARY_FLOW_LINE') {
+          startX = fromX + fromNode.width;
+          startY = fromY + fromNode.height / 2;
+          endX = toX;
+          endY = toY + toNode.height / 2;
         }
-
-        // For branch/merge, offset for visual clarity
         if (connector.type === 'BRANCH_LINE') {
-          // Branch down or right from event to variant
-          if (flow.layout?.direction === 'VERTICAL') {
-            startY = fromNode.y + fromNode.height;
-            endY = toNode.y;
-          } else {
-            startX = fromNode.x + fromNode.width;
-            endX = toNode.x;
-          }
-        } else if (connector.type === 'MERGE_LINE') {
-          // Merge up or left from variant to event
-          if (flow.layout?.direction === 'VERTICAL') {
-            startY = fromNode.y + fromNode.height;
-            endY = toNode.y;
-          } else {
-            startX = fromNode.x + fromNode.width;
-            endX = toNode.x;
-          }
+          startX = fromX + fromNode.width / 2;
+          startY = fromY + fromNode.height;
+          endX = toX + toNode.width / 2;
+          endY = toY;
+        }
+        if (connector.type === 'MERGE_LINE') {
+          startX = fromX + fromNode.width / 2;
+          startY = fromY + fromNode.height;
+          endX = toX + toNode.width / 2;
+          endY = toY;
         }
 
-        // Draw polyline (simple straight for now, can be improved for curves)
         const pathData = `M ${startX} ${startY} L ${endX} ${endY}`;
         const line = figma.createVector();
         line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
@@ -623,6 +651,7 @@ if (figma.editorType === 'figma') {
         line.strokeWeight = strokeWeight;
         line.strokeAlign = "CENTER";
         line.name = "Flow Line";
+        if (shadow) line.effects = [shadow];
         attachNodeMeta(line, {
           name: 'Flow Line',
           type: 'shape',
@@ -637,14 +666,12 @@ if (figma.editorType === 'figma') {
         });
         figma.currentPage.appendChild(line);
 
-        // Arrowhead at end
         if (connector.arrowhead !== false) {
-          const size = 10;
           let arrowPath = '';
-          if (flow.layout?.direction === 'VERTICAL') {
-            arrowPath = `M ${endX} ${endY} L ${endX - size / 2} ${endY - size} L ${endX + size / 2} ${endY - size} Z`;
+          if (connector.type === 'PRIMARY_FLOW_LINE') {
+            arrowPath = `M ${endX} ${endY} L ${endX - arrowSize} ${endY - arrowSize / 2} L ${endX - arrowSize} ${endY + arrowSize / 2} Z`;
           } else {
-            arrowPath = `M ${endX} ${endY} L ${endX - size} ${endY - size / 2} L ${endX - size} ${endY + size / 2} Z`;
+            arrowPath = `M ${endX} ${endY} L ${endX - arrowSize / 2} ${endY - arrowSize} L ${endX + arrowSize / 2} ${endY - arrowSize} Z`;
           }
           const arrow = figma.createVector();
           arrow.vectorPaths = [
@@ -653,9 +680,10 @@ if (figma.editorType === 'figma') {
               data: arrowPath,
             },
           ];
-          arrow.fills = [{ type: "SOLID", color }];
+          arrow.fills = [{ type: "SOLID", color: arrowColor }];
           arrow.strokes = [];
           arrow.name = "Arrowhead";
+          if (shadow) arrow.effects = [shadow];
           attachNodeMeta(arrow, {
             name: 'Arrowhead',
             type: 'shape',
@@ -705,22 +733,31 @@ if (figma.editorType === 'figma') {
             extra: {
               role: 'entry-note',
               entryNoteId: note.id,
-              anchor: note.anchor,
+              anchor: note.attachTo,
               experimentId: experiment.id,
             },
           });
 
-          // Position note near its anchor
+          // Position note based on attachTo
           let anchorNode: SceneNode | undefined = undefined;
-          if (note.anchor?.type === 'event' && note.anchor.targetId) {
-            anchorNode = nodeMap[note.anchor.targetId];
-          } else if (note.anchor?.type === 'incomingPrimaryEdge' && note.anchor.targetId) {
-            anchorNode = nodeMap[note.anchor.targetId];
+          let anchorType = note.attachTo?.target;
+          let anchorId = note.attachTo?.targetId;
+          if (anchorType === 'EVENT_NODE' && anchorId) {
+            anchorNode = nodeMap[anchorId];
+          } else if (anchorType === 'PRIMARY_FLOW_LINE' && anchorId) {
+            // Try to find the connector line by meta
+            anchorNode = figma.currentPage.findOne(n => n.type === 'VECTOR' && getNodeMeta(n)?.extra?.connectorId === anchorId) as SceneNode;
           }
           if (anchorNode) {
-            // Place above or to the left of anchor node
-            noteFrame.x = anchorNode.x - 40;
-            noteFrame.y = anchorNode.y - 40;
+            // Place note above or to the left of anchor node, depending on layout
+            // For horizontal spine, place above; for vertical, place left
+            if (flow.layout?.direction === 'VERTICAL') {
+              noteFrame.x = anchorNode.x - noteFrame.width - 24;
+              noteFrame.y = anchorNode.y + anchorNode.height / 2 - noteFrame.height / 2;
+            } else {
+              noteFrame.x = anchorNode.x + anchorNode.width / 2 - noteFrame.width / 2;
+              noteFrame.y = anchorNode.y - noteFrame.height - 24;
+            }
           } else {
             // Default: place near flowFrame
             noteFrame.x = flowFrame.x - 60;
