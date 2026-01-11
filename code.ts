@@ -10,18 +10,7 @@
     }
   }
   // Utility: Convert hex color to RGB
-  function hexToRgb(hex: string): RGB {
-    hex = hex.replace('#', '');
-    if (hex.length === 3) {
-      hex = hex.split('').map(x => x + x).join('');
-    }
-    const num = parseInt(hex, 16);
-    return {
-      r: ((num >> 16) & 255) / 255,
-      g: ((num >> 8) & 255) / 255,
-      b: (num & 255) / 255,
-    };
-  }
+  // ...existing code...
 
   // Create an Event Card styled similarly to Variant Card -- ACTUAL CARD
   function createEventCard(eventName: string): FrameNode {
@@ -64,7 +53,7 @@
 
     // "Event" label
     const eventLabel = figma.createText();
-    eventLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    eventLabel.fontName = getFontStyle("Bold");
     eventLabel.fontSize = TOKENS.fontSizeBodyMd;
     eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -131,7 +120,7 @@
 
     // Event name as heading
     const eventNameText = figma.createText();
-    eventNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    eventNameText.fontName = getFontStyle("Bold");
     eventNameText.fontSize = TOKENS.fontSizeBodyLg;
     eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -143,7 +132,7 @@
 
     // Subtitle for variants (default: 0 variants)
     const subtitleText = figma.createText();
-    subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
+    subtitleText.fontName = getFontStyle("Regular");
     subtitleText.fontSize = TOKENS.fontSizeBodyMd;
     subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -198,6 +187,7 @@ const KEEP_OPEN = true;
 
 import { TOKENS } from './design-tokens';
 import { createExperimentInfoCard } from './experiment-info-card';
+import { hexToRgb, getFontStyle } from './layout-utils';
 
 if (figma.editorType === 'figma') {
 
@@ -309,19 +299,7 @@ if (figma.editorType === 'figma') {
   // Uncomment to auto-run sample flow on plugin open:
   // createSampleFlowFromData();
 
-  function hexToRgb(hex: string): RGB {
-    // Remove # if present
-    hex = hex.replace('#', '');
-    if (hex.length === 3) {
-      hex = hex.split('').map(x => x + x).join('');
-    }
-    const num = parseInt(hex, 16);
-    return {
-      r: ((num >> 16) & 255) / 255,
-      g: ((num >> 8) & 255) / 255,
-      b: (num & 255) / 255,
-    };
-  }
+  // ...existing code...
 
 
   figma.showUI(__html__, {
@@ -346,9 +324,9 @@ if (figma.editorType === 'figma') {
     const txt = figma.createText();
     txt.fontSize = TOKENS.fontSizeBodyLg;
     try {
-      txt.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+      txt.fontName = getFontStyle("Bold");
     } catch {
-      txt.fontName = { family: TOKENS.fontFamily, style: "Medium" };
+      txt.fontName = getFontStyle("Medium");
     }
     txt.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
     txt.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -395,7 +373,7 @@ if (figma.editorType === 'figma') {
 
     // "Variant" label
     const variantTypeLabel = figma.createText();
-    variantTypeLabel.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantTypeLabel.fontName = getFontStyle("Bold");
     variantTypeLabel.fontSize = TOKENS.fontSizeBodyMd;
     variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -435,7 +413,7 @@ if (figma.editorType === 'figma') {
 
     // Variant name heading above metrics
     const variantNameText = figma.createText();
-    variantNameText.fontName = { family: TOKENS.fontFamily, style: "Bold" };
+    variantNameText.fontName = getFontStyle("Bold");
     variantNameText.fontSize = TOKENS.fontSizeBodyLg;
     variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -445,7 +423,7 @@ if (figma.editorType === 'figma') {
 
     // Subtitle for metrics (match event card subtitle style)
     const subtitleText = figma.createText();
-    subtitleText.fontName = { family: TOKENS.fontFamily, style: "Regular" };
+    subtitleText.fontName = getFontStyle("Regular");
     subtitleText.fontSize = TOKENS.fontSizeBodyMd;
     subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
