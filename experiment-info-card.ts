@@ -67,6 +67,9 @@ export async function createExperimentInfoCard(
   // Description section
   const descSection = await createSection("Description", description || "", true);
   card.appendChild(descSection);
+  // Make Description section fill card width (minus padding)
+  descSection.primaryAxisSizingMode = "FIXED";
+  descSection.resize(card.width - card.paddingLeft - card.paddingRight, descSection.height);
 
   // Metrics section
   const metricsSection = figma.createFrame();
@@ -101,8 +104,8 @@ export async function createExperimentInfoCard(
   linksSection.name = "Links Section";
   const linksLabel = figma.createText();
   linksLabel.fontName = { family: "Figtree", style: getLoadedFigtreeSemibold() };
-  linksLabel.fontSize = 13;
-  linksLabel.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.45, b: 0.85 } }];
+  linksLabel.fontSize = 15;
+  linksLabel.fills = [{ type: "SOLID", color: { r: 0.55, g: 0.60, b: 0.67 } }];
   linksLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   linksLabel.characters = "Links";
   linksSection.appendChild(linksLabel);
@@ -152,9 +155,15 @@ async function createSection(label: string, value: string, _muted: boolean = fal
   valueText.fontName = { family: "Figtree", style: "Regular" };
   valueText.fontSize = 17;
   valueText.fills = [{ type: "SOLID", color: { r: 0.18, g: 0.20, b: 0.25 } }];
-  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
+  valueText.textAutoResize = label === "Description" ? "HEIGHT" : "WIDTH_AND_HEIGHT";
   valueText.characters = value;
   section.appendChild(valueText);
+  // If Description, make valueText fill section width
+  if (label === "Description") {
+    valueText.layoutAlign = "STRETCH";
+    // Optionally, still ensure width matches section
+    valueText.resizeWithoutConstraints(section.width, valueText.height);
+  }
   return section;
 }
 

@@ -345,7 +345,7 @@ if (figma.editorType === 'figma') {
       // Create experiment info card (optional, for context)
       infoCard = await createExperimentInfoCard(
         experiment.name,
-        experiment.description || '',
+        experiment.description || 'e.g., Testing if new CTA increases conversions.',
         experiment.links?.figma || '',
         experiment.links?.jira || '',
         experiment.links?.miro || ''
@@ -353,7 +353,7 @@ if (figma.editorType === 'figma') {
       attachNodeMeta(infoCard, {
         name: infoCardName,
         type: 'frame' as CanvasNodeType,
-        description: experiment.description || '',
+        description: experiment.description || 'e.g., Testing if new CTA increases conversions.',
         extra: { experimentId: experiment.id, role: 'experiment-info' },
       });
 
