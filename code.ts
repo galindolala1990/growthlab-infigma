@@ -308,11 +308,11 @@ if (figma.editorType === 'figma') {
     }
     card.appendChild(topRow);
 
-    const thumb = figma.createFrame();
-    thumb.resize(240, 140);
-    thumb.cornerRadius = 12;
-    thumb.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.95, b: 0.99 } }];
-    thumb.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
+    // const thumb = figma.createFrame();
+    // thumb.resize(240, 140);
+    // thumb.cornerRadius = 12;
+    // thumb.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.95, b: 0.99 } }];
+    // thumb.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
       if (trafficLabel) {
         // Removed Pill: traffic chip
       const subtitleText = figma.createText();
@@ -335,8 +335,8 @@ if (figma.editorType === 'figma') {
       await loadFonts();
 
       // Remove any existing flow frames with the same name/id
-      const flowFrameName = `NEW NEW NEW Experiment Flow — ${experiment.name} — Round ${experiment.roundNumber}`;
-      const infoCardName = `NEW NEW NEW Experiment Info — ${experiment.name}`;
+      const flowFrameName = `Experiment Flow — ${experiment.name} — Round ${experiment.roundNumber}`;
+      const infoCardName = `Experiment Info — ${experiment.name}`;
       const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
       if (existingFlow) existingFlow.remove();
       let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
@@ -455,7 +455,7 @@ if (figma.editorType === 'figma') {
             };
             const variantCard = createVariantCard(variantForCard, vIdx);
             variantCard.name = `Variant: ${safeVariantName}`;
-            variantCard.resizeWithoutConstraints(180, 80);
+            variantCard.resizeWithoutConstraints(300, 280);
             attachNodeMeta(variantCard, {
               name: safeVariantName,
               type: 'frame' as CanvasNodeType,
