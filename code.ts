@@ -307,7 +307,7 @@ if (figma.editorType === 'figma') {
       eventGroup.layoutMode = 'VERTICAL';
       eventGroup.counterAxisSizingMode = 'AUTO';
       eventGroup.primaryAxisSizingMode = 'AUTO';
-      eventGroup.itemSpacing = 24;
+      eventGroup.itemSpacing = 100;
       eventGroup.fills = [];
       eventGroup.strokes = [];
       eventGroup.name = `EventGroup-${event.name}`;
@@ -324,7 +324,7 @@ if (figma.editorType === 'figma') {
         variantsRow.layoutMode = 'HORIZONTAL';
         variantsRow.counterAxisSizingMode = 'AUTO';
         variantsRow.primaryAxisSizingMode = 'AUTO';
-        variantsRow.itemSpacing = 24;
+        variantsRow.itemSpacing = 100;
         variantsRow.fills = [];
         variantsRow.strokes = [];
         variantsRow.name = `VariantsRow-${event.name}`;
