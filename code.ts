@@ -201,6 +201,83 @@ if (figma.editorType === 'figma') {
   ];
 
   // --- DEMO: Create node cards for each event and its variants ---
+  /**
+   * Creates a connector with an arrowhead between two points in Figma.
+   * @param x1 Start X
+   * @param y1 Start Y
+   * @param x2 End X
+   * @param y2 End Y
+   * @param options Optional styling (color, strokeWeight, arrowSize)
+   * @returns The created VECTOR node
+   */
+  function createConnectorWithArrow(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    options?: {
+      color?: RGB;
+      strokeWeight?: number;
+      arrowSize?: number;
+      dashPattern?: number[];
+    }
+  ): VectorNode {
+    // Subtle blue/gray, dashed
+    const color = options?.color ?? { r: 0.65, g: 0.72, b: 0.82 };
+    const strokeWeight = options?.strokeWeight ?? 2;
+    const arrowSize = options?.arrowSize ?? 16;
+    const dashPattern = options?.dashPattern ?? [6, 4];
+
+    // Elbow (right-angle) connector: horizontal, then vertical
+    const midX = x1 + (x2 - x1) * 0.5;
+
+    // Arrowhead at end
+    const dx = x2 - midX;
+    const dy = y2 - y1;
+    const angle = Math.atan2(y2 - y1, x2 - midX);
+    const arrowAngle = Math.PI / 6;
+    const arrowX1 = x2 - arrowSize * Math.cos(angle - arrowAngle);
+    const arrowY1 = y2 - arrowSize * Math.sin(angle - arrowAngle);
+    const arrowX2 = x2 - arrowSize * Math.cos(angle + arrowAngle);
+    const arrowY2 = y2 - arrowSize * Math.sin(angle + arrowAngle);
+
+    // Find bounding box
+    const points = [
+      { x: x1, y: y1 },
+      { x: midX, y: y1 },
+      { x: midX, y: y2 },
+      { x: x2, y: y2 },
+      { x: arrowX1, y: arrowY1 },
+      { x: arrowX2, y: arrowY2 },
+    ];
+    const minX = Math.min(...points.map(p => p.x));
+    const minY = Math.min(...points.map(p => p.y));
+    const maxX = Math.max(...points.map(p => p.x));
+    const maxY = Math.max(...points.map(p => p.y));
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    // Path relative to (0,0) in the vector node
+    const rel = (x: number, y: number) => `${x - minX} ${y - minY}`;
+    const path = [
+      `M ${rel(x1, y1)} L ${rel(midX, y1)} L ${rel(midX, y2)} L ${rel(x2, y2)}`,
+      `M ${rel(x2, y2)} L ${rel(arrowX1, arrowY1)}`,
+      `M ${rel(x2, y2)} L ${rel(arrowX2, arrowY2)}`,
+    ].join(' ');
+
+    const vector = figma.createVector();
+    vector.vectorPaths = [{ data: path, windingRule: "NONZERO" }];
+    vector.strokes = [{ type: 'SOLID', color }];
+    vector.strokeWeight = strokeWeight;
+    vector.strokeCap = 'ROUND';
+    vector.strokeJoin = 'ROUND';
+    vector.dashPattern = dashPattern;
+    vector.x = minX;
+    vector.y = minY;
+    vector.resizeWithoutConstraints(width || 1, height || 1);
+    return vector;
+  }
+
   async function createSampleFlowFromData() {
     await loadFonts();
     const experimentInfoCard = await createExperimentInfoCard(
@@ -221,19 +298,48 @@ if (figma.editorType === 'figma') {
     flowFrame.fills = [];
     flowFrame.cornerRadius = 24;
 
-    for (const [i, event] of sampleEvents.entries()) {
-      // Event Card (ungrouped)
-      const eventCard = createEventCard(event.name);
-      flowFrame.appendChild(eventCard);
 
-      // Add variant cards directly to flowFrame (ungrouped)
+    // Store event card nodes for connector placement
+    const eventCardNodes: FrameNode[] = [];
+    for (const [i, event] of sampleEvents.entries()) {
+      // Create a vertical group for event and its variants
+      const eventGroup = figma.createFrame();
+      eventGroup.layoutMode = 'VERTICAL';
+      eventGroup.counterAxisSizingMode = 'AUTO';
+      eventGroup.primaryAxisSizingMode = 'AUTO';
+      eventGroup.itemSpacing = 24;
+      eventGroup.fills = [];
+      eventGroup.strokes = [];
+      eventGroup.name = `EventGroup-${event.name}`;
+
+      // Event Card
+      const eventCard = createEventCard(event.name);
+      eventCard.layoutAlign = 'CENTER';
+      eventGroup.appendChild(eventCard);
+      eventCardNodes.push(eventCard);
+
+      // Variants row (horizontal)
       if (event.hasVariants && event.variants.length > 0) {
+        const variantsRow = figma.createFrame();
+        variantsRow.layoutMode = 'HORIZONTAL';
+        variantsRow.counterAxisSizingMode = 'AUTO';
+        variantsRow.primaryAxisSizingMode = 'AUTO';
+        variantsRow.itemSpacing = 24;
+        variantsRow.fills = [];
+        variantsRow.strokes = [];
+        variantsRow.name = `VariantsRow-${event.name}`;
+        variantsRow.layoutAlign = 'CENTER';
         for (let v = 0; v < event.variants.length; v++) {
           const variant = event.variants[v];
           const variantCard = createVariantCard(variant, v);
-          flowFrame.appendChild(variantCard);
+          variantsRow.appendChild(variantCard);
         }
+        eventGroup.appendChild(variantsRow);
       }
+      eventGroup.primaryAxisAlignItems = 'CENTER';
+      eventGroup.counterAxisAlignItems = 'CENTER';
+
+      flowFrame.appendChild(eventGroup);
     }
 
     // Position and append to canvas
@@ -251,12 +357,45 @@ if (figma.editorType === 'figma') {
     flowFrame.x = startX;
     flowFrame.y = center.y - flowFrame.height / 2;
     figma.currentPage.appendChild(flowFrame);
+
+    // Draw connectors between event cards (sequentially)
+    // Helper to get absolute position of a node
+    function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+      let x = node.x, y = node.y;
+      let parent = node.parent;
+      while (parent && parent.type !== 'PAGE') {
+        // Only add if parent has x/y (not DocumentNode, etc)
+        if ('x' in parent && 'y' in parent) {
+          x += (parent as any).x;
+          y += (parent as any).y;
+        }
+        parent = parent.parent;
+      }
+      return { x, y };
+    }
+
+    for (let i = 0; i < eventCardNodes.length - 1; i++) {
+      const from = eventCardNodes[i];
+      const to = eventCardNodes[i + 1];
+      // Get absolute positions
+      const fromAbs = getAbsolutePos(from);
+      const toAbs = getAbsolutePos(to);
+      // Anchor to right edge (vertical center) of 'from' and left edge (vertical center) of 'to'
+      const fromX = fromAbs.x + from.width;
+      const fromY = fromAbs.y + from.height / 2;
+      const toX = toAbs.x;
+      const toY = toAbs.y + to.height / 2;
+      const connector = createConnectorWithArrow(fromX, fromY, toX, toY);
+      figma.currentPage.appendChild(connector);
+      connector.locked = true;
+    }
+
     figma.currentPage.selection = [flowFrame];
     figma.viewport.scrollAndZoomIntoView([flowFrame, experimentInfoCard]);
   }
 
   // Uncomment to auto-run sample flow on plugin open:
-  // createSampleFlowFromData();
+  createSampleFlowFromData();
 
   // ...existing code...
 
