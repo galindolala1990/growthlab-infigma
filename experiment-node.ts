@@ -4,27 +4,34 @@
 import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle } from './layout-utils';
 
-export function createEventCard(eventName: string): FrameNode {
+export function createEventCard(eventName: string, variantCount?: number): FrameNode {
   const card = figma.createFrame();
-  card.resize(300, 280);
   card.layoutMode = 'VERTICAL';
-  card.counterAxisSizingMode = 'FIXED';
-  card.primaryAxisSizingMode = 'FIXED';
-  card.paddingLeft = card.paddingRight = TOKENS.space16;
-  card.paddingTop = card.paddingBottom = TOKENS.space16;
-  card.cornerRadius = TOKENS.radiusLG;
-  card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-  card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-  card.strokeWeight = 0;
+  card.counterAxisSizingMode = 'AUTO';
+  card.primaryAxisSizingMode = 'AUTO';
+  card.minWidth = 300; // 18.75rem
+  card.maxWidth = 400; // 25rem
+  card.resize(300, 280); // Default width 300px (18.75rem)
+  card.paddingLeft = 0;
+  card.paddingRight = 0;
+  card.paddingTop = 16; // 1rem
+  card.paddingBottom = 12; // 0.75rem
+  card.cornerRadius = 16; // 1rem
+  card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
+  card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
+  card.strokeWeight = 1;
   card.effects = [{
     type: 'DROP_SHADOW',
-    color: TOKENS.shadowColor,
+    color: { r: 0, g: 0, b: 0, a: 0.05 },
     offset: { x: 0, y: 1 },
     radius: 2,
     spread: 0,
     visible: true,
     blendMode: 'NORMAL',
   }];
+  card.itemSpacing = 12; // 0.75rem gap
+  card.primaryAxisAlignItems = 'CENTER';
+  card.counterAxisAlignItems = 'CENTER';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
@@ -35,7 +42,7 @@ export function createEventCard(eventName: string): FrameNode {
   topRow.fills = [];
   topRow.strokes = [];
   topRow.name = 'Top Row';
-  topRow.layoutAlign = 'MIN';
+  topRow.layoutAlign = 'CENTER'; // Center align to match card alignment
 
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
@@ -102,7 +109,7 @@ export function createEventCard(eventName: string): FrameNode {
   eventNameText.fontSize = TOKENS.fontSizeBodyLg;
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  eventNameText.characters = 'Event Name';
+  eventNameText.characters = eventName || 'Event Name';
   eventNameText.name = 'Event Name Text';
   card.appendChild(eventNameText);
 
@@ -111,13 +118,10 @@ export function createEventCard(eventName: string): FrameNode {
   subtitleText.fontSize = TOKENS.fontSizeBodyMd;
   subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  subtitleText.characters = '0 variants';
+  const count = variantCount ?? 0;
+  subtitleText.characters = `${count} variant${count !== 1 ? 's' : ''}`;
   subtitleText.name = 'Number of Variants';
   card.appendChild(subtitleText);
-
-  card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'MIN';
-  card.itemSpacing = TOKENS.space12;
 
   return card;
 }
@@ -129,13 +133,17 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';
   card.primaryAxisSizingMode = 'AUTO';
-  card.paddingLeft = card.paddingRight = TOKENS.space16;
-  card.paddingTop = card.paddingBottom = TOKENS.space16;
-  card.cornerRadius = TOKENS.radiusLG;
-  card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-  card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-  card.strokeWeight = 0;
-  card.resize(300, 280);
+  card.minWidth = 300; // 18.75rem
+  card.maxWidth = 400; // 25rem
+  card.resize(300, 280); // Default width 300px (18.75rem)
+  card.paddingLeft = 0;
+  card.paddingRight = 0;
+  card.paddingTop = 16; // 1rem
+  card.paddingBottom = 12; // 0.75rem
+  card.cornerRadius = 16; // 1rem
+  card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
+  card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
+  card.strokeWeight = 1;
   card.effects = [{
     type: 'DROP_SHADOW',
     color: { r: 0, g: 0, b: 0, a: 0.05 },
@@ -145,6 +153,9 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
     visible: true,
     blendMode: 'NORMAL',
   }];
+  card.itemSpacing = 12; // 0.75rem gap
+  card.primaryAxisAlignItems = 'CENTER';
+  card.counterAxisAlignItems = 'CENTER';
 
   const topRow = figma.createFrame();
   topRow.layoutMode = 'HORIZONTAL';
@@ -154,7 +165,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   topRow.fills = [];
   topRow.strokes = [];
   topRow.name = 'Top Row';
-  topRow.layoutAlign = 'MIN';
+  topRow.layoutAlign = 'CENTER'; // Center align to match card alignment
 
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
@@ -183,7 +194,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
       square.resize(squareSize, squareSize);
       square.x = x * squareSize;
       square.y = y * squareSize;
-      square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? { r: 0.96, g: 0.96, b: 0.96 } : { r: 0.89, g: 0.89, b: 0.89 } }];
+      square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? TOKENS.checkerLight : TOKENS.checkerDark }];
       square.strokes = [];
       square.strokeWeight = 0;
       square.name = 'Checker';
@@ -199,22 +210,52 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   variantNameText.fontSize = TOKENS.fontSizeBodyLg;
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantNameText.characters = 'Variant Name';
+  variantNameText.characters = variant.name || 'Variant Name';
   variantNameText.name = 'Variant Name';
   card.appendChild(variantNameText);
 
-  const subtitleText = figma.createText();
-  subtitleText.fontName = getFontStyle("Regular");
-  subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  subtitleText.characters = `CTR: ${variant.metrics?.ctr ?? 0}  CR: ${variant.metrics?.cr ?? 0}  SU: ${variant.metrics?.su ?? 0}`;
-  subtitleText.name = 'Variant Metrics Subtitle';
-  card.appendChild(subtitleText);
-
-  card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'MIN';
-  card.itemSpacing = TOKENS.space12;
+  // Enhanced Metrics Display
+  const metricsContainer = figma.createFrame();
+  metricsContainer.layoutMode = 'HORIZONTAL';
+  metricsContainer.counterAxisSizingMode = 'AUTO';
+  metricsContainer.primaryAxisSizingMode = 'AUTO';
+  metricsContainer.itemSpacing = TOKENS.space8;
+  metricsContainer.fills = [];
+  metricsContainer.strokes = [];
+  metricsContainer.name = 'Metrics Container';
+  
+  // Format metrics with proper decimal places
+  const formatMetric = (value: number | undefined): string => {
+    if (value === undefined || value === null) return '0.00';
+    return value.toFixed(2);
+  };
+  
+  if (variant.metrics?.ctr !== undefined) {
+    const ctrChip = createMetricChip('CTR', parseFloat(formatMetric(variant.metrics.ctr)));
+    metricsContainer.appendChild(ctrChip);
+  }
+  if (variant.metrics?.cr !== undefined) {
+    const crChip = createMetricChip('CR', parseFloat(formatMetric(variant.metrics.cr)));
+    metricsContainer.appendChild(crChip);
+  }
+  if (variant.metrics?.su !== undefined) {
+    const suChip = createMetricChip('SU', parseFloat(formatMetric(variant.metrics.su)));
+    metricsContainer.appendChild(suChip);
+  }
+  
+  // Fallback to text if no metrics chips created
+  if (metricsContainer.children.length === 0) {
+    const subtitleText = figma.createText();
+    subtitleText.fontName = getFontStyle("Regular");
+    subtitleText.fontSize = TOKENS.fontSizeBodyMd;
+    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    subtitleText.characters = `CTR: ${formatMetric(variant.metrics?.ctr)}  CR: ${formatMetric(variant.metrics?.cr)}  SU: ${formatMetric(variant.metrics?.su)}`;
+    subtitleText.name = 'Variant Metrics Subtitle';
+    card.appendChild(subtitleText);
+  } else {
+    card.appendChild(metricsContainer);
+  }
 
   return card;
 }

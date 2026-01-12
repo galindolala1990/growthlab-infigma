@@ -1,5 +1,273 @@
 // ...existing code...
-  import { createExperimentInfoCard } from './experiment-info-card';
+import { createExperimentInfoCard } from './experiment-info-card';
+// ...existing code...
+
+// --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
+/**
+ * Creates a Figma ConnectorNode between two nodes, magnetized to specified edges.
+ * @param fromNode The node to start from
+ * @param toNode The node to end at
+ * @param fromMagnet 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
+ * @param toMagnet 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
+ * @param options Optional styling (color, strokeWeight, etc)
+ * @returns The created ConnectorNode
+ */
+function createMagnetizedConnector(
+  fromNode: BaseNode & { id: string },
+  toNode: BaseNode & { id: string },
+  fromMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' = 'RIGHT',
+  toMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' = 'LEFT',
+  options?: {
+    color?: RGB;
+    strokeWeight?: number;
+    cornerRadius?: number;
+    connectorLineType?: 'ELBOWED' | 'STRAIGHT';
+  }
+): ConnectorNode {
+  const connector = figma.createConnector();
+  connector.connectorStart = {
+    endpointNodeId: fromNode.id,
+    magnet: fromMagnet
+  };
+  connector.connectorEnd = {
+    endpointNodeId: toNode.id,
+    magnet: toMagnet
+  };
+  connector.connectorLineType = options?.connectorLineType || 'ELBOWED';
+  connector.strokeWeight = options?.strokeWeight ?? 4;
+  // connector.cornerRadius = options?.cornerRadius ?? 24; // Not allowed on ConnectorNode
+  connector.strokeJoin = 'BEVEL';
+  // connector.strokeCap = 'NONE'; // Not allowed on ConnectorNode
+  connector.connectorEndStrokeCap = 'ARROW_LINES';
+  connector.strokes = [{ type: 'SOLID', color: options?.color ?? hexToRgb(TOKENS.royalBlue600) }];
+  connector.name = 'Connector line';
+  figma.currentPage.appendChild(connector);
+  return connector;
+}
+
+/**
+ * Unified connector creation function for V2 flow system
+ * Supports all three connector types: PRIMARY_FLOW_LINE, BRANCH_LINE, MERGE_LINE
+ * Figma plugin compliant - uses VectorNode for full control over styling
+ * 
+ * @param fromNode Source node
+ * @param toNode Target node
+ * @param type Connector type
+ * @param flowFrame Optional parent frame for relative positioning
+ * @param options Additional options (label, winner, variantColor, index)
+ * @returns Created connector vector node (or group if label included)
+ */
+function createConnectorV2(
+  fromNode: SceneNode & { width: number; height: number },
+  toNode: SceneNode & { width: number; height: number },
+  type: ConnectorTypeV2,
+  flowFrame?: FrameNode,
+  options?: {
+    label?: string;
+    winner?: boolean;
+    variantColor?: string;
+    index?: number;
+  }
+): SceneNode {
+  const style = getConnectorStyle(type, { winner: options?.winner, variantColor: options?.variantColor });
+  
+  // Get absolute positions
+  function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+    const transform = node.absoluteTransform;
+    return { x: transform[0][2], y: transform[1][2] };
+  }
+  
+  // Get edge-to-edge connection points
+  function getEdgeToEdgePoints(
+    from: SceneNode & { width: number; height: number },
+    to: SceneNode & { width: number; height: number }
+  ): { from: { x: number; y: number }; to: { x: number; y: number } } {
+    const fromAbs = getAbsolutePos(from);
+    const toAbs = getAbsolutePos(to);
+    const fromCenter = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height / 2 };
+    const toCenter = { x: toAbs.x + to.width / 2, y: toAbs.y + to.height / 2 };
+    const dx = toCenter.x - fromCenter.x;
+    const dy = toCenter.y - fromCenter.y;
+    
+    let fromPoint, toPoint;
+    
+    // Determine connection points based on connector type
+    if (type === 'PRIMARY_FLOW_LINE') {
+      // Horizontal connection: RIGHT edge to LEFT edge
+      fromPoint = { x: fromAbs.x + from.width, y: fromAbs.y + from.height / 2 };
+      toPoint = { x: toAbs.x, y: toAbs.y + to.height / 2 };
+    } else if (type === 'BRANCH_LINE') {
+      // Vertical connection: BOTTOM edge to TOP edge
+      fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height };
+      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
+    } else { // MERGE_LINE
+      // Vertical connection: TOP edge to TOP edge (converging)
+      fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y };
+      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
+    }
+    
+    return { from: fromPoint, to: toPoint };
+  }
+  
+  const { from: startAbs, to: endAbs } = getEdgeToEdgePoints(fromNode, toNode);
+  
+  // Convert to flowFrame-local coordinates if provided
+  let start = { ...startAbs }, end = { ...endAbs };
+  if (flowFrame) {
+    const frameAbs = getAbsolutePos(flowFrame);
+    start.x = startAbs.x - frameAbs.x;
+    start.y = startAbs.y - frameAbs.y;
+    end.x = endAbs.x - frameAbs.x;
+    end.y = endAbs.y - frameAbs.y;
+  }
+  
+  // Add offset for parallel lines (for multiple variants)
+  const index = options?.index ?? 0;
+  let midX, midY;
+  
+  if (type === 'PRIMARY_FLOW_LINE' || Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
+    // Horizontal: elbow in X
+    midX = start.x + (end.x - start.x) * 0.5 + index * 12;
+    midY = start.y;
+  } else {
+    // Vertical: elbow in Y
+    midX = start.x;
+    midY = start.y + (end.y - start.y) * 0.5 + index * 12;
+  }
+  
+  // Create path
+  const pathPoints = [
+    { x: start.x, y: start.y },
+    { x: midX, y: midY },
+    { x: midX, y: end.y },
+    { x: end.x, y: end.y },
+  ];
+  
+  // Calculate bounding box
+  const allPoints = [...pathPoints, { x: end.x, y: end.y }];
+  const minX = Math.min(...allPoints.map(p => p.x));
+  const minY = Math.min(...allPoints.map(p => p.y));
+  const maxX = Math.max(...allPoints.map(p => p.x));
+  const maxY = Math.max(...allPoints.map(p => p.y));
+  const width = maxX - minX || 1;
+  const height = maxY - minY || 1;
+  
+  // Make path relative to bounding box
+  const rel = (x: number, y: number) => `${x - minX} ${y - minY}`;
+  const pathData = `M ${rel(start.x, start.y)} L ${rel(midX, midY)} L ${rel(midX, end.y)} L ${rel(end.x, end.y)}`;
+  
+  // Create vector for line
+  const line = figma.createVector();
+  line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+  line.strokes = [{ type: "SOLID", color: style.color }];
+  line.strokeWeight = style.strokeWeight;
+  line.strokeAlign = "CENTER";
+  if (style.dashPattern) {
+    line.dashPattern = style.dashPattern;
+  }
+  line.name = `${type} Line`;
+  line.x = minX;
+  line.y = minY;
+  line.resizeWithoutConstraints(width, height);
+  
+  // Create arrowhead if needed
+  let arrow: VectorNode | null = null;
+  if (style.arrowhead) {
+    const arrowSize = 10;
+    const dx = end.x - midX;
+    const dy = end.y - start.y;
+    const angle = Math.atan2(dy, dx);
+    const arrowAngle = Math.PI / 6;
+    const arrowX1 = end.x - arrowSize * Math.cos(angle - arrowAngle);
+    const arrowY1 = end.y - arrowSize * Math.sin(angle - arrowAngle);
+    const arrowX2 = end.x - arrowSize * Math.cos(angle + arrowAngle);
+    const arrowY2 = end.y - arrowSize * Math.sin(angle + arrowAngle);
+    
+    const arrowPoints = [
+      { x: end.x, y: end.y },
+      { x: arrowX1, y: arrowY1 },
+      { x: arrowX2, y: arrowY2 },
+    ];
+    const arrowMinX = Math.min(...arrowPoints.map(p => p.x));
+    const arrowMinY = Math.min(...arrowPoints.map(p => p.y));
+    const arrowMaxX = Math.max(...arrowPoints.map(p => p.x));
+    const arrowMaxY = Math.max(...arrowPoints.map(p => p.y));
+    const arrowWidth = arrowMaxX - arrowMinX || 1;
+    const arrowHeight = arrowMaxY - arrowMinY || 1;
+    const arrowRel = (x: number, y: number) => `${x - arrowMinX} ${y - arrowMinY}`;
+    
+    arrow = figma.createVector();
+    arrow.vectorPaths = [{
+      windingRule: "NONZERO",
+      data: `M ${arrowRel(end.x, end.y)} L ${arrowRel(arrowX1, arrowY1)} L ${arrowRel(arrowX2, arrowY2)} Z`,
+    }];
+    arrow.fills = [{ type: "SOLID", color: style.color }];
+    arrow.strokes = [];
+    arrow.name = "Arrowhead";
+    arrow.x = arrowMinX;
+    arrow.y = arrowMinY;
+    arrow.resizeWithoutConstraints(arrowWidth, arrowHeight);
+  }
+  
+  // Create label if provided
+  let labelGroup: FrameNode | null = null;
+  if (options?.label) {
+    const labelFrame = figma.createFrame();
+    labelFrame.layoutMode = 'HORIZONTAL';
+    labelFrame.counterAxisSizingMode = 'AUTO';
+    labelFrame.primaryAxisSizingMode = 'AUTO';
+    labelFrame.paddingLeft = labelFrame.paddingRight = TOKENS.space8;
+    labelFrame.paddingTop = labelFrame.paddingBottom = TOKENS.space4;
+    labelFrame.cornerRadius = TOKENS.radiusSM;
+    labelFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
+    labelFrame.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    labelFrame.strokeWeight = 1;
+    labelFrame.name = 'Connector Label';
+    
+    const labelText = figma.createText();
+    labelText.fontName = getFontStyle("Bold");
+    labelText.fontSize = TOKENS.fontSizeBodySm;
+    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    labelText.characters = options.label;
+    labelText.name = 'Label Text';
+    labelFrame.appendChild(labelText);
+    
+    // Position label at midpoint
+    labelFrame.x = midX - labelFrame.width / 2;
+    labelFrame.y = midY - labelFrame.height / 2;
+    
+    labelGroup = labelFrame;
+  }
+  
+  // Append to appropriate parent
+  // IMPORTANT: Append connectors to flowFrame so they move with the flow
+  // But ensure flowFrame doesn't clip them
+  if (flowFrame) {
+    // Make sure flowFrame doesn't clip content
+    flowFrame.clipsContent = false;
+    
+    flowFrame.appendChild(line);
+    if (arrow) flowFrame.appendChild(arrow);
+    if (labelGroup) flowFrame.appendChild(labelGroup);
+    
+    console.log(`Created ${type} connector:`, {
+      from: `${fromNode.name || 'unknown'}`,
+      to: `${toNode.name || 'unknown'}`,
+      linePos: { x: line.x, y: line.y },
+      lineSize: { width: line.width, height: line.height }
+    });
+  } else {
+    figma.currentPage.appendChild(line);
+    if (arrow) figma.currentPage.appendChild(arrow);
+    if (labelGroup) figma.currentPage.appendChild(labelGroup);
+  }
+  
+  // Return the line (main connector element)
+  return line;
+}
+// ...existing code...
+
   // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
   function deleteExperimentFlowFrames() {
     const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
@@ -91,6 +359,50 @@ export interface ConnectorV2 {
   style?: Record<string, any>;
 }
 
+/**
+ * Connector style configuration based on type
+ */
+interface ConnectorStyleConfig {
+  strokeWeight: number;
+  color: RGB;
+  dashPattern?: number[];
+  arrowhead: boolean;
+}
+
+/**
+ * Get connector style configuration based on type
+ */
+function getConnectorStyle(type: ConnectorTypeV2, options?: { winner?: boolean; variantColor?: string }): ConnectorStyleConfig {
+  switch (type) {
+    case 'PRIMARY_FLOW_LINE':
+      return {
+        strokeWeight: options?.winner ? 7 : 5,
+        color: options?.winner ? hexToRgb(TOKENS.malachite600) : hexToRgb(TOKENS.royalBlue600),
+        arrowhead: true,
+      };
+    case 'BRANCH_LINE':
+      return {
+        strokeWeight: 3,
+        color: options?.variantColor ? hexToRgb(options.variantColor) : hexToRgb(TOKENS.royalBlue500),
+        dashPattern: [6, 4], // Dashed pattern
+        arrowhead: true,
+      };
+    case 'MERGE_LINE':
+      return {
+        strokeWeight: 2,
+        color: hexToRgb(TOKENS.azure600),
+        dashPattern: [6, 4], // Dashed pattern
+        arrowhead: true,
+      };
+    default:
+      return {
+        strokeWeight: 4,
+        color: hexToRgb(TOKENS.royalBlue600),
+        arrowhead: true,
+      };
+  }
+}
+
 export interface FlowLayoutV2 {
   direction?: 'HORIZONTAL' | 'VERTICAL';
   eventSpacing?: number;
@@ -147,6 +459,7 @@ const KEEP_OPEN = true;
 import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle } from './layout-utils';
 import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
+import { loadFonts } from './load-fonts';
 
 if (figma.editorType === 'figma') {
 
@@ -167,7 +480,7 @@ if (figma.editorType === 'figma') {
           key: 'A', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
           name: 'Control', // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
           description: 'Original version without changes', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT
-          color: '#2563eb', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          color: TOKENS.royalBlue600, // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
           traffic: 50, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD
           status: 'none' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
           metrics: { ctr: 0.695, cr: 0.425, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
@@ -176,7 +489,7 @@ if (figma.editorType === 'figma') {
           key: 'B', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
           name: 'Variation A',  // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
           description: 'New CTA button design', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT  
-          color: '#0eab43', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          color: TOKENS.malachite600, // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
           traffic: 30, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD  
           status: 'running' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
           metrics: { ctr: 0.725, cr: 0.480, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
@@ -185,7 +498,7 @@ if (figma.editorType === 'figma') {
           key: 'C', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
           name: 'Variation B', // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
           description: 'CTA with icon', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT
-          color: '#f59e42', // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
+          color: TOKENS.yellow600, // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
           traffic: 20, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD
           status: 'winner' as VariantStatus, // THIS IS THE STATUS FOR THIS VARIANT IN AN EVENT CARD
           metrics: { ctr: 0.755, cr: 0.510, su: 0.0 } // THIS IS THE METRICS FOR THIS VARIANT IN AN EVENT CARD
@@ -223,7 +536,7 @@ if (figma.editorType === 'figma') {
     }
   ): VectorNode {
     // Subtle blue/gray, dashed
-    const color = options?.color ?? { r: 0.65, g: 0.72, b: 0.82 };
+    const color = options?.color ?? hexToRgb(TOKENS.royalBlue400);
     const strokeWeight = options?.strokeWeight ?? 2;
     const arrowSize = options?.arrowSize ?? 16;
     const dashPattern = options?.dashPattern ?? [6, 4];
@@ -278,124 +591,155 @@ if (figma.editorType === 'figma') {
     return vector;
   }
 
+  // --- Sample Flow (Unified V2 Schema) ---
+  // Converts sample data to v2 format and uses the unified flow creation function
   async function createSampleFlowFromData() {
-    await loadFonts();
-    const experimentInfoCard = await createExperimentInfoCard(
-      'Sample Experiment',
-      'This is a sample experiment info card.',
-      '', '', ''
-    );
-    experimentInfoCard.name = 'Experiment Info — sample-experiment';
+    const experimentId = 'sample-experiment';
+    
+    // Convert sample data to v2 format
+    const experiment: ExperimentV2 = {
+      id: experimentId,
+      name: 'Sample Experiment',
+      roundNumber: 1,
+      description: 'This is a sample experiment info card.',
+    };
 
-    const flowFrame = figma.createFrame();
-    flowFrame.name = 'Experiment Flow — sample-experiment';
-    flowFrame.layoutMode = 'HORIZONTAL';
-    flowFrame.counterAxisSizingMode = 'AUTO';
-    flowFrame.primaryAxisSizingMode = 'AUTO';
-    flowFrame.itemSpacing = 48;
-    flowFrame.paddingLeft = flowFrame.paddingRight = 48;
-    flowFrame.paddingTop = flowFrame.paddingBottom = 48;
-    flowFrame.fills = [];
-    flowFrame.cornerRadius = 24;
+    // Convert events to v2 format
+    const events: EventNodeV2[] = sampleEvents.map((event, eventIdx) => {
+      const variants: VariantV2[] = (event.variants || []).map((variant, vIdx) => ({
+        id: `variant-${event.id}-${vIdx}`,
+        parentEventId: event.id,
+        key: variant.key || String.fromCharCode(65 + vIdx),
+        name: variant.name,
+        description: variant.description,
+        traffic: variant.traffic,
+        metrics: variant.metrics,
+        style: variant.color ? { variantColor: variant.color } : undefined,
+        status: (variant as any).status, // Preserve status for card rendering
+        color: variant.color, // Preserve color for card rendering
+      } as VariantV2 & { status?: VariantStatus; color?: string }));
+      
+      return {
+        id: event.id,
+        name: event.name,
+        nodeType: 'EVENT_NODE' as const,
+        variants: variants.length > 0 ? variants : undefined,
+      };
+    });
 
+    // Create entry and exit nodes
+    const entry: EntryNodeV2 = {
+      id: `entry-${experimentId}`,
+      label: 'Entry',
+      nodeType: 'ENTRY_NODE',
+    };
 
-    // Store event card nodes for connector placement
-    const eventCardNodes: FrameNode[] = [];
-    for (const [i, event] of sampleEvents.entries()) {
-      // Create a vertical group for event and its variants
-      const eventGroup = figma.createFrame();
-      eventGroup.layoutMode = 'VERTICAL';
-      eventGroup.counterAxisSizingMode = 'AUTO';
-      eventGroup.primaryAxisSizingMode = 'AUTO';
-      eventGroup.itemSpacing = 100;
-      eventGroup.fills = [];
-      eventGroup.strokes = [];
-      eventGroup.name = `EventGroup-${event.name}`;
+    const exit: ExitNodeV2 = {
+      id: `exit-${experimentId}`,
+      label: 'Exit',
+      nodeType: 'EXIT_NODE',
+    };
 
-      // Event Card
-      const eventCard = createEventCard(event.name);
-      eventCard.layoutAlign = 'CENTER';
-      eventGroup.appendChild(eventCard);
-      eventCardNodes.push(eventCard);
-
-      // Variants row (horizontal)
-      if (event.hasVariants && event.variants.length > 0) {
-        const variantsRow = figma.createFrame();
-        variantsRow.layoutMode = 'HORIZONTAL';
-        variantsRow.counterAxisSizingMode = 'AUTO';
-        variantsRow.primaryAxisSizingMode = 'AUTO';
-        variantsRow.itemSpacing = 100;
-        variantsRow.fills = [];
-        variantsRow.strokes = [];
-        variantsRow.name = `VariantsRow-${event.name}`;
-        variantsRow.layoutAlign = 'CENTER';
-        for (let v = 0; v < event.variants.length; v++) {
-          const variant = event.variants[v];
-          const variantCard = createVariantCard(variant, v);
-          variantsRow.appendChild(variantCard);
+    // Build connectors array (auto-generated if not provided)
+    const connectors: ConnectorV2[] = [];
+    
+    // Entry to first event
+    if (events.length > 0) {
+      connectors.push({
+        id: `conn-entry-${Date.now()}`,
+        type: 'PRIMARY_FLOW_LINE',
+        from: { nodeType: 'ENTRY_NODE', id: entry.id },
+        to: { nodeType: 'EVENT_NODE', id: events[0].id },
+        arrowhead: true,
+      });
+    }
+    
+    // Event to event
+    for (let i = 0; i < events.length - 1; i++) {
+      connectors.push({
+        id: `conn-event-${i}-${i+1}-${Date.now()}`,
+        type: 'PRIMARY_FLOW_LINE',
+        from: { nodeType: 'EVENT_NODE', id: events[i].id },
+        to: { nodeType: 'EVENT_NODE', id: events[i+1].id },
+        arrowhead: true,
+      });
+    }
+    
+    // Last event to exit
+    if (events.length > 0) {
+      connectors.push({
+        id: `conn-exit-${Date.now()}`,
+        type: 'PRIMARY_FLOW_LINE',
+        from: { nodeType: 'EVENT_NODE', id: events[events.length-1].id },
+        to: { nodeType: 'EXIT_NODE', id: exit.id },
+        arrowhead: true,
+      });
+    }
+    
+    // Event to variants (branch lines)
+    for (const event of events) {
+      if (event.variants && event.variants.length > 0) {
+        for (const variant of event.variants) {
+          connectors.push({
+            id: `conn-branch-${event.id}-${variant.id}-${Date.now()}`,
+            type: 'BRANCH_LINE',
+            from: { nodeType: 'EVENT_NODE', id: event.id },
+            to: { nodeType: 'VARIANT_NODE', id: variant.id },
+            label: variant.traffic ? `${variant.traffic}%` : undefined,
+            arrowhead: true,
+          });
         }
-        eventGroup.appendChild(variantsRow);
       }
-      eventGroup.primaryAxisAlignItems = 'CENTER';
-      eventGroup.counterAxisAlignItems = 'CENTER';
-
-      flowFrame.appendChild(eventGroup);
     }
-
-    // Position and append to canvas
-    const center = figma.viewport.center;
-    let totalWidth = flowFrame.width;
-    if (experimentInfoCard) totalWidth += experimentInfoCard.width + 48;
-    let startX = center.x - totalWidth / 2;
-
-    if (experimentInfoCard) {
-      experimentInfoCard.x = startX;
-      experimentInfoCard.y = center.y - experimentInfoCard.height / 2;
-      figma.currentPage.appendChild(experimentInfoCard);
-      startX += experimentInfoCard.width + 48;
-    }
-    flowFrame.x = startX;
-    flowFrame.y = center.y - flowFrame.height / 2;
-    figma.currentPage.appendChild(flowFrame);
-
-    // Draw connectors between event cards (sequentially)
-    // Helper to get absolute position of a node
-    function getAbsolutePos(node: SceneNode): { x: number; y: number } {
-      let x = node.x, y = node.y;
-      let parent = node.parent;
-      while (parent && parent.type !== 'PAGE') {
-        // Only add if parent has x/y (not DocumentNode, etc)
-        if ('x' in parent && 'y' in parent) {
-          x += (parent as any).x;
-          y += (parent as any).y;
+    
+    // Variants to next event (merge lines)
+    for (let i = 0; i < events.length - 1; i++) {
+      const currentEvent = events[i];
+      const nextEvent = events[i + 1];
+      if (currentEvent.variants && currentEvent.variants.length > 0) {
+        for (const variant of currentEvent.variants) {
+          connectors.push({
+            id: `conn-merge-${variant.id}-${nextEvent.id}-${Date.now()}`,
+            type: 'MERGE_LINE',
+            from: { nodeType: 'VARIANT_NODE', id: variant.id },
+            to: { nodeType: 'EVENT_NODE', id: nextEvent.id },
+            arrowhead: true,
+          });
         }
-        parent = parent.parent;
       }
-      return { x, y };
+    }
+    
+    // Variants to exit (if last event has variants)
+    if (events.length > 0) {
+      const lastEvent = events[events.length - 1];
+      if (lastEvent.variants && lastEvent.variants.length > 0) {
+        for (const variant of lastEvent.variants) {
+          connectors.push({
+            id: `conn-merge-${variant.id}-exit-${Date.now()}`,
+            type: 'MERGE_LINE',
+            from: { nodeType: 'VARIANT_NODE', id: variant.id },
+            to: { nodeType: 'EXIT_NODE', id: exit.id },
+            arrowhead: true,
+          });
+        }
+      }
     }
 
-    for (let i = 0; i < eventCardNodes.length - 1; i++) {
-      const from = eventCardNodes[i];
-      const to = eventCardNodes[i + 1];
-      // Get absolute positions
-      const fromAbs = getAbsolutePos(from);
-      const toAbs = getAbsolutePos(to);
-      // Anchor to right edge (vertical center) of 'from' and left edge (vertical center) of 'to'
-      const fromX = fromAbs.x + from.width;
-      const fromY = fromAbs.y + from.height / 2;
-      const toX = toAbs.x;
-      const toY = toAbs.y + to.height / 2;
-      const connector = createConnectorWithArrow(fromX, fromY, toX, toY);
-      figma.currentPage.appendChild(connector);
-      connector.locked = true;
-    }
+    const flow: FlowV2 = {
+      id: `flow-${experimentId}`,
+      layout: { direction: 'HORIZONTAL', eventSpacing: 160, variantSpacing: 24 },
+      entry,
+      events,
+      exit,
+      connectors,
+    };
 
-    figma.currentPage.selection = [flowFrame];
-    figma.viewport.scrollAndZoomIntoView([flowFrame, experimentInfoCard]);
+    // Use unified flow creation function
+    await createFlowV2FromData(experiment, flow);
   }
 
-  // Uncomment to auto-run sample flow on plugin open:
-  createSampleFlowFromData();
+  // Sample flow now uses v2 schema - see createSampleFlowV2 function below
+  // createSampleFlowFromData(); // OLD - commented out for merge
 
   // ...existing code...
 
@@ -412,18 +756,19 @@ if (figma.editorType === 'figma') {
     // Old Experiment Flow Row Card -- ACTUAL Variant Card
   // ...existing code...
 
-  function createNodeCard(title: string, subtitle?: string, trafficLabel?: string): FrameNode {
+  function createNodeCard(title: string, subtitle?: string, trafficLabel?: string, note?: string): FrameNode {
     const card = figma.createFrame();
     card.layoutMode = 'VERTICAL';
     card.counterAxisSizingMode = 'AUTO';
     card.primaryAxisSizingMode = 'AUTO';
-    card.paddingLeft = card.paddingRight = 20;
-    card.paddingTop = card.paddingBottom = 16;
-    card.cornerRadius = 16;
-    card.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-    card.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
+    card.paddingLeft = card.paddingRight = TOKENS.space16;
+    card.paddingTop = card.paddingBottom = TOKENS.space16;
+    card.cornerRadius = TOKENS.radiusLG;
+    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
+    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     card.strokeWeight = 1;
     card.name = title ? `Node: ${title}` : 'Node';
+    card.itemSpacing = TOKENS.space8;
 
     const topRow = figma.createFrame();
     topRow.layoutMode = 'HORIZONTAL';
@@ -436,8 +781,8 @@ if (figma.editorType === 'figma') {
 
     const titleText = figma.createText();
     titleText.fontName = { family: "Figtree", style: "Bold" };
-    titleText.fontSize = 18;
-    titleText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.3 } }];
+    titleText.fontSize = TOKENS.fontSizeBodyLg;
+    titleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     titleText.textAutoResize = 'WIDTH_AND_HEIGHT';
     titleText.characters = title && title.length > 0 ? title : '';
     topRow.appendChild(titleText);
@@ -447,22 +792,667 @@ if (figma.editorType === 'figma') {
     }
     card.appendChild(topRow);
 
-    // const thumb = figma.createFrame();
-    // thumb.resize(240, 140);
-    // thumb.cornerRadius = 12;
-    // thumb.fills = [{ type: 'SOLID', color: { r: 0.93, g: 0.95, b: 0.99 } }];
-    // thumb.strokes = [{ type: 'SOLID', color: { r: 0.85, g: 0.9, b: 1 } }];
-      if (trafficLabel) {
-        // Removed Pill: traffic chip
+    // Subtitle (if provided)
+    if (subtitle && subtitle.length > 0) {
       const subtitleText = figma.createText();
       subtitleText.fontName = { family: "Figtree", style: "Regular" };
-      subtitleText.fontSize = 14;
-      subtitleText.fills = [{ type: 'SOLID', color: { r: 0.4, g: 0.4, b: 0.5 } }];
+      subtitleText.fontSize = TOKENS.fontSizeBodyMd;
+      subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
       subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-      subtitleText.characters = subtitle && subtitle.length > 0 ? subtitle : '';
+      subtitleText.characters = subtitle;
+      subtitleText.name = 'Subtitle';
       card.appendChild(subtitleText);
     }
+
+    // Note/Description (if provided)
+    if (note && note.length > 0) {
+      const noteContainer = figma.createFrame();
+      noteContainer.layoutMode = 'VERTICAL';
+      noteContainer.counterAxisSizingMode = 'AUTO';
+      noteContainer.primaryAxisSizingMode = 'AUTO';
+      noteContainer.paddingLeft = noteContainer.paddingRight = TOKENS.space12;
+      noteContainer.paddingTop = noteContainer.paddingBottom = TOKENS.space8;
+      noteContainer.cornerRadius = TOKENS.radiusSM;
+      noteContainer.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.azure50) }];
+      noteContainer.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+      noteContainer.strokeWeight = 1;
+      noteContainer.name = 'Note Container';
+      // Set a reasonable fixed width for note container (will be constrained by card)
+      noteContainer.resize(200, noteContainer.height);
+      
+      const noteText = figma.createText();
+      noteText.fontName = { family: "Figtree", style: "Regular" };
+      noteText.fontSize = TOKENS.fontSizeBodySm;
+      noteText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textTertiary) }];
+      noteText.textAutoResize = 'HEIGHT'; // Allow wrapping
+      noteText.characters = note;
+      noteText.name = 'Note Text';
+      // Set width to fill container (accounting for container padding)
+      const textWidth = noteContainer.width - (TOKENS.space12 * 2);
+      noteText.resize(textWidth > 0 ? textWidth : 176, noteText.height);
+      noteContainer.appendChild(noteText);
+      
+      card.appendChild(noteContainer);
+    }
+
     return card;
+  }
+
+  // --- Unified V2 Flow Creation Function ---
+  // Extracted from message handler for reuse by both UI messages and sample flows
+  async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2): Promise<void> {
+    await loadFonts();
+
+    // Remove any existing flow frames with the same name/id
+    const flowFrameName = `Experiment Flow — ${experiment.name}`;
+    const infoCardName = `Experiment Info — ${experiment.name}`;
+    const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
+    if (existingFlow) existingFlow.remove();
+    let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
+    if (infoCard) infoCard.remove();
+
+    // Create experiment info card (optional, for context)
+    infoCard = await createExperimentInfoCard(
+      experiment.name,
+      experiment.description || 'e.g., Testing if new CTA increases conversions.',
+      experiment.links?.figma || '',
+      experiment.links?.jira || '',
+      experiment.links?.miro || ''
+    );
+    attachNodeMeta(infoCard, {
+      name: infoCardName,
+      type: 'frame' as CanvasNodeType,
+      description: experiment.description || 'e.g., Testing if new CTA increases conversions.',
+      extra: { experimentId: experiment.id, role: 'experiment-info' },
+    });
+
+    // Create main flow frame (spine) - HORIZONTAL LAYOUT
+    const flowFrameMeta = {
+      name: flowFrameName,
+      type: 'frame' as const,
+      experimentId: experiment.id,
+      role: 'experiment-flow',
+    };
+    const flowFrame = createFrame(flowFrameMeta, {
+      layoutMode: 'HORIZONTAL', // Force horizontal layout for event spine
+      itemSpacing: flow.layout?.eventSpacing ?? 160, // Wider spacing for horizontal
+      padding: 32,
+      paddingLeft: 48,
+      paddingRight: 48,
+      fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }],
+      cornerRadius: 24,
+      extra: {
+        primaryAxisSizingMode: 'AUTO',
+        counterAxisSizingMode: 'AUTO',
+      },
+    });
+    // IMPORTANT: Don't clip content so connectors can extend beyond frame bounds
+    flowFrame.clipsContent = false;
+
+    // --- Entry Node ---
+    const entry = flow.entry;
+    const entryCard = createNodeCard(entry.label, undefined, undefined, entry.note);
+    entryCard.name = 'Entry Node';
+    attachNodeMeta(entryCard, {
+      name: entry.label,
+      type: 'frame' as CanvasNodeType,
+      description: entry.note || '',
+      extra: {
+        role: 'entry',
+        entryId: entry.id,
+        experimentId: experiment.id,
+        nodeType: 'ENTRY_NODE',
+      },
+    });
+    flowFrame.appendChild(entryCard);
+
+    // --- Event Nodes + Variants ---
+    // Lay out eventGroups side by side in flowFrame (horizontal auto layout will do this)
+    for (const event of flow.events) {
+      // ...existing code for eventGroup creation...
+      const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
+        ? event.name
+        : `Event ${flow.events.indexOf(event) + 1}`;
+      const eventGroup = figma.createFrame();
+      eventGroup.layoutMode = 'VERTICAL';
+      eventGroup.counterAxisSizingMode = 'AUTO';
+      eventGroup.primaryAxisSizingMode = 'AUTO';
+      eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 32;
+      eventGroup.paddingLeft = eventGroup.paddingRight = 0;
+      eventGroup.paddingTop = eventGroup.paddingBottom = 0;
+      eventGroup.fills = [];
+      eventGroup.strokes = [];
+      eventGroup.name = `EventGroup: ${safeEventName}`;
+      eventGroup.resizeWithoutConstraints(220, 300);
+
+      const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
+      eventCard.name = `Event: ${safeEventName}`;
+      attachNodeMeta(eventCard, {
+        name: safeEventName,
+        type: 'frame' as CanvasNodeType,
+        description: event.entryNote?.text || '',
+        extra: {
+          role: 'event',
+          eventId: event.id,
+          experimentId: experiment.id,
+          hasVariants: !!event.variants?.length,
+          nodeType: 'EVENT_NODE',
+          entryNoteId: event.entryNote?.id,
+        },
+      });
+      eventGroup.appendChild(eventCard);
+
+      if (event.variants && event.variants.length > 0) {
+        const variantsContainer = figma.createFrame();
+        variantsContainer.layoutMode = 'VERTICAL';
+        variantsContainer.counterAxisSizingMode = 'AUTO';
+        variantsContainer.primaryAxisSizingMode = 'AUTO';
+        variantsContainer.itemSpacing = flow.layout?.variantSpacing ?? 24;
+        variantsContainer.paddingLeft = variantsContainer.paddingRight = 0;
+        variantsContainer.paddingTop = variantsContainer.paddingBottom = 0;
+        variantsContainer.fills = [];
+        variantsContainer.strokes = [];
+        variantsContainer.name = `Variants: ${safeEventName}`;
+        for (const [vIdx, variant] of event.variants.entries()) {
+          const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
+            ? variant.name
+            : `Variant ${String.fromCharCode(65 + vIdx)}`;
+          const variantForCard = {
+            ...variant,
+            name: safeVariantName,
+            status: (variant as any).status || 'none',
+            metrics: variant.metrics || { ctr: 0, cr: 0, su: 0 },
+          };
+          const variantCard = createVariantCard(variantForCard, vIdx);
+          variantCard.name = `Variant: ${safeVariantName}`;
+          variantCard.resizeWithoutConstraints(300, 280);
+          attachNodeMeta(variantCard, {
+            name: safeVariantName,
+            type: 'frame' as CanvasNodeType,
+            description: variant.description || '',
+            extra: {
+              role: 'variant',
+              eventId: event.id,
+              variantId: variant.id,
+              experimentId: experiment.id,
+              variantIndex: vIdx,
+              traffic: variant.traffic,
+              nodeType: 'VARIANT_NODE',
+              parentEventId: variant.parentEventId,
+            },
+          });
+          variantsContainer.appendChild(variantCard);
+        }
+        eventGroup.appendChild(variantsContainer);
+      }
+      flowFrame.appendChild(eventGroup);
+    }
+
+    // --- Exit Node ---
+    const exit = flow.exit;
+    const exitCard = createNodeCard(exit.label);
+    exitCard.name = 'Exit Node';
+    attachNodeMeta(exitCard, {
+      name: exit.label,
+      type: 'frame' as CanvasNodeType,
+      description: '',
+      extra: {
+        role: 'exit',
+        exitId: exit.id,
+        experimentId: experiment.id,
+        nodeType: 'EXIT_NODE',
+      },
+    });
+    // Always place exit node at the end of the spine (rightmost in horizontal layout)
+    // Remove and re-append to ensure it's last
+    if (flowFrame.children.length > 0 && flowFrame.children[flowFrame.children.length - 1] !== exitCard) {
+      if (exitCard.parent) exitCard.remove();
+      flowFrame.appendChild(exitCard);
+    }
+
+    // --- Position and append to canvas ---
+
+    const center = figma.viewport.center;
+    const gap = 100;
+    // Always append both to the canvas before setting positions
+    if (infoCard && infoCard.parent === null) {
+      figma.currentPage.appendChild(infoCard);
+    }
+    if (flowFrame && flowFrame.parent === null) {
+      figma.currentPage.appendChild(flowFrame);
+    }
+    // Guarantee both are visible and never overlap by enforcing a minimum width
+    const minInfoWidth = 240;
+    const minFlowWidth = 600;
+    const infoWidth = infoCard ? Math.max(infoCard.width, minInfoWidth) : minInfoWidth;
+    const infoHeight = infoCard ? infoCard.height : 0;
+    const flowWidth = Math.max(flowFrame.width, minFlowWidth);
+    const flowHeight = flowFrame.height;
+    const totalWidth = infoWidth + gap + flowWidth;
+    const startX = center.x - totalWidth / 2;
+    const sharedY = center.y;
+    if (infoCard) {
+      infoCard.x = 100;
+      infoCard.y = sharedY - infoHeight / 2;
+      if (infoCard.width < minInfoWidth) infoCard.resizeWithoutConstraints(minInfoWidth, infoCard.height);
+    }
+    if (flowFrame) {
+      flowFrame.x = 450;
+      flowFrame.y = sharedY - flowHeight / 2;
+      if (flowFrame.width < minFlowWidth) flowFrame.resizeWithoutConstraints(minFlowWidth, flowFrame.height);
+    }
+
+    // Align all eventGroups (children of flowFrame) to the shared Y axis
+    // No manual y alignment needed; horizontal auto layout will handle side-by-side arrangement
+
+    // --- Force Figma to update layout before drawing connectors ---
+    // This ensures all node positions are correct for absolute connector lines
+    await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay for layout to settle
+    
+    // --- Build comprehensive node map for connector rendering ---
+    // Use a more robust method: search by node name patterns and metadata
+    const nodeMap: Record<string, SceneNode & { width: number; height: number }> = {};
+    
+    // Helper to find node by ID in flowFrame
+    function findNodeById(id: string): (SceneNode & { width: number; height: number }) | null {
+      // First try direct lookup by searching all children recursively
+      function searchNode(node: SceneNode): SceneNode | null {
+        const meta = getNodeMeta(node);
+        if (meta?.extra) {
+          // Check various ID fields
+          if ((meta.extra as any).entryId === id || 
+              (meta.extra as any).eventId === id || 
+              (meta.extra as any).variantId === id ||
+              (meta.extra as any).exitId === id) {
+            return node as SceneNode & { width: number; height: number };
+          }
+        }
+        if ('children' in node) {
+          for (const child of node.children) {
+            const found = searchNode(child);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+      
+      const found = searchNode(flowFrame);
+      return found as (SceneNode & { width: number; height: number }) | null;
+    }
+    
+    // Map entry node
+    const foundEntry = findNodeById(flow.entry.id);
+    if (foundEntry) {
+      nodeMap[flow.entry.id] = foundEntry;
+    } else {
+      // Fallback: use entryCard directly
+      nodeMap[flow.entry.id] = entryCard as FrameNode;
+    }
+    
+    // Map event nodes and their variants
+    for (const event of flow.events) {
+      const foundEvent = findNodeById(event.id);
+      if (foundEvent) {
+        nodeMap[event.id] = foundEvent;
+      } else {
+        // Fallback: search by name pattern
+        const eventGroup = flowFrame.children.find(
+          child => child.type === 'FRAME' && child.name.includes(`EventGroup: ${event.name}`)
+        ) as FrameNode | undefined;
+        if (eventGroup && eventGroup.children.length > 0) {
+          const eventCard = eventGroup.children[0] as FrameNode;
+          if (eventCard) {
+            nodeMap[event.id] = eventCard;
+          }
+        }
+      }
+      
+      // Map variants if they exist
+      if (event.variants && event.variants.length > 0) {
+        for (const variant of event.variants) {
+          const foundVariant = findNodeById(variant.id);
+          if (foundVariant) {
+            nodeMap[variant.id] = foundVariant;
+          } else {
+            // Fallback: search in variants container
+            const eventGroup = flowFrame.children.find(
+              child => child.type === 'FRAME' && child.name.includes(`EventGroup: ${event.name}`)
+            ) as FrameNode | undefined;
+            if (eventGroup) {
+              const variantsContainer = eventGroup.children.find(
+                child => child.type === 'FRAME' && child.name.includes('Variants:')
+              ) as FrameNode | undefined;
+              if (variantsContainer) {
+                const variantCard = variantsContainer.children.find(
+                  child => child.name.includes(variant.name || variant.key)
+                ) as FrameNode | undefined;
+                if (variantCard) {
+                  nodeMap[variant.id] = variantCard;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Map exit node
+    const foundExit = findNodeById(flow.exit.id);
+    if (foundExit) {
+      nodeMap[flow.exit.id] = foundExit;
+    } else {
+      // Fallback: use exitCard directly
+      nodeMap[flow.exit.id] = exitCard as FrameNode;
+    }
+    
+    // Debug: Log node map
+    console.log('Node Map:', Object.keys(nodeMap));
+    console.log('Flow Connectors:', flow.connectors?.length || 0);
+
+    // --- Render Connectors from flow.connectors array ---
+    if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
+      console.log('Rendering connectors from schema:', flow.connectors.length);
+      for (const connector of flow.connectors) {
+        const fromNode = nodeMap[connector.from.id];
+        const toNode = nodeMap[connector.to.id];
+        
+        console.log(`Connector ${connector.type}:`, {
+          fromId: connector.from.id,
+          toId: connector.to.id,
+          fromFound: !!fromNode,
+          toFound: !!toNode
+        });
+        
+        if (fromNode && toNode) {
+          // Determine variant color if this is a branch line
+          let variantColor: string | undefined;
+          if (connector.type === 'BRANCH_LINE' && connector.from.nodeType === 'EVENT_NODE') {
+            // Find the variant in the event
+            const event = flow.events.find(e => e.id === connector.from.id);
+            if (event && event.variants) {
+              const variant = event.variants.find(v => v.id === connector.to.id);
+              if (variant) {
+                variantColor = (variant as any).color || variant.style?.variantColor;
+              }
+            }
+          }
+          
+          // Determine if this is a winner path
+          let isWinner = false;
+          if (connector.to.nodeType === 'VARIANT_NODE') {
+            const event = flow.events.find(e => {
+              return e.variants?.some(v => v.id === connector.to.id);
+            });
+            if (event) {
+              const variant = event.variants?.find(v => v.id === connector.to.id);
+              if (variant && (variant as any).status === 'winner') {
+                isWinner = true;
+              }
+            }
+          }
+          
+          // Create connector using unified function
+          createConnectorV2(
+            fromNode,
+            toNode,
+            connector.type,
+            flowFrame,
+            {
+              label: connector.label,
+              winner: isWinner,
+              variantColor: variantColor,
+              index: 0, // Could be enhanced to track variant index
+            }
+          );
+        }
+      }
+    } else {
+      // Fallback: Create connectors automatically if not provided in schema
+      console.log('No connectors in schema, auto-generating...');
+      console.log('Node map keys:', Object.keys(nodeMap));
+      
+      // Entry to first event
+      if (flow.events.length > 0) {
+        const firstEvent = flow.events[0];
+        const firstEventCard = nodeMap[firstEvent.id];
+        if (firstEventCard) {
+          createConnectorV2(
+            entryCard as FrameNode,
+            firstEventCard,
+            'PRIMARY_FLOW_LINE',
+            flowFrame
+          );
+        }
+      }
+      
+      // Event to event (primary flow)
+      for (let i = 0; i < flow.events.length - 1; i++) {
+        const fromEvent = flow.events[i];
+        const toEvent = flow.events[i + 1];
+        const fromNode = nodeMap[fromEvent.id];
+        const toNode = nodeMap[toEvent.id];
+        if (fromNode && toNode) {
+          createConnectorV2(
+            fromNode,
+            toNode,
+            'PRIMARY_FLOW_LINE',
+            flowFrame
+          );
+        }
+      }
+      
+      // Last event to exit
+      if (flow.events.length > 0) {
+        const lastEvent = flow.events[flow.events.length - 1];
+        const lastEventCard = nodeMap[lastEvent.id];
+        if (lastEventCard) {
+          createConnectorV2(
+            lastEventCard,
+            exitCard as FrameNode,
+            'PRIMARY_FLOW_LINE',
+            flowFrame
+          );
+        }
+      }
+      
+      // Event to variants (branch lines)
+      for (const event of flow.events) {
+        if (event.variants && event.variants.length > 0) {
+          const eventCard = nodeMap[event.id];
+          if (eventCard) {
+            for (const [vIdx, variant] of event.variants.entries()) {
+              const variantCard = nodeMap[variant.id];
+              if (variantCard) {
+                const variantColor = (variant as any).color || variant.style?.variantColor;
+                const isWinner = (variant as any).status === 'winner';
+                createConnectorV2(
+                  eventCard,
+                  variantCard,
+                  'BRANCH_LINE',
+                  flowFrame,
+                  {
+                    label: variant.traffic ? `${variant.traffic}%` : undefined,
+                    variantColor: variantColor,
+                    winner: isWinner,
+                    index: vIdx,
+                  }
+                );
+              }
+            }
+          }
+        }
+      }
+      
+      // Variants to next event (merge lines)
+      for (let i = 0; i < flow.events.length - 1; i++) {
+        const currentEvent = flow.events[i];
+        const nextEvent = flow.events[i + 1];
+        if (currentEvent.variants && currentEvent.variants.length > 0) {
+          const nextEventCard = nodeMap[nextEvent.id];
+          if (nextEventCard) {
+            for (const [vIdx, variant] of currentEvent.variants.entries()) {
+              const variantCard = nodeMap[variant.id];
+              if (variantCard) {
+                createConnectorV2(
+                  variantCard,
+                  nextEventCard,
+                  'MERGE_LINE',
+                  flowFrame,
+                  {
+                    index: vIdx,
+                  }
+                );
+              }
+            }
+          }
+        }
+      }
+      
+      // Variants to exit (if last event has variants)
+      if (flow.events.length > 0) {
+        const lastEvent = flow.events[flow.events.length - 1];
+        if (lastEvent.variants && lastEvent.variants.length > 0) {
+          for (const [vIdx, variant] of lastEvent.variants.entries()) {
+            const variantCard = nodeMap[variant.id];
+            if (variantCard) {
+              createConnectorV2(
+                variantCard,
+                exitCard as FrameNode,
+                'MERGE_LINE',
+                flowFrame,
+                {
+                  index: vIdx,
+                }
+              );
+            }
+          }
+        }
+      }
+    }
+    
+    // Debug: Verify connectors were created
+    const connectorCount = flowFrame.children.filter(
+      child => child.name.includes('Line') || child.name.includes('Arrowhead') || child.name.includes('Connector Label')
+    ).length;
+    console.log(`Total connector elements created: ${connectorCount}`);
+    if (connectorCount === 0) {
+      figma.notify('Warning: No connectors were created. Check console for details.');
+    } else {
+      figma.notify(`Created ${connectorCount} connector elements`);
+    }
+
+    figma.currentPage.selection = [flowFrame];
+    if (infoCard) {
+      figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
+    } else {
+      figma.viewport.scrollAndZoomIntoView([flowFrame]);
+    }
+
+    // --- Entry Notes Rendering ---
+    // In v2 schema, entry notes may be on flow.entryNotes or experiment.flow.entryNotes or not present
+    const entryNotesV2 = (flow as any).entryNotes || (experiment as any).entryNotes || [];
+    // Reuse nodeMap for anchor lookup (already built above for connectors)
+    // nodeMap is already populated with all nodes from connector rendering
+    if (Array.isArray(entryNotesV2)) {
+      for (const note of entryNotesV2) {
+        // Create a sticky note frame
+        const noteFrame = figma.createFrame();
+        noteFrame.layoutMode = 'VERTICAL';
+        noteFrame.counterAxisSizingMode = 'AUTO';
+        noteFrame.primaryAxisSizingMode = 'AUTO';
+        noteFrame.paddingLeft = noteFrame.paddingRight = TOKENS.space12;
+        noteFrame.paddingTop = noteFrame.paddingBottom = TOKENS.space8;
+        noteFrame.cornerRadius = TOKENS.radiusSM;
+        noteFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.yellow50) }];
+        noteFrame.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.yellow300) }];
+        noteFrame.strokeWeight = 1;
+        noteFrame.name = `EntryNote: ${note.text}`;
+
+        const noteText = figma.createText();
+        noteText.fontName = { family: 'Figtree', style: 'Regular' };
+        noteText.fontSize = TOKENS.fontSizeBodySm;
+        noteText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.yellow900) }];
+        noteText.characters = note.text;
+        noteText.textAutoResize = 'WIDTH_AND_HEIGHT';
+        noteFrame.appendChild(noteText);
+
+        attachNodeMeta(noteFrame, {
+          name: note.text,
+          type: 'frame',
+          description: 'Entry Note',
+          extra: {
+            role: 'entry-note',
+            entryNoteId: note.id,
+            anchor: note.attachTo,
+            experimentId: experiment.id,
+          },
+        });
+
+        // Position note based on attachTo
+        let anchorNode: SceneNode | undefined = undefined;
+        let anchorType = note.attachTo?.target;
+        let anchorId = note.attachTo?.targetId;
+        if (anchorType === 'EVENT_NODE' && anchorId) {
+          anchorNode = nodeMap[anchorId] as SceneNode;
+        }
+        if (anchorNode) {
+          // Place note above or to the left of anchor node, depending on layout
+          // For horizontal spine, place above; for vertical, place left
+          if (flow.layout?.direction === 'VERTICAL') {
+            noteFrame.x = (anchorNode?.x ?? 0) - noteFrame.width - 24;
+            noteFrame.y = (anchorNode?.y ?? 0) + (anchorNode?.height ?? 0) / 2 - noteFrame.height / 2;
+          } else {
+            noteFrame.x = (anchorNode?.x ?? 0) + (anchorNode?.width ?? 0) / 2 - noteFrame.width / 2;
+            noteFrame.y = (anchorNode?.y ?? 0) - noteFrame.height - 24;
+          }
+        } else {
+          // Default: place near flowFrame
+          noteFrame.x = flowFrame.x - 60;
+          noteFrame.y = flowFrame.y - 60;
+        }
+        figma.currentPage.appendChild(noteFrame);
+      }
+    }
+
+    // --- Outcome Annotation Rendering ---
+    if (experiment.outcomes && typeof experiment.outcomes.notes === 'string') {
+      const outcomeFrame = figma.createFrame();
+      outcomeFrame.layoutMode = 'VERTICAL';
+      outcomeFrame.counterAxisSizingMode = 'AUTO';
+      outcomeFrame.primaryAxisSizingMode = 'AUTO';
+      outcomeFrame.paddingLeft = outcomeFrame.paddingRight = 16;
+      outcomeFrame.paddingTop = outcomeFrame.paddingBottom = 10;
+      outcomeFrame.cornerRadius = 10;
+      outcomeFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 1, b: 0.9 } }];
+      outcomeFrame.strokes = [{ type: 'SOLID', color: { r: 0.3, g: 0.7, b: 0.3 } }];
+      outcomeFrame.strokeWeight = 1;
+      outcomeFrame.name = 'Outcome Note';
+
+      const outcomeText = figma.createText();
+      outcomeText.fontName = { family: 'Figtree', style: 'Regular' };
+      outcomeText.fontSize = 14;
+      outcomeText.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.3, b: 0.1 } }];
+      outcomeText.characters = experiment.outcomes.notes || '';
+      outcomeText.textAutoResize = 'WIDTH_AND_HEIGHT';
+      outcomeFrame.appendChild(outcomeText);
+
+      attachNodeMeta(outcomeFrame, {
+        name: 'Outcome Note',
+        type: 'frame',
+        description: 'Outcome annotation',
+        extra: {
+          role: 'outcome-note',
+          experimentId: experiment.id,
+        },
+      });
+
+      // Place outcome note above the flowFrame
+      outcomeFrame.x = flowFrame.x + flowFrame.width / 2 - 80;
+      outcomeFrame.y = flowFrame.y - 80;
+      figma.currentPage.appendChild(outcomeFrame);
+    }
+
+    figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
   }
 
   figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2) => {
@@ -471,332 +1461,7 @@ if (figma.editorType === 'figma') {
       console.log('Handler: create-flow-v2 (NEW SCHEMA)');
       // --- NEW V2 FLOW HANDLER ---
       const { experiment, flow } = msg.payload as CreateFlowV2Payload;
-      await loadFonts();
-
-      // Remove any existing flow frames with the same name/id
-      const flowFrameName = `Experiment Flow — ${experiment.name}`;
-      const infoCardName = `Experiment Info — ${experiment.name}`;
-      const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
-      if (existingFlow) existingFlow.remove();
-      let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
-      if (infoCard) infoCard.remove();
-
-      // Create experiment info card (optional, for context)
-      infoCard = await createExperimentInfoCard(
-        experiment.name,
-        experiment.description || 'e.g., Testing if new CTA increases conversions.',
-        experiment.links?.figma || '',
-        experiment.links?.jira || '',
-        experiment.links?.miro || ''
-      );
-      attachNodeMeta(infoCard, {
-        name: infoCardName,
-        type: 'frame' as CanvasNodeType,
-        description: experiment.description || 'e.g., Testing if new CTA increases conversions.',
-        extra: { experimentId: experiment.id, role: 'experiment-info' },
-      });
-
-      // Create main flow frame (spine) - HORIZONTAL LAYOUT
-      const flowFrameMeta = {
-        name: flowFrameName,
-        type: 'frame' as const,
-        experimentId: experiment.id,
-        role: 'experiment-flow',
-      };
-      const flowFrame = createFrame(flowFrameMeta, {
-        layoutMode: 'HORIZONTAL', // Force horizontal layout for event spine
-        itemSpacing: flow.layout?.eventSpacing ?? 160, // Wider spacing for horizontal
-        padding: 32,
-        paddingLeft: 48,
-        paddingRight: 48,
-        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }],
-        cornerRadius: 24,
-        extra: {
-          primaryAxisSizingMode: 'AUTO',
-          counterAxisSizingMode: 'AUTO',
-        },
-      });
-
-      // --- Entry Node ---
-      const entry = flow.entry;
-      const entryCard = createNodeCard(entry.label, undefined, undefined);
-      entryCard.name = 'Entry Node';
-      attachNodeMeta(entryCard, {
-        name: entry.label,
-        type: 'frame' as CanvasNodeType,
-        description: entry.note || '',
-        extra: {
-          role: 'entry',
-          entryId: entry.id,
-          experimentId: experiment.id,
-          nodeType: 'ENTRY_NODE',
-        },
-      });
-      flowFrame.appendChild(entryCard);
-
-      // --- Event Nodes + Variants ---
-      // Lay out eventGroups side by side in flowFrame (horizontal auto layout will do this)
-      for (const event of flow.events) {
-        // ...existing code for eventGroup creation...
-        const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
-          ? event.name
-          : `Event ${flow.events.indexOf(event) + 1}`;
-        const eventGroup = figma.createFrame();
-        eventGroup.layoutMode = 'VERTICAL';
-        eventGroup.counterAxisSizingMode = 'AUTO';
-        eventGroup.primaryAxisSizingMode = 'AUTO';
-        eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 32;
-        eventGroup.paddingLeft = eventGroup.paddingRight = 0;
-        eventGroup.paddingTop = eventGroup.paddingBottom = 0;
-        eventGroup.fills = [];
-        eventGroup.strokes = [];
-        eventGroup.name = `EventGroup: ${safeEventName}`;
-        eventGroup.resizeWithoutConstraints(220, 300);
-
-        const eventCard = createEventCard(safeEventName);
-        eventCard.name = `Event: ${safeEventName}`;
-        attachNodeMeta(eventCard, {
-          name: safeEventName,
-          type: 'frame' as CanvasNodeType,
-          description: event.entryNote?.text || '',
-          extra: {
-            role: 'event',
-            eventId: event.id,
-            experimentId: experiment.id,
-            hasVariants: !!event.variants?.length,
-            nodeType: 'EVENT_NODE',
-            entryNoteId: event.entryNote?.id,
-          },
-        });
-        eventGroup.appendChild(eventCard);
-
-        if (event.variants && event.variants.length > 0) {
-          const variantsContainer = figma.createFrame();
-          variantsContainer.layoutMode = 'VERTICAL';
-          variantsContainer.counterAxisSizingMode = 'AUTO';
-          variantsContainer.primaryAxisSizingMode = 'AUTO';
-          variantsContainer.itemSpacing = flow.layout?.variantSpacing ?? 24;
-          variantsContainer.paddingLeft = variantsContainer.paddingRight = 0;
-          variantsContainer.paddingTop = variantsContainer.paddingBottom = 0;
-          variantsContainer.fills = [];
-          variantsContainer.strokes = [];
-          variantsContainer.name = `Variants: ${safeEventName}`;
-          for (const [vIdx, variant] of event.variants.entries()) {
-            const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
-              ? variant.name
-              : `Variant ${String.fromCharCode(65 + vIdx)}`;
-            const variantForCard = {
-              ...variant,
-              name: safeVariantName,
-              status: (variant as any).status || 'none',
-              metrics: variant.metrics || { ctr: 0, cr: 0, su: 0 },
-            };
-            const variantCard = createVariantCard(variantForCard, vIdx);
-            variantCard.name = `Variant: ${safeVariantName}`;
-            variantCard.resizeWithoutConstraints(300, 280);
-            attachNodeMeta(variantCard, {
-              name: safeVariantName,
-              type: 'frame' as CanvasNodeType,
-              description: variant.description || '',
-              extra: {
-                role: 'variant',
-                eventId: event.id,
-                variantId: variant.id,
-                experimentId: experiment.id,
-                variantIndex: vIdx,
-                traffic: variant.traffic,
-                nodeType: 'VARIANT_NODE',
-                parentEventId: variant.parentEventId,
-              },
-            });
-            variantsContainer.appendChild(variantCard);
-          }
-          eventGroup.appendChild(variantsContainer);
-        }
-        flowFrame.appendChild(eventGroup);
-      }
-
-      // --- Exit Node ---
-      const exit = flow.exit;
-      const exitCard = createNodeCard(exit.label);
-      exitCard.name = 'Exit Node';
-      attachNodeMeta(exitCard, {
-        name: exit.label,
-        type: 'frame' as CanvasNodeType,
-        description: '',
-        extra: {
-          role: 'exit',
-          exitId: exit.id,
-          experimentId: experiment.id,
-          nodeType: 'EXIT_NODE',
-        },
-      });
-      // Always place exit node at the end of the spine (rightmost in horizontal layout)
-      // Remove and re-append to ensure it's last
-      if (flowFrame.children.length > 0 && flowFrame.children[flowFrame.children.length - 1] !== exitCard) {
-        if (exitCard.parent) exitCard.remove();
-        flowFrame.appendChild(exitCard);
-      }
-
-      // --- Position and append to canvas ---
-
-      const center = figma.viewport.center;
-      const gap = 100;
-      // Always append both to the canvas before setting positions
-      if (infoCard && infoCard.parent === null) {
-        figma.currentPage.appendChild(infoCard);
-      }
-      if (flowFrame && flowFrame.parent === null) {
-        figma.currentPage.appendChild(flowFrame);
-      }
-      // Guarantee both are visible and never overlap by enforcing a minimum width
-      const minInfoWidth = 240;
-      const minFlowWidth = 600;
-      const infoWidth = infoCard ? Math.max(infoCard.width, minInfoWidth) : minInfoWidth;
-      const infoHeight = infoCard ? infoCard.height : 0;
-      const flowWidth = Math.max(flowFrame.width, minFlowWidth);
-      const flowHeight = flowFrame.height;
-      const totalWidth = infoWidth + gap + flowWidth;
-      const startX = center.x - totalWidth / 2;
-      const sharedY = center.y;
-      if (infoCard) {
-        infoCard.x = 100;
-        infoCard.y = sharedY - infoHeight / 2;
-        if (infoCard.width < minInfoWidth) infoCard.resizeWithoutConstraints(minInfoWidth, infoCard.height);
-      }
-      if (flowFrame) {
-        flowFrame.x = 450;
-        flowFrame.y = sharedY - flowHeight / 2;
-        if (flowFrame.width < minFlowWidth) flowFrame.resizeWithoutConstraints(minFlowWidth, flowFrame.height);
-      }
-
-      // Align all eventGroups (children of flowFrame) to the shared Y axis
-      // No manual y alignment needed; horizontal auto layout will handle side-by-side arrangement
-
-      // --- Force Figma to update layout before drawing connectors ---
-      // This ensures all node positions are correct for absolute connector lines
-      await new Promise(resolve => setTimeout(resolve, 0));
-      figma.viewport.scrollAndZoomIntoView([flowFrame]);
-
-      figma.currentPage.selection = [flowFrame];
-      if (infoCard) {
-        figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
-      } else {
-        figma.viewport.scrollAndZoomIntoView([flowFrame]);
-      }
-
-      // --- Entry Notes Rendering ---
-      // In v2 schema, entry notes may be on flow.entryNotes or experiment.flow.entryNotes or not present
-      const entryNotesV2 = (flow as any).entryNotes || (experiment as any).entryNotes || [];
-      // Build nodeMap for anchor lookup (always available)
-      const nodeMap: Record<string, SceneNode> = {};
-      nodeMap[flow.entry.id] = flowFrame.children[0];
-      let eventIdx = 1;
-      for (const event of flow.events) {
-        nodeMap[event.id] = flowFrame.children[eventIdx];
-        eventIdx++;
-      }
-      nodeMap[flow.exit.id] = flowFrame.children[flowFrame.children.length - 1];
-      if (Array.isArray(entryNotesV2)) {
-        for (const note of entryNotesV2) {
-          // Create a sticky note frame
-          const noteFrame = figma.createFrame();
-          noteFrame.layoutMode = 'VERTICAL';
-          noteFrame.counterAxisSizingMode = 'AUTO';
-          noteFrame.primaryAxisSizingMode = 'AUTO';
-          noteFrame.paddingLeft = noteFrame.paddingRight = 12;
-          noteFrame.paddingTop = noteFrame.paddingBottom = 8;
-          noteFrame.cornerRadius = 8;
-          noteFrame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 0.7 } }];
-          noteFrame.strokes = [{ type: 'SOLID', color: { r: 0.9, g: 0.8, b: 0.2 } }];
-          noteFrame.strokeWeight = 1;
-          noteFrame.name = `EntryNote: ${note.text}`;
-
-          const noteText = figma.createText();
-          noteText.fontName = { family: 'Figtree', style: 'Regular' };
-          noteText.fontSize = 13;
-          noteText.fills = [{ type: 'SOLID', color: { r: 0.2, g: 0.2, b: 0.1 } }];
-          noteText.characters = note.text;
-          noteText.textAutoResize = 'WIDTH_AND_HEIGHT';
-          noteFrame.appendChild(noteText);
-
-          attachNodeMeta(noteFrame, {
-            name: note.text,
-            type: 'frame',
-            description: 'Entry Note',
-            extra: {
-              role: 'entry-note',
-              entryNoteId: note.id,
-              anchor: note.attachTo,
-              experimentId: experiment.id,
-            },
-          });
-
-          // Position note based on attachTo
-          let anchorNode: SceneNode | undefined = undefined;
-          let anchorType = note.attachTo?.target;
-          let anchorId = note.attachTo?.targetId;
-          if (anchorType === 'EVENT_NODE' && anchorId) {
-            anchorNode = nodeMap[anchorId];
-          }
-          if (anchorNode) {
-            // Place note above or to the left of anchor node, depending on layout
-            // For horizontal spine, place above; for vertical, place left
-            if (flow.layout?.direction === 'VERTICAL') {
-              noteFrame.x = (anchorNode?.x ?? 0) - noteFrame.width - 24;
-              noteFrame.y = (anchorNode?.y ?? 0) + (anchorNode?.height ?? 0) / 2 - noteFrame.height / 2;
-            } else {
-              noteFrame.x = (anchorNode?.x ?? 0) + (anchorNode?.width ?? 0) / 2 - noteFrame.width / 2;
-              noteFrame.y = (anchorNode?.y ?? 0) - noteFrame.height - 24;
-            }
-          } else {
-            // Default: place near flowFrame
-            noteFrame.x = flowFrame.x - 60;
-            noteFrame.y = flowFrame.y - 60;
-          }
-          figma.currentPage.appendChild(noteFrame);
-        }
-      }
-
-      // --- Outcome Annotation Rendering ---
-      if (experiment.outcomes && typeof experiment.outcomes.notes === 'string') {
-        const outcomeFrame = figma.createFrame();
-        outcomeFrame.layoutMode = 'VERTICAL';
-        outcomeFrame.counterAxisSizingMode = 'AUTO';
-        outcomeFrame.primaryAxisSizingMode = 'AUTO';
-        outcomeFrame.paddingLeft = outcomeFrame.paddingRight = 16;
-        outcomeFrame.paddingTop = outcomeFrame.paddingBottom = 10;
-        outcomeFrame.cornerRadius = 10;
-        outcomeFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 1, b: 0.9 } }];
-        outcomeFrame.strokes = [{ type: 'SOLID', color: { r: 0.3, g: 0.7, b: 0.3 } }];
-        outcomeFrame.strokeWeight = 1;
-        outcomeFrame.name = 'Outcome Note';
-
-        const outcomeText = figma.createText();
-        outcomeText.fontName = { family: 'Figtree', style: 'Regular' };
-        outcomeText.fontSize = 14;
-        outcomeText.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.3, b: 0.1 } }];
-        outcomeText.characters = experiment.outcomes.notes || '';
-        outcomeText.textAutoResize = 'WIDTH_AND_HEIGHT';
-        outcomeFrame.appendChild(outcomeText);
-
-        attachNodeMeta(outcomeFrame, {
-          name: 'Outcome Note',
-          type: 'frame',
-          description: 'Outcome annotation',
-          extra: {
-            role: 'outcome-note',
-            experimentId: experiment.id,
-          },
-        });
-
-        // Place outcome note above the flowFrame
-        outcomeFrame.x = flowFrame.x + flowFrame.width / 2 - 80;
-        outcomeFrame.y = flowFrame.y - 80;
-        figma.currentPage.appendChild(outcomeFrame);
-      }
-
-      figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
+      await createFlowV2FromData(experiment, flow);
     }
 
     // --- OLD HANDLERS BELOW ---
@@ -826,198 +1491,8 @@ if (figma.editorType === 'figma') {
         figma.notify('You must add at least one variant to create a flow.');
         return;
       }
-
-      await loadFonts();
-
-      function slugify(str: string): string {
-        return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      }
-      const slug = slugify(experimentName);
-      const flowFrameName = `Experiment Flow — ${experimentName}`;
-      const infoCardName = `Experiment Info — ${experimentName}`;
-
-      const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
-      if (existingFlow) existingFlow.remove();
-
-      let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
-      if (infoCard) infoCard.remove();
-      infoCard = await createExperimentInfoCard(
-        experimentName,
-        experimentDescription || '',
-        figmaLink || '',
-        jiraLink || '',
-        miroLink || ''
-      );
-      attachNodeMeta(infoCard, {
-        name: infoCardName,
-        type: 'frame' as CanvasNodeType,
-        description: experimentDescription || '',
-        extra: { experimentName, role: 'experiment-info' },
-      });
-
-      const flowFrameMeta = {
-        name: flowFrameName,
-        type: 'frame' as const,
-        experimentName,
-        role: 'experiment-flow',
-      };
-      let flowFrame = createFrame(flowFrameMeta, {
-        layoutMode: 'HORIZONTAL',
-        itemSpacing: 64,
-        padding: 32,
-        paddingLeft: 48,
-        paddingRight: 48,
-        fills: [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }],
-        cornerRadius: 24,
-        // Ensure hugging content
-        extra: {
-          primaryAxisSizingMode: 'AUTO',
-          counterAxisSizingMode: 'AUTO'
-        }
-      });
-
-
-      const entryCard = createNodeCard(entryLabel, undefined, '100%');
-      entryCard.name = 'Entry Node';
-      attachNodeMeta(entryCard, {
-        name: entryLabel,
-        type: 'frame' as CanvasNodeType,
-        extra: { role: 'entry', experimentName },
-      });
-
-
-      // Always use entryLabel for the event card name (never a variant name)
-      const eventCard = createEventCard(entryLabel || 'Event');
-      flowFrame.appendChild(eventCard);
-
-      // Add variant cards directly to flowFrame (ungrouped)
-      const variantNodes: FrameNode[] = [];
-      variants.forEach((variant: Variant, index: number) => {
-        const card = createVariantCard(variant, index);
-        // Compute fallback display name for meta and node name
-        const variantLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        let fallbackName = 'Variant';
-        if (typeof index === 'number' && index >= 0 && index < variantLetters.length) {
-          fallbackName = variantLetters[index];
-        }
-        const displayName = (variant.name && variant.name.trim().length > 0) ? variant.name : fallbackName;
-        card.name = `Variant: ${displayName}`;
-        attachNodeMeta(card, {
-          name: displayName,
-          type: 'frame' as CanvasNodeType,
-          extra: { role: 'variant', experimentName, variantIndex: index, traffic: variant.traffic, status: variant.status },
-        });
-        flowFrame.appendChild(card);
-        variantNodes.push(card);
-
-        connectNodes(eventCard, card, {
-          label: `${variant.traffic}%`,
-          winner: variant.status === "winner",
-          index,
-        });
-      });
-
-      const exitCard = createNodeCard(exitLabel);
-      exitCard.name = 'Exit Node';
-      attachNodeMeta(exitCard, {
-        name: exitLabel,
-        type: 'frame' as CanvasNodeType,
-        extra: { role: 'exit', experimentName },
-      });
-
-      flowFrame.appendChild(exitCard);
-
-
-      // Horizontally align infoCard and flowFrame, centered vertically
-      const center = figma.viewport.center;
-
-      const gap = 100;
-      // Compute total width and center both as a group
-      const totalWidth = (infoCard ? infoCard.width : 0) + gap + flowFrame.width;
-      const startX = center.x - totalWidth / 2;
-
-      // Remove from parent if already present to avoid double-append
-      let infoCardValid = infoCard && infoCard.parent;
-      let flowFrameValid = flowFrame && flowFrame.parent;
-      if (!infoCardValid) {
-        infoCard = await createExperimentInfoCard(
-          experimentName,
-          experimentDescription || '',
-          figmaLink || '',
-          jiraLink || '',
-          miroLink || ''
-        );
-        attachNodeMeta(infoCard, {
-          name: infoCardName,
-          type: 'frame' as CanvasNodeType,
-          description: experimentDescription || '',
-          extra: { experimentName, role: 'experiment-info' },
-        });
-      }
-      if (!flowFrameValid) {
-        const flowFrameMeta = {
-          name: flowFrameName,
-          type: 'frame' as CanvasNodeType,
-          extra: { experimentName, role: 'experiment-flow' },
-        };
-        flowFrame = createFrame(flowFrameMeta, {
-          layoutMode: 'HORIZONTAL',
-          itemSpacing: 64,
-          padding: 32,
-          paddingLeft: 48,
-          paddingRight: 48,
-          fills: [],
-          cornerRadius: 24,
-          // Ensure hugging content
-          extra: {
-            primaryAxisSizingMode: 'AUTO',
-            counterAxisSizingMode: 'AUTO'
-          }
-        });
-        // Removed reference to undefined roundBadge
-        // Entry card is not appended here, as eventGroup and variantGroup are appended independently
-      }
-
-      // Only set position and append if node is valid
-      if (infoCard && infoCard.parent === null) {
-        infoCard.x = startX;
-        infoCard.y = center.y - infoCard.height / 2;
-        figma.currentPage.appendChild(infoCard);
-      }
-      if (flowFrame && flowFrame.parent === null) {
-        flowFrame.x = startX + (infoCard ? infoCard.width : 0) + gap;
-        flowFrame.y = center.y - flowFrame.height / 2;
-        figma.currentPage.appendChild(flowFrame);
-      }
-
-      if (infoCard) figma.currentPage.appendChild(infoCard);
-      figma.currentPage.appendChild(flowFrame);
-
-      figma.currentPage.selection = [flowFrame];
-      if (infoCard) {
-        figma.viewport.scrollAndZoomIntoView([flowFrame, infoCard]);
-      } else {
-        figma.viewport.scrollAndZoomIntoView([flowFrame]);
-      }
-
-        // --- Visual QA: Send node data to UI ---
-        // figma.ui.postMessage({ type: 'qa-node', payload: serializeNode(flowFrame) }); // Debug output hidden
-
-      for (let i = 0; i < variantNodes.length; i++) {
-        connectNodes(entryCard, variantNodes[i], {
-          winner: variants[i].status === 'winner',
-          label: `${variants[i].traffic}%`,
-          index: i
-        });
-      }
-      for (let i = 0; i < variantNodes.length; i++) {
-        connectNodes(variantNodes[i], exitCard, {
-          winner: variants[i].status === 'winner',
-          index: i
-        });
-      }
-
-      figma.notify('Experiment flow created.');
+      // The old handler logic is deprecated and replaced by the sample/demo flow and v2 handler.
+      figma.notify('This flow type is deprecated. Please use the updated flow builder.');
     } else if (msg.type === 'create-from-selection') {
       const selection = figma.currentPage.selection.filter(node => node.type === 'FRAME' || node.type === 'GROUP');
       if (selection.length === 0) {
@@ -1051,7 +1526,7 @@ if (figma.editorType === 'figma') {
         entryCard = createVariantCard(matchingVariant);
         entryCard.name = 'Entry Variant Node';
       } else {
-        entryCard = createEventCard(entryLabel);
+        entryCard = createEventCard(entryLabel, 0);
         entryCard.name = 'Entry Event Node';
       }
       flowFrame.appendChild(entryCard);
@@ -1100,14 +1575,14 @@ if (figma.editorType === 'figma') {
       figma.viewport.scrollAndZoomIntoView([flowFrame]);
 
       for (let i = 0; i < variantNodes.length; i++) {
-        connectNodes(entryCard, variantNodes[i], {
+        connectNodes(entryCard, variantNodes[i], flowFrame, {
           winner: variants[i].status === 'winner',
           label: `${variants[i].traffic}%`,
           index: i
         });
       }
       for (let i = 0; i < variantNodes.length; i++) {
-        connectNodes(variantNodes[i], exitCard, {
+        connectNodes(variantNodes[i], exitCard, flowFrame, {
           winner: variants[i].status === 'winner',
           index: i
         });
@@ -1121,9 +1596,11 @@ if (figma.editorType === 'figma') {
     }
   };
 
+
   function connectNodes(
-    fromNode: SceneNode,
-    toNode: SceneNode,
+    fromNode: SceneNode & { width: number; height: number },
+    toNode: SceneNode & { width: number; height: number },
+    flowFrame?: FrameNode,
     options?: {
       winner?: boolean;
       label?: string;
@@ -1131,52 +1608,160 @@ if (figma.editorType === 'figma') {
     }
   ): SceneNode | null {
     const color = options?.winner
-      ? { r: 0.22, g: 0.7, b: 0.36 }
-      : { r: 0.18, g: 0.45, b: 0.85 };
-
+      ? hexToRgb(TOKENS.malachite600)
+      : hexToRgb(TOKENS.royalBlue600);
     const strokeWeight = options?.winner ? 7 : 4;
 
-    const fx = fromNode.absoluteTransform[0][2];
-    const fy = fromNode.absoluteTransform[1][2];
-    const tx = toNode.absoluteTransform[0][2];
-    const ty = toNode.absoluteTransform[1][2];
-
-    const startX = fx + fromNode.width;
-    const startY = fy + fromNode.height / 2;
-    const endX = tx;
-    const endY = ty + toNode.height / 2;
-
-    const index = options?.index ?? 0;
-    const midX = startX + 96 + index * 12;
-
-    const pathData = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
-
-    const line = figma.createVector();
-    line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
-    line.strokes = [{ type: "SOLID", color }];
-    line.strokeWeight = strokeWeight;
-    line.strokeAlign = "CENTER";
-    line.name = "Flow Line";
-    figma.currentPage.appendChild(line);
-
-    if (options?.label) {
-      // Removed Pill: label chip
+    // Utility: Get best edge-to-edge connection points between two rectangles
+    function getEdgeToEdgePoints(
+      from: SceneNode & { width: number; height: number },
+      to: SceneNode & { width: number; height: number },
+      fromMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' | undefined = undefined,
+      toMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' | undefined = undefined
+    ): { from: { x: number; y: number }; to: { x: number; y: number } } {
+      const fx = from.absoluteTransform[0][2];
+      const fy = from.absoluteTransform[1][2];
+      const tx = to.absoluteTransform[0][2];
+      const ty = to.absoluteTransform[1][2];
+      // Helper to get edge point
+      function getMagnetPoint(node: SceneNode & { width: number; height: number }, x: number, y: number, magnet: string | undefined) {
+        switch (magnet) {
+          case 'LEFT': return { x, y: y + node.height / 2 };
+          case 'RIGHT': return { x: x + node.width, y: y + node.height / 2 };
+          case 'TOP': return { x: x + node.width / 2, y };
+          case 'BOTTOM': return { x: x + node.width / 2, y: y + node.height };
+          default: return { x: x + node.width / 2, y: y + node.height / 2 };
+        }
+      }
+      let fromPoint = getMagnetPoint(from, fx, fy, fromMagnet);
+      let toPoint = getMagnetPoint(to, tx, ty, toMagnet);
+      return { from: fromPoint, to: toPoint };
     }
 
-    const arrow = figma.createVector();
-    const size = 10;
-    arrow.vectorPaths = [
-      {
-        windingRule: "NONZERO",
-        data: `M ${endX} ${endY} L ${endX - size} ${endY - size / 2} L ${endX - size} ${endY + size / 2} Z`,
-      },
-    ];
-    arrow.fills = [{ type: "SOLID", color }];
-    arrow.strokes = [];
-    arrow.name = "Arrowhead";
-    figma.currentPage.appendChild(arrow);
-
-    return line;
+    // Support explicit magnet endpoints via options
+    // const fromMagnet = options?.fromMagnet as ('LEFT'|'RIGHT'|'TOP'|'BOTTOM'|undefined);
+    // const toMagnet = options?.toMagnet as ('LEFT'|'RIGHT'|'TOP'|'BOTTOM'|undefined);
+    // Helper to get absolute position of a node
+    function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+      let x = node.x, y = node.y;
+      let parent = node.parent;
+      while (parent && parent.type !== 'PAGE') {
+        if ('x' in parent && 'y' in parent) {
+          x += (parent as any).x;
+          y += (parent as any).y;
+        }
+        parent = parent.parent;
+      }
+      return { x, y };
+    }
+    // Get edge-to-edge points using absolute positions
+    function getEdgeToEdgePointsAbs(
+      from: SceneNode & { width: number; height: number },
+      to: SceneNode & { width: number; height: number }
+    ): { from: { x: number; y: number }; to: { x: number; y: number } } {
+      const fromAbs = getAbsolutePos(from);
+      const toAbs = getAbsolutePos(to);
+      // Center points
+      const fromCenter = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height / 2 };
+      const toCenter = { x: toAbs.x + to.width / 2, y: toAbs.y + to.height / 2 };
+      // Direction vector
+      const dx = toCenter.x - fromCenter.x;
+      const dy = toCenter.y - fromCenter.y;
+      let fromPoint, toPoint;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        fromPoint = {
+          x: dx > 0 ? fromAbs.x + from.width : fromAbs.x,
+          y: fromAbs.y + from.height / 2
+        };
+        toPoint = {
+          x: dx > 0 ? toAbs.x : toAbs.x + to.width,
+          y: toAbs.y + to.height / 2
+        };
+      } else {
+        fromPoint = {
+          x: fromAbs.x + from.width / 2,
+          y: dy > 0 ? fromAbs.y + from.height : fromAbs.y
+        };
+        toPoint = {
+          x: toAbs.x + to.width / 2,
+          y: dy > 0 ? toAbs.y : toAbs.y + to.height
+        };
+      }
+      return { from: fromPoint, to: toPoint };
+    }
+    const { from: startAbs, to: endAbs } = getEdgeToEdgePointsAbs(fromNode, toNode);
+    // Convert to flowFrame-local coordinates
+    let start = { ...startAbs }, end = { ...endAbs };
+    if (flowFrame) {
+      const frameAbs = getAbsolutePos(flowFrame);
+      start.x = startAbs.x - frameAbs.x;
+      start.y = startAbs.y - frameAbs.y;
+      end.x = endAbs.x - frameAbs.x;
+      end.y = endAbs.y - frameAbs.y;
+    }
+    const index = options?.index ?? 0;
+    // Add a small offset for parallel lines if needed
+    let midX, midY;
+    let line, arrow;
+    if (Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
+      // Horizontal: elbow in X
+      midX = start.x + (end.x - start.x) * 0.5 + index * 12;
+      midY = start.y;
+      const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${midX} ${end.y} L ${end.x} ${end.y}`;
+      line = figma.createVector();
+      line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+      line.strokes = [{ type: "SOLID", color }];
+      line.strokeWeight = strokeWeight;
+      line.strokeAlign = "CENTER";
+      line.name = "Flow Line";
+      if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
+      if (options?.label) {
+        // Removed Pill: label chip
+      }
+      // Arrowhead
+      arrow = figma.createVector();
+      const size = 10;
+      arrow.vectorPaths = [
+        {
+          windingRule: "NONZERO",
+          data: `M ${end.x} ${end.y} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y - size / 2} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y + size / 2} Z`,
+        },
+      ];
+      arrow.fills = [{ type: "SOLID", color }];
+      arrow.strokes = [];
+      arrow.name = "Arrowhead";
+      if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
+      return line;
+    } else {
+      // Vertical: elbow in Y
+      midX = start.x;
+      midY = start.y + (end.y - start.y) * 0.5 + index * 12;
+      const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
+      line = figma.createVector();
+      line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+      line.strokes = [{ type: "SOLID", color }];
+      line.strokeWeight = strokeWeight;
+      line.strokeAlign = "CENTER";
+      line.name = "Flow Line";
+      if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
+      if (options?.label) {
+        // Removed Pill: label chip
+      }
+      // Arrowhead
+      arrow = figma.createVector();
+      const size = 10;
+      arrow.vectorPaths = [
+        {
+          windingRule: "NONZERO",
+          data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${end.y - size * Math.sign(end.y - start.y)} L ${end.x + size / 2} ${end.y - size * Math.sign(end.y - start.y)} Z`,
+        },
+      ];
+      arrow.fills = [{ type: "SOLID", color }];
+      arrow.strokes = [];
+      arrow.name = "Arrowhead";
+      if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
+      return line;
+    }
   }
 
   async function loadFonts() {
