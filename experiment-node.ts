@@ -12,8 +12,8 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.minWidth = 300; // 18.75rem
   card.maxWidth = 400; // 25rem
   card.resize(300, 280); // Default width 300px (18.75rem)
-  card.paddingLeft = 0;
-  card.paddingRight = 0;
+  card.paddingLeft = 16;
+  card.paddingRight = 16;
   card.paddingTop = 16; // 1rem
   card.paddingBottom = 12; // 0.75rem
   card.cornerRadius = 16; // 1rem
@@ -142,10 +142,10 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   card.minWidth = 300; // 18.75rem
   card.maxWidth = 400; // 25rem
   card.resize(300, 400); // Default width 300px (18.75rem)
-  card.paddingLeft = 0;
-  card.paddingRight = 0;
+  card.paddingLeft = 16;
+  card.paddingRight = 16;
   card.paddingTop = 16; // 1rem
-  card.paddingBottom = 12; // 0.75rem
+  card.paddingBottom = 16; // 0.75rem
   card.cornerRadius = 16; // 1rem
   card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
   card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
