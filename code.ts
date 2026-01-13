@@ -90,12 +90,23 @@ function createConnectorV2(
     const dy = toAbs.y - fromAbs.y;
     
     let fromPoint, toPoint;
-    if (type === 'PRIMARY_FLOW_LINE' || Math.abs(dx) > Math.abs(dy)) {
+    if (type === 'PRIMARY_FLOW_LINE' || type === 'MERGE_LINE') {
+      // Horizontal connections (left-right)
       fromPoint = { x: dx > 0 ? fromAbs.x + from.width : fromAbs.x, y: fromAbs.y + from.height / 2 };
       toPoint = { x: dx > 0 ? toAbs.x : toAbs.x + to.width, y: toAbs.y + to.height / 2 };
+    } else if (type === 'BRANCH_LINE') {
+      // Vertical connections (event to variant: bottom to top)
+      fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height };
+      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
     } else {
-      fromPoint = { x: fromAbs.x + from.width / 2, y: dy > 0 ? fromAbs.y + from.height : fromAbs.y };
-      toPoint = { x: toAbs.x + to.width / 2, y: dy > 0 ? toAbs.y : toAbs.y + to.height };
+      // Auto-detect based on distance
+      if (Math.abs(dx) > Math.abs(dy)) {
+        fromPoint = { x: dx > 0 ? fromAbs.x + from.width : fromAbs.x, y: fromAbs.y + from.height / 2 };
+        toPoint = { x: dx > 0 ? toAbs.x : toAbs.x + to.width, y: toAbs.y + to.height / 2 };
+      } else {
+        fromPoint = { x: fromAbs.x + from.width / 2, y: dy > 0 ? fromAbs.y + from.height : fromAbs.y };
+        toPoint = { x: toAbs.x + to.width / 2, y: dy > 0 ? toAbs.y : toAbs.y + to.height };
+      }
     }
     return { from: fromPoint, to: toPoint };
   }
@@ -779,7 +790,7 @@ if (figma.editorType === 'figma') {
     // This allows ConnectorNodes to work with magnetized anchors
     const center = figma.viewport.center;
     const eventSpacing = flow.layout?.eventSpacing ?? 200;
-    const variantSpacing = flow.layout?.variantSpacing ?? 32;
+    const variantSpacing = flow.layout?.variantSpacing ?? 100;
     const baseX = infoCard ? infoCard.x + infoCard.width + 200 : 600; // Start after info card
     const baseY = infoCard ? infoCard.y : center.y;
     
@@ -807,9 +818,13 @@ if (figma.editorType === 'figma') {
     figma.currentPage.appendChild(entryCard);
     allNodes.push({node: entryCard as SceneNode & {width: number; height: number}, id: entry.id, type: 'ENTRY_NODE'});
 
-    // --- Event Nodes + Variants ---
-    // Place nodes directly on page with manual positioning for magnetized connectors
+    // --- Event Nodes ---
+    // Place event nodes directly on page with manual positioning for magnetized connectors
     let currentX = baseX + entryCard.width + eventSpacing;
+    let maxEventHeight = 0;
+    
+    // Store event positions for variant placement
+    const eventPositions: {event: any, eventCard: any, x: number, y: number}[] = [];
     
     for (const [eventIdx, event] of flow.events.entries()) {
       const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
@@ -839,9 +854,22 @@ if (figma.editorType === 'figma') {
       figma.currentPage.appendChild(eventCard);
       allNodes.push({node: eventCard as SceneNode & {width: number; height: number}, id: event.id, type: 'EVENT_NODE'});
       
-      // Create variants below the event
+      // Store position for variant placement
+      eventPositions.push({event, eventCard, x: currentX, y: baseY});
+      
+      // Track max height for variant row positioning
+      maxEventHeight = Math.max(maxEventHeight, eventCard.height);
+      
+      // Move to next event position
+      currentX += eventCard.width + eventSpacing;
+    }
+
+    // --- Variants ---
+    // Create variants for each event, horizontally aligned below that event
+    for (const {event, eventCard, x: eventX, y: eventY} of eventPositions) {
       if (event.variants && event.variants.length > 0) {
-        let variantY = baseY + eventCard.height + variantSpacing;
+        let variantX = eventX;
+        const variantY = eventY + eventCard.height + variantSpacing;
         
         for (const [vIdx, variant] of event.variants.entries()) {
           const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
@@ -892,18 +920,15 @@ if (figma.editorType === 'figma') {
             },
           });
           
-          // Position variant below event
-          variantCard.x = currentX;
+          // Position variant in horizontal row below event
+          variantCard.x = variantX;
           variantCard.y = variantY;
           figma.currentPage.appendChild(variantCard);
           allNodes.push({node: variantCard as SceneNode & {width: number; height: number}, id: variant.id, type: 'VARIANT_NODE'});
           
-          variantY += variantCard.height + variantSpacing;
+          variantX += variantCard.width + variantSpacing;
         }
       }
-      
-      // Move to next event position
-      currentX += eventCard.width + eventSpacing;
     }
 
     // --- Exit Node ---

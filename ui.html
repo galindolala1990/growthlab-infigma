@@ -4397,6 +4397,22 @@
           arrowhead: true
         });
       }
+      // Event to variants (BRANCH_LINE)
+      for (let i = 0; i < sanitizedEvents.length; i++) {
+        const event = sanitizedEvents[i];
+        if (event.variants && event.variants.length > 0) {
+          for (let vIdx = 0; vIdx < event.variants.length; vIdx++) {
+            const variant = event.variants[vIdx];
+            connectors.push({
+              id: `conn-event-variant-${i}-${vIdx}-${Date.now()}`,
+              type: 'BRANCH_LINE',
+              from: { nodeType: 'EVENT_NODE', id: event.id },
+              to: { nodeType: 'VARIANT_NODE', id: variant.id },
+              arrowhead: true
+            });
+          }
+        }
+      }
       // Last event to exit
       if (sanitizedEvents.length > 0) {
         connectors.push({
@@ -4410,7 +4426,7 @@
 
       const flow = {
         id: `flow-${experimentId}`,
-        layout: { direction: 'VERTICAL', eventSpacing: 64, variantSpacing: 24 },
+        layout: { direction: 'VERTICAL', eventSpacing: 64, variantSpacing: 100 },
         entry: entryNode,
         events: sanitizedEvents,
         exit: exitNode,
