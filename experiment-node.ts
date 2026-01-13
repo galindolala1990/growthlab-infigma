@@ -31,7 +31,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   }];
   card.itemSpacing = 12; // 0.75rem gap
   card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'MIN';
+  card.counterAxisAlignItems = 'CENTER';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
@@ -112,6 +112,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.fontSize = TOKENS.fontSizeBodyLg;
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
+  eventNameText.textAlignHorizontal = 'LEFT';
   eventNameText.characters = eventName || 'Event Name';
   eventNameText.name = 'Event Name Text';
   card.appendChild(eventNameText);
@@ -121,6 +122,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   subtitleText.fontSize = TOKENS.fontSizeBodyMd;
   subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
+  subtitleText.textAlignHorizontal = 'LEFT';
   const count = variantCount ?? 0;
   subtitleText.characters = `${count} variant${count !== 1 ? 's' : ''}`;
   subtitleText.name = 'Number of Variants';
