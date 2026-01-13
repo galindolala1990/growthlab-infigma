@@ -274,10 +274,11 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   nameRow.name = 'Name Row';
   nameRow.layoutAlign = 'MIN';
 
-  // Blue radio button indicator
+  // Radio button indicator (uses variant color)
   const radioButton = figma.createEllipse();
   radioButton.resize(10, 10);
-  radioButton.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+  const variantColor = (variant as any).color || TOKENS.royalBlue600;
+  radioButton.fills = [{ type: 'SOLID', color: hexToRgb(variantColor) }];
   radioButton.strokes = [];
   radioButton.name = 'Radio Button';
   nameRow.appendChild(radioButton);
@@ -349,7 +350,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   const trafficText = figma.createText();
   trafficText.fontName = getFontStyle("Regular");
   trafficText.fontSize = TOKENS.fontSizeBodyMd;
-  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   trafficText.textAutoResize = 'WIDTH_AND_HEIGHT';
   const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
   trafficText.characters = `${trafficValue}%`;
@@ -385,7 +386,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   const metricsHeader = figma.createText();
   metricsHeader.fontName = getFontStyle("Medium");
   metricsHeader.fontSize = TOKENS.fontSizeLabel;
-  metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   metricsHeader.textAutoResize = 'WIDTH_AND_HEIGHT';
   metricsHeader.characters = 'Metrics';
   metricsHeader.name = 'Metrics Header';
@@ -426,7 +427,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
     const labelText = figma.createText();
     labelText.fontName = getFontStyle("Bold");
     labelText.fontSize = TOKENS.fontSizeBodySm;
-    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
     labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
     labelText.characters = label;
     labelText.name = `${label} Label`;
