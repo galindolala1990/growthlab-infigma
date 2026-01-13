@@ -288,8 +288,8 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   variantNameText.fontSize = TOKENS.fontSizeBodyLg;
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  const variantKey = variant.key || (variantIndex !== undefined ? String.fromCharCode(65 + variantIndex) : 'A');
-  variantNameText.characters = `Variant ${variantKey}`;
+  const variantName = variant.name || (variantIndex !== undefined ? String.fromCharCode(65 + variantIndex) : 'A');
+  variantNameText.characters = `${variantName}`;
   variantNameText.name = 'Variant Name';
   nameRow.appendChild(variantNameText);
 
