@@ -823,7 +823,7 @@ if (figma.editorType === 'figma') {
         : `Event ${flow.events.indexOf(event) + 1}`;
       const eventGroup = figma.createFrame();
       eventGroup.layoutMode = 'VERTICAL';
-      eventGroup.layoutAlign = 'INHERIT';
+      eventGroup.layoutAlign = 'STRETCH';
       eventGroup.counterAxisSizingMode = 'AUTO';
       eventGroup.primaryAxisSizingMode = 'AUTO';
       eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 32;
@@ -836,6 +836,9 @@ if (figma.editorType === 'figma') {
 
       const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
       eventCard.name = `Event: ${safeEventName}`;
+      eventCard.layoutAlign = 'STRETCH';
+      eventCard.paddingLeft = eventCard.paddingRight = 16;
+      eventCard.paddingTop = eventCard.paddingBottom = 16;
       attachNodeMeta(eventCard, {
         name: safeEventName,
         type: 'frame' as CanvasNodeType,
@@ -854,6 +857,7 @@ if (figma.editorType === 'figma') {
       if (event.variants && event.variants.length > 0) {
         const variantsContainer = figma.createFrame();
         variantsContainer.layoutMode = 'VERTICAL';
+        variantsContainer.layoutAlign = 'STRETCH';
         variantsContainer.counterAxisSizingMode = 'AUTO';
         variantsContainer.primaryAxisSizingMode = 'AUTO';
         variantsContainer.itemSpacing = flow.layout?.variantSpacing ?? 24;
@@ -874,6 +878,9 @@ if (figma.editorType === 'figma') {
           };
           const variantCard = createVariantCard(variantForCard, vIdx);
           variantCard.name = `Variant: ${safeVariantName}`;
+          variantCard.layoutAlign = 'STRETCH';
+          variantCard.paddingLeft = variantCard.paddingRight = 16;
+          variantCard.paddingTop = variantCard.paddingBottom = 16;
           variantCard.resizeWithoutConstraints(300, 280);
           attachNodeMeta(variantCard, {
             name: safeVariantName,

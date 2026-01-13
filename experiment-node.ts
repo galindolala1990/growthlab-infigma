@@ -30,8 +30,8 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     blendMode: 'NORMAL',
   }];
   card.itemSpacing = 12; // 0.75rem gap
-  card.primaryAxisAlignItems = 'CENTER';
-  card.counterAxisAlignItems = 'CENTER';
+  card.primaryAxisAlignItems = 'MIN';
+  card.counterAxisAlignItems = 'MIN';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
@@ -42,7 +42,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   topRow.fills = [];
   topRow.strokes = [];
   topRow.name = 'Top Row';
-  topRow.layoutAlign = 'CENTER'; // Center align to match card alignment
+  topRow.layoutAlign = 'MIN'; // Left align to match card alignment
 
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
@@ -154,8 +154,8 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
     blendMode: 'NORMAL',
   }];
   card.itemSpacing = 12; // 0.75rem gap
-  card.primaryAxisAlignItems = 'CENTER';
-  card.counterAxisAlignItems = 'CENTER';
+  card.primaryAxisAlignItems = 'MIN';
+  card.counterAxisAlignItems = 'MIN';
 
   const topRow = figma.createFrame();
   topRow.layoutMode = 'HORIZONTAL';
@@ -165,7 +165,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   topRow.fills = [];
   topRow.strokes = [];
   topRow.name = 'Top Row';
-  topRow.layoutAlign = 'CENTER'; // Center align to match card alignment
+  topRow.layoutAlign = 'MIN'; // Left align to match card alignment
 
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
