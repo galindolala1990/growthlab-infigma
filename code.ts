@@ -36,7 +36,7 @@ function createMagnetizedConnector(
   connector.connectorLineType = options?.connectorLineType || 'ELBOWED';
   connector.strokeWeight = options?.strokeWeight ?? 4;
   // connector.cornerRadius = options?.cornerRadius ?? 24; // Not allowed on ConnectorNode
-  connector.strokeJoin = 'BEVEL';
+  connector.strokeJoin = 'ROUND';
   // connector.strokeCap = 'NONE'; // Not allowed on ConnectorNode
   connector.connectorEndStrokeCap = 'ARROW_LINES';
   connector.strokes = [{ type: 'SOLID', color: options?.color ?? hexToRgb(TOKENS.royalBlue600) }];
@@ -170,20 +170,27 @@ function createConnectorV2(
     line.strokes = [{ type: "SOLID", color }];
     line.strokeWeight = strokeWeight;
     line.strokeAlign = "CENTER";
+    line.strokeCap = "ROUND";
+    line.strokeJoin = "ROUND";
     if (style.dashPattern) line.dashPattern = style.dashPattern;
     line.name = `${type} Line`;
     figma.currentPage.appendChild(line);
     
-    // Arrowhead
+    // Arrowhead - chevron (open caret)
     if (style.arrowhead) {
       const size = 10;
       arrow = figma.createVector();
+      // Create chevron: two lines forming a V (no fill, just stroke)
+      const arrowX = end.x - size * Math.sign(end.x - start.x);
       arrow.vectorPaths = [{
         windingRule: "NONZERO",
-        data: `M ${end.x} ${end.y} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y - size / 2} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y + size / 2} Z`,
+        data: `M ${end.x} ${end.y} L ${arrowX} ${end.y - size / 2} M ${end.x} ${end.y} L ${arrowX} ${end.y + size / 2}`,
       }];
-      arrow.fills = [{ type: "SOLID", color }];
-      arrow.strokes = [];
+      arrow.fills = [];
+      arrow.strokes = [{ type: "SOLID", color }];
+      arrow.strokeWeight = strokeWeight;
+      arrow.strokeCap = "ROUND";
+      arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
       figma.currentPage.appendChild(arrow);
     }
@@ -229,20 +236,27 @@ function createConnectorV2(
     line.strokes = [{ type: "SOLID", color }];
     line.strokeWeight = strokeWeight;
     line.strokeAlign = "CENTER";
+    line.strokeCap = "ROUND";
+    line.strokeJoin = "ROUND";
     if (style.dashPattern) line.dashPattern = style.dashPattern;
     line.name = `${type} Line`;
     figma.currentPage.appendChild(line);
     
-    // Arrowhead
+    // Arrowhead - chevron (open caret)
     if (style.arrowhead) {
       const size = 10;
       arrow = figma.createVector();
+      // Create chevron: two lines forming a V (no fill, just stroke)
+      const arrowY = end.y - size * Math.sign(end.y - start.y);
       arrow.vectorPaths = [{
         windingRule: "NONZERO",
-        data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${end.y - size * Math.sign(end.y - start.y)} L ${end.x + size / 2} ${end.y - size * Math.sign(end.y - start.y)} Z`,
+        data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${arrowY} M ${end.x} ${end.y} L ${end.x + size / 2} ${arrowY}`,
       }];
-      arrow.fills = [{ type: "SOLID", color }];
-      arrow.strokes = [];
+      arrow.fills = [];
+      arrow.strokes = [{ type: "SOLID", color }];
+      arrow.strokeWeight = strokeWeight;
+      arrow.strokeCap = "ROUND";
+      arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
       figma.currentPage.appendChild(arrow);
     }
@@ -362,26 +376,28 @@ function getConnectorStyle(type: ConnectorTypeV2, options?: { winner?: boolean; 
       return {
         strokeWeight: 1,
         color: hexToRgb(TOKENS.azure300),
+        dashPattern: [4, 4], // Dashed pattern
         arrowhead: true,
       };
     case 'BRANCH_LINE':
       return {
         strokeWeight: 1,
         color: hexToRgb(TOKENS.azure300),
-        dashPattern: [6, 4], // Dashed pattern
+        dashPattern: [4, 4], // Dashed pattern
         arrowhead: true,
       };
     case 'MERGE_LINE':
       return {
         strokeWeight: 1,
         color: hexToRgb(TOKENS.azure300),
-        dashPattern: [6, 4], // Dashed pattern
+        dashPattern: [4, 4], // Dashed pattern
         arrowhead: true,
       };
     default:
       return {
         strokeWeight: 4,
         color: hexToRgb(TOKENS.azure300),
+        dashPattern: [4, 4], // Dashed pattern
         arrowhead: true,
       };
   }
@@ -523,7 +539,7 @@ if (figma.editorType === 'figma') {
     const color = options?.color ?? hexToRgb(TOKENS.royalBlue400);
     const strokeWeight = options?.strokeWeight ?? 2;
     const arrowSize = options?.arrowSize ?? 16;
-    const dashPattern = options?.dashPattern ?? [6, 4];
+    const dashPattern = options?.dashPattern ?? [4, 4];
 
     // Elbow (right-angle) connector: horizontal, then vertical
     const midX = x1 + (x2 - x1) * 0.5;
@@ -568,6 +584,7 @@ if (figma.editorType === 'figma') {
     vector.strokeWeight = strokeWeight;
     vector.strokeCap = 'ROUND';
     vector.strokeJoin = 'ROUND';
+    vector.strokeMiterLimit = 4;
     vector.dashPattern = dashPattern;
     vector.x = minX;
     vector.y = minY;
@@ -1668,22 +1685,29 @@ if (figma.editorType === 'figma') {
       line.strokes = [{ type: "SOLID", color }];
       line.strokeWeight = strokeWeight;
       line.strokeAlign = "CENTER";
+      line.strokeCap = "ROUND";
+      line.strokeJoin = "ROUND";
+      line.dashPattern = [4, 4];
       line.name = "Flow Line";
       if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
       if (options?.label) {
         // Removed Pill: label chip
       }
-      // Arrowhead
+      // Arrowhead - chevron (open caret)
       arrow = figma.createVector();
       const size = 10;
+      const arrowX = end.x - size * Math.sign(end.x - start.x);
       arrow.vectorPaths = [
         {
           windingRule: "NONZERO",
-          data: `M ${end.x} ${end.y} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y - size / 2} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y + size / 2} Z`,
+          data: `M ${end.x} ${end.y} L ${arrowX} ${end.y - size / 2} M ${end.x} ${end.y} L ${arrowX} ${end.y + size / 2}`,
         },
       ];
-      arrow.fills = [{ type: "SOLID", color }];
-      arrow.strokes = [];
+      arrow.fills = [];
+      arrow.strokes = [{ type: "SOLID", color }];
+      arrow.strokeWeight = strokeWeight;
+      arrow.strokeCap = "ROUND";
+      arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
       if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
       return line;
@@ -1697,22 +1721,29 @@ if (figma.editorType === 'figma') {
       line.strokes = [{ type: "SOLID", color }];
       line.strokeWeight = strokeWeight;
       line.strokeAlign = "CENTER";
+      line.strokeCap = "ROUND";
+      line.strokeJoin = "ROUND";
+      line.dashPattern = [4, 4];
       line.name = "Flow Line";
       if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
       if (options?.label) {
         // Removed Pill: label chip
       }
-      // Arrowhead
+      // Arrowhead - chevron (open caret)
       arrow = figma.createVector();
       const size = 10;
+      const arrowY = end.y - size * Math.sign(end.y - start.y);
       arrow.vectorPaths = [
         {
           windingRule: "NONZERO",
-          data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${end.y - size * Math.sign(end.y - start.y)} L ${end.x + size / 2} ${end.y - size * Math.sign(end.y - start.y)} Z`,
+          data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${arrowY} M ${end.x} ${end.y} L ${end.x + size / 2} ${arrowY}`,
         },
       ];
-      arrow.fills = [{ type: "SOLID", color }];
-      arrow.strokes = [];
+      arrow.fills = [];
+      arrow.strokes = [{ type: "SOLID", color }];
+      arrow.strokeWeight = strokeWeight;
+      arrow.strokeCap = "ROUND";
+      arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
       if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
       return line;
