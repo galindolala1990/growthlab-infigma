@@ -46,6 +46,282 @@ function createMagnetizedConnector(
 }
 
 /**
+ * Creates a branching tree structure: trunk from event to midpoint, then branches to each variant
+ * @param eventNode The source event node
+ * @param variantNodes Array of variant nodes and their connector metadata
+ * @param experimentId The experiment ID for metadata
+ * @returns Array of created vector nodes (trunk + branches)
+ */
+function createBranchingTree(
+  eventNode: SceneNode & { width: number; height: number },
+  variantNodes: Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>,
+  experimentId: string
+): SceneNode[] {
+  const result: SceneNode[] = [];
+  
+  // Helper to get absolute position
+  function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+    let x = node.x, y = node.y;
+    let parent = node.parent;
+    while (parent && parent.type !== 'PAGE') {
+      if ('x' in parent && 'y' in parent) {
+        x += (parent as any).x;
+        y += (parent as any).y;
+      }
+      parent = parent.parent;
+    }
+    return { x, y };
+  }
+  
+  // Get style for branch lines
+  const style = getConnectorStyle('BRANCH_LINE', {});
+  const color = style.color;
+  const strokeWeight = style.strokeWeight;
+  
+  // Calculate positions
+  const eventAbs = getAbsolutePos(eventNode);
+  const eventBottom = { x: eventAbs.x + eventNode.width / 2, y: eventAbs.y + eventNode.height };
+  
+  // Get all variant positions and calculate trunk endpoint
+  const variantPositions = variantNodes.map(v => {
+    const vAbs = getAbsolutePos(v.node);
+    const variantTop = { x: vAbs.x + v.node.width / 2, y: vAbs.y };
+    return { ...v, pos: variantTop, absPos: vAbs };
+  });
+  
+  // Calculate trunk length (vertical drop from event)
+  const trunkLength = 40; // Fixed trunk length for consistency
+  const trunkEnd = { x: eventBottom.x, y: eventBottom.y + trunkLength };
+  
+  // Create trunk (vertical line from event bottom)
+  const trunkPath = `M ${eventBottom.x} ${eventBottom.y} L ${trunkEnd.x} ${trunkEnd.y}`;
+  const trunk = figma.createVector();
+  trunk.vectorPaths = [{ windingRule: "NONZERO", data: trunkPath }];
+  trunk.strokes = [{ type: "SOLID", color }];
+  trunk.strokeWeight = strokeWeight;
+  trunk.strokeAlign = "CENTER";
+  trunk.strokeCap = "ROUND";
+  trunk.strokeJoin = "ROUND";
+  if (style.dashPattern) trunk.dashPattern = style.dashPattern;
+  trunk.name = "Branch Trunk";
+  figma.currentPage.appendChild(trunk);
+  result.push(trunk);
+  
+  // Create branches from trunk end to each variant
+  for (const variant of variantPositions) {
+    const variantTop = variant.pos;
+    const arrowOffset = 0; // No offset - arrowhead at card edge
+    const endPoint = { x: variantTop.x, y: variantTop.y + arrowOffset };
+    
+    // Create branch path with elbow from trunk end to variant
+    let branchPath: string;
+    
+    // Calculate elbow path: vertical from trunk end, then horizontal to variant, then vertical to variant top
+    const dx = endPoint.x - trunkEnd.x;
+    const dy = endPoint.y - trunkEnd.y;
+    
+    if (Math.abs(dx) < 1) {
+      // Straight vertical line
+      branchPath = `M ${trunkEnd.x} ${trunkEnd.y} L ${endPoint.x} ${endPoint.y}`;
+    } else {
+      // Elbow path with rounded corner
+      const cornerRadius = 16;
+      const midY = trunkEnd.y + dy * 0.5;
+      
+      // Path: vertical down → curve → horizontal → curve → vertical to variant
+      branchPath = `M ${trunkEnd.x} ${trunkEnd.y}`;
+      branchPath += ` L ${trunkEnd.x} ${midY - cornerRadius}`;
+      branchPath += ` Q ${trunkEnd.x} ${midY} ${trunkEnd.x + cornerRadius * Math.sign(dx)} ${midY}`;
+      branchPath += ` L ${endPoint.x - cornerRadius * Math.sign(dx)} ${midY}`;
+      branchPath += ` Q ${endPoint.x} ${midY} ${endPoint.x} ${midY + cornerRadius}`;
+      branchPath += ` L ${endPoint.x} ${endPoint.y}`;
+    }
+    
+    const branch = figma.createVector();
+    branch.vectorPaths = [{ windingRule: "NONZERO", data: branchPath }];
+    branch.strokes = [{ type: "SOLID", color }];
+    branch.strokeWeight = strokeWeight;
+    branch.strokeAlign = "CENTER";
+    branch.strokeCap = "ROUND";
+    branch.strokeJoin = "ROUND";
+    if (style.dashPattern) branch.dashPattern = style.dashPattern;
+    branch.name = `Branch to Variant`;
+    figma.currentPage.appendChild(branch);
+    
+    // Store metadata
+    branch.setPluginData('connectorMeta', JSON.stringify({
+      connectorId: variant.connector.id,
+      type: 'BRANCH_LINE',
+      fromNodeId: eventNode.id,
+      toNodeId: variant.node.id,
+      experimentId: experimentId,
+      label: variant.connector.label
+    }));
+    
+    result.push(branch);
+    
+    // Create arrowhead for this branch
+    if (style.arrowhead) {
+      const arrowSize = 10;
+      const arrow = figma.createVector();
+      // Arrowhead pointing down (toward variant)
+      const arrowY = endPoint.y - arrowSize;
+      arrow.vectorPaths = [{
+        windingRule: "NONZERO",
+        data: `M ${endPoint.x} ${endPoint.y} L ${endPoint.x - arrowSize / 2} ${arrowY} M ${endPoint.x} ${endPoint.y} L ${endPoint.x + arrowSize / 2} ${arrowY}`,
+      }];
+      arrow.fills = [];
+      arrow.strokes = [{ type: "SOLID", color }];
+      arrow.strokeWeight = strokeWeight;
+      arrow.strokeCap = "ROUND";
+      arrow.strokeJoin = "ROUND";
+      arrow.name = "Branch Arrowhead";
+      figma.currentPage.appendChild(arrow);
+      result.push(arrow);
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Creates a merging tree structure: branches from each variant to midpoint, then trunk to target
+ * @param variantNodes Array of variant nodes and their connector metadata
+ * @param targetNode The destination node (event or exit)
+ * @param experimentId The experiment ID for metadata
+ * @returns Array of created vector nodes (branches + trunk)
+ */
+function createMergingTree(
+  variantNodes: Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>,
+  targetNode: SceneNode & { width: number; height: number },
+  experimentId: string
+): SceneNode[] {
+  const result: SceneNode[] = [];
+  
+  // Helper to get absolute position
+  function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+    let x = node.x, y = node.y;
+    let parent = node.parent;
+    while (parent && parent.type !== 'PAGE') {
+      if ('x' in parent && 'y' in parent) {
+        x += (parent as any).x;
+        y += (parent as any).y;
+      }
+      parent = parent.parent;
+    }
+    return { x, y };
+  }
+  
+  // Get style for merge lines
+  const style = getConnectorStyle('MERGE_LINE', {});
+  const color = style.color;
+  const strokeWeight = style.strokeWeight;
+  
+  // Calculate target position (left edge, center)
+  const targetAbs = getAbsolutePos(targetNode);
+  const arrowOffset = 0; // No offset - arrowhead at card edge
+  const targetLeft = { 
+    x: targetAbs.x + arrowOffset, 
+    y: targetAbs.y + targetNode.height / 2 
+  };
+  
+  // Calculate merge point (trunk start) - positioned before the target
+  const trunkLength = 40; // Horizontal distance from target
+  const trunkStart = { x: targetLeft.x - trunkLength, y: targetLeft.y };
+  
+  // Create trunk (horizontal line to target)
+  const trunkPath = `M ${trunkStart.x} ${trunkStart.y} L ${targetLeft.x} ${targetLeft.y}`;
+  const trunk = figma.createVector();
+  trunk.vectorPaths = [{ windingRule: "NONZERO", data: trunkPath }];
+  trunk.strokes = [{ type: "SOLID", color }];
+  trunk.strokeWeight = strokeWeight;
+  trunk.strokeAlign = "CENTER";
+  trunk.strokeCap = "ROUND";
+  trunk.strokeJoin = "ROUND";
+  if (style.dashPattern) trunk.dashPattern = style.dashPattern;
+  trunk.name = "Merge Trunk";
+  figma.currentPage.appendChild(trunk);
+  result.push(trunk);
+  
+  // Create arrowhead at target end
+  if (style.arrowhead) {
+    const arrowSize = 10;
+    const arrow = figma.createVector();
+    // Arrowhead pointing right (toward target)
+    const arrowX = targetLeft.x - arrowSize;
+    arrow.vectorPaths = [{
+      windingRule: "NONZERO",
+      data: `M ${targetLeft.x} ${targetLeft.y} L ${arrowX} ${targetLeft.y - arrowSize / 2} M ${targetLeft.x} ${targetLeft.y} L ${arrowX} ${targetLeft.y + arrowSize / 2}`,
+    }];
+    arrow.fills = [];
+    arrow.strokes = [{ type: "SOLID", color }];
+    arrow.strokeWeight = strokeWeight;
+    arrow.strokeCap = "ROUND";
+    arrow.strokeJoin = "ROUND";
+    arrow.name = "Merge Trunk Arrowhead";
+    figma.currentPage.appendChild(arrow);
+    result.push(arrow);
+  }
+  
+  // Create branches from each variant to trunk start
+  for (const variant of variantNodes) {
+    const vAbs = getAbsolutePos(variant.node);
+    const variantRight = { 
+      x: vAbs.x + variant.node.width, 
+      y: vAbs.y + variant.node.height / 2 
+    };
+    
+    // Create branch path with elbow from variant right to trunk start
+    let branchPath: string;
+    
+    const dx = trunkStart.x - variantRight.x;
+    const dy = trunkStart.y - variantRight.y;
+    
+    if (Math.abs(dy) < 1) {
+      // Straight horizontal line
+      branchPath = `M ${variantRight.x} ${variantRight.y} L ${trunkStart.x} ${trunkStart.y}`;
+    } else {
+      // Elbow path with rounded corner
+      const cornerRadius = 16;
+      const midX = variantRight.x + dx * 0.5;
+      
+      // Path: horizontal right → curve → vertical → curve → horizontal to trunk
+      branchPath = `M ${variantRight.x} ${variantRight.y}`;
+      branchPath += ` L ${midX - cornerRadius} ${variantRight.y}`;
+      branchPath += ` Q ${midX} ${variantRight.y} ${midX} ${variantRight.y + cornerRadius * Math.sign(dy)}`;
+      branchPath += ` L ${midX} ${trunkStart.y - cornerRadius * Math.sign(dy)}`;
+      branchPath += ` Q ${midX} ${trunkStart.y} ${midX + cornerRadius} ${trunkStart.y}`;
+      branchPath += ` L ${trunkStart.x} ${trunkStart.y}`;
+    }
+    
+    const branch = figma.createVector();
+    branch.vectorPaths = [{ windingRule: "NONZERO", data: branchPath }];
+    branch.strokes = [{ type: "SOLID", color }];
+    branch.strokeWeight = strokeWeight;
+    branch.strokeAlign = "CENTER";
+    branch.strokeCap = "ROUND";
+    branch.strokeJoin = "ROUND";
+    if (style.dashPattern) branch.dashPattern = style.dashPattern;
+    branch.name = `Merge from Variant`;
+    figma.currentPage.appendChild(branch);
+    
+    // Store metadata
+    branch.setPluginData('connectorMeta', JSON.stringify({
+      connectorId: variant.connector.id,
+      type: 'MERGE_LINE',
+      fromNodeId: variant.node.id,
+      toNodeId: targetNode.id,
+      experimentId: experimentId,
+      label: variant.connector.label
+    }));
+    
+    result.push(branch);
+  }
+  
+  return result;
+}
+
+/**
  * Simple connector creation function - clean start
  * Uses the exact pattern from the working connectNodes function
  */
@@ -89,23 +365,44 @@ function createConnectorV2(
     const dx = toAbs.x - fromAbs.x;
     const dy = toAbs.y - fromAbs.y;
     
+    // Offset for arrowhead to stop before card edge
+    const arrowOffset = 0; // No offset - arrowhead at card edge
+    
     let fromPoint, toPoint;
     if (type === 'PRIMARY_FLOW_LINE' || type === 'MERGE_LINE') {
       // Horizontal connections (left-right)
+      // Use RIGHT edge of 'from' node, LEFT edge of 'to' node
       fromPoint = { x: dx > 0 ? fromAbs.x + from.width : fromAbs.x, y: fromAbs.y + from.height / 2 };
-      toPoint = { x: dx > 0 ? toAbs.x : toAbs.x + to.width, y: toAbs.y + to.height / 2 };
+      // Offset the destination point inward by arrowOffset
+      toPoint = { 
+        x: dx > 0 ? toAbs.x + arrowOffset : toAbs.x + to.width - arrowOffset, 
+        y: toAbs.y + to.height / 2 
+      };
     } else if (type === 'BRANCH_LINE') {
       // Vertical connections (event to variant: bottom to top)
+      // Use BOTTOM edge of 'from' node, TOP edge of 'to' node
       fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height };
-      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
+      // Offset the destination point inward by arrowOffset
+      toPoint = { 
+        x: toAbs.x + to.width / 2, 
+        y: toAbs.y + arrowOffset 
+      };
     } else {
       // Auto-detect based on distance
       if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal
         fromPoint = { x: dx > 0 ? fromAbs.x + from.width : fromAbs.x, y: fromAbs.y + from.height / 2 };
-        toPoint = { x: dx > 0 ? toAbs.x : toAbs.x + to.width, y: toAbs.y + to.height / 2 };
+        toPoint = { 
+          x: dx > 0 ? toAbs.x + arrowOffset : toAbs.x + to.width - arrowOffset, 
+          y: toAbs.y + to.height / 2 
+        };
       } else {
+        // Vertical
         fromPoint = { x: fromAbs.x + from.width / 2, y: dy > 0 ? fromAbs.y + from.height : fromAbs.y };
-        toPoint = { x: toAbs.x + to.width / 2, y: dy > 0 ? toAbs.y : toAbs.y + to.height };
+        toPoint = { 
+          x: toAbs.x + to.width / 2, 
+          y: dy > 0 ? toAbs.y + arrowOffset : toAbs.y + to.height - arrowOffset 
+        };
       }
     }
     return { from: fromPoint, to: toPoint };
@@ -135,9 +432,14 @@ function createConnectorV2(
     
     let pathData: string;
     
-    // Check if it's a straight horizontal line (no vertical displacement)
-    if (Math.abs(dy) < 1) {
-      // Simple straight horizontal line
+    // PRIMARY_FLOW_LINE should ALWAYS be straight horizontal
+    if (type === 'PRIMARY_FLOW_LINE') {
+      // Force straight horizontal line for primary flows
+      pathData = `M ${start.x} ${start.y} L ${end.x} ${start.y}`;
+      // Adjust end point to match start Y for arrowhead placement
+      end.y = start.y;
+    } else if (Math.abs(dy) < 1) {
+      // Simple straight horizontal line (no vertical displacement)
       pathData = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
     } else {
       // Complex path with vertical segment and rounded corners
@@ -174,7 +476,8 @@ function createConnectorV2(
     line.strokeJoin = "ROUND";
     if (style.dashPattern) line.dashPattern = style.dashPattern;
     line.name = `${type} Line`;
-    figma.currentPage.appendChild(line);
+    // Append to the same parent as the coordinate system
+    if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
     
     // Arrowhead - chevron (open caret)
     if (style.arrowhead) {
@@ -192,7 +495,8 @@ function createConnectorV2(
       arrow.strokeCap = "ROUND";
       arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
-      figma.currentPage.appendChild(arrow);
+      // Append to the same parent as the coordinate system
+      if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
     }
   } else {
     // Vertical - with vertical segments at start and end
@@ -240,7 +544,8 @@ function createConnectorV2(
     line.strokeJoin = "ROUND";
     if (style.dashPattern) line.dashPattern = style.dashPattern;
     line.name = `${type} Line`;
-    figma.currentPage.appendChild(line);
+    // Append to the same parent as the coordinate system
+    if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
     
     // Arrowhead - chevron (open caret)
     if (style.arrowhead) {
@@ -258,7 +563,8 @@ function createConnectorV2(
       arrow.strokeCap = "ROUND";
       arrow.strokeJoin = "ROUND";
       arrow.name = "Arrowhead";
-      figma.currentPage.appendChild(arrow);
+      // Append to the same parent as the coordinate system
+      if (flowFrame) flowFrame.appendChild(arrow); else figma.currentPage.appendChild(arrow);
     }
   }
   
@@ -1033,6 +1339,38 @@ if (figma.editorType === 'figma') {
     exitCard.y = baseY;
     figma.currentPage.appendChild(exitCard);
     allNodes.push({node: exitCard as SceneNode & {width: number; height: number}, id: exit.id, type: 'EXIT_NODE'});
+    
+    // --- Vertical Alignment: Center Entry and Exit nodes with Event nodes ---
+    // Find the maximum height among all spine nodes (Entry, Events, Exit)
+    const spineNodes = [entryCard, ...eventPositions.map(ep => ep.eventCard), exitCard];
+    const maxSpineHeight = Math.max(...spineNodes.map(n => n.height));
+    
+    // Center Entry node vertically
+    const entryCenterOffset = (maxSpineHeight - entryCard.height) / 2;
+    entryCard.y = baseY + entryCenterOffset;
+    
+    // Center Event nodes vertically and adjust their variants
+    for (const {event, eventCard} of eventPositions) {
+      const oldEventY = eventCard.y;
+      const eventCenterOffset = (maxSpineHeight - eventCard.height) / 2;
+      const newEventY = baseY + eventCenterOffset;
+      eventCard.y = newEventY;
+      
+      // Update variant positions to match the event's new Y position
+      if (event.variants && event.variants.length > 0) {
+        const yDelta = newEventY - oldEventY;
+        for (const variant of event.variants) {
+          const variantNode = allNodes.find(n => n.id === variant.id);
+          if (variantNode) {
+            variantNode.node.y += yDelta;
+          }
+        }
+      }
+    }
+    
+    // Center Exit node vertically
+    const exitCenterOffset = (maxSpineHeight - exitCard.height) / 2;
+    exitCard.y = baseY + exitCenterOffset;
 
     // --- Build node map for connector rendering ---
     // Nodes are already on the page, just build the map
@@ -1061,7 +1399,32 @@ if (figma.editorType === 'figma') {
     console.log('NodeMap keys:', Object.keys(nodeMap));
     
     if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
+      // Group branch connectors by source event for trunk+split pattern
+      const branchGroups = new Map<string, ConnectorV2[]>();
+      // Group merge connectors by destination event for merge+trunk pattern
+      const mergeGroups = new Map<string, ConnectorV2[]>();
+      const primaryFlowConnectors: ConnectorV2[] = [];
+      
       for (const connector of flow.connectors) {
+        if (connector.type === 'BRANCH_LINE') {
+          const fromId = connector.from.id;
+          if (!branchGroups.has(fromId)) {
+            branchGroups.set(fromId, []);
+          }
+          branchGroups.get(fromId)!.push(connector);
+        } else if (connector.type === 'MERGE_LINE') {
+          const toId = connector.to.id;
+          if (!mergeGroups.has(toId)) {
+            mergeGroups.set(toId, []);
+          }
+          mergeGroups.get(toId)!.push(connector);
+        } else {
+          primaryFlowConnectors.push(connector);
+        }
+      }
+      
+      // Render primary flow connectors first
+      for (const connector of primaryFlowConnectors) {
         console.log(`Processing connector: ${connector.type} from ${connector.from.id} to ${connector.to.id}`);
         
         const fromNode = nodeMap[connector.from.id];
@@ -1072,35 +1435,6 @@ if (figma.editorType === 'figma') {
         
         if (fromNode && toNode) {
           try {
-            // Determine magnets based on connector type
-            let fromMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM';
-            let toMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM';
-            
-            if (connector.type === 'PRIMARY_FLOW_LINE') {
-              // Horizontal: Event → Event or Entry → Event or Event → Exit
-              fromMagnet = 'RIGHT';
-              toMagnet = 'LEFT';
-            } else if (connector.type === 'BRANCH_LINE') {
-              // Vertical: Event → Variant (downward)
-              fromMagnet = 'BOTTOM';
-              toMagnet = 'TOP';
-            } else if (connector.type === 'MERGE_LINE') {
-              // Variant → Next Event (merging back to spine)
-              fromMagnet = 'RIGHT';
-              toMagnet = 'LEFT';
-            } else {
-              // Default: horizontal
-              fromMagnet = 'RIGHT';
-              toMagnet = 'LEFT';
-            }
-            
-            // Get connector style
-            const style = getConnectorStyle(connector.type, {
-              winner: false,
-              variantColor: undefined
-            });
-            
-            // Create vector-based connector (works in regular Figma)
             const connectorNode = createConnectorV2(
               fromNode,
               toNode,
@@ -1154,6 +1488,66 @@ if (figma.editorType === 'figma') {
             fromFound: !!fromNode,
             toFound: !!toNode
           });
+        }
+      }
+      
+      // Render branch connectors as trunk+split groups
+      for (const [eventId, branches] of branchGroups.entries()) {
+        console.log(`Processing branch group from event ${eventId} to ${branches.length} variants`);
+        
+        const eventNode = nodeMap[eventId];
+        if (!eventNode) {
+          console.warn('✗ Event node not found for branch group:', eventId);
+          continue;
+        }
+        
+        // Get all variant nodes for this branch group
+        const variantNodes = branches
+          .map(b => ({ connector: b, node: nodeMap[b.to.id] }))
+          .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
+        
+        if (variantNodes.length === 0) {
+          console.warn('✗ No variant nodes found for branch group');
+          continue;
+        }
+        
+        try {
+          // Create trunk+split branching structure
+          const branchConnectors = createBranchingTree(eventNode, variantNodes, experiment.id);
+          createdConnectors.push(...branchConnectors);
+          console.log(`✓ Created trunk+split branch with ${branchConnectors.length} elements`);
+        } catch (error) {
+          console.error('ERROR creating branch group:', error);
+        }
+      }
+      
+      // Render merge connectors as merge+trunk groups
+      for (const [targetId, merges] of mergeGroups.entries()) {
+        console.log(`Processing merge group to ${targetId} from ${merges.length} variants`);
+        
+        const targetNode = nodeMap[targetId];
+        if (!targetNode) {
+          console.warn('✗ Target node not found for merge group:', targetId);
+          continue;
+        }
+        
+        // Get all variant nodes for this merge group
+        const variantNodes = merges
+          .map(m => ({ connector: m, node: nodeMap[m.from.id] }))
+          .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
+        
+        if (variantNodes.length === 0) {
+          console.warn('✗ No variant nodes found for merge group');
+          continue;
+        }
+        
+        try {
+          // Create merge+trunk structure (variants → trunk → target)
+          const mergeConnectors = createMergingTree(variantNodes, targetNode, experiment.id);
+          createdConnectors.push(...mergeConnectors);
+          console.log(`✓ Created merge+trunk with ${mergeConnectors.length} elements`);
+        } catch (error) {
+          console.error('ERROR creating merge group:', error);
         }
       }
     } else {
