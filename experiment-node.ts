@@ -275,7 +275,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
 
   // Blue radio button indicator
   const radioButton = figma.createEllipse();
-  radioButton.resize(8, 8);
+  radioButton.resize(10, 10);
   radioButton.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
   radioButton.strokes = [];
   radioButton.name = 'Radio Button';
