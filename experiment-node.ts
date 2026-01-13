@@ -31,7 +31,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   }];
   card.itemSpacing = 12; // 0.75rem gap
   card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'CENTER';
+  card.counterAxisAlignItems = 'MIN';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
@@ -165,6 +165,9 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   topRow.layoutMode = 'HORIZONTAL';
   topRow.counterAxisSizingMode = 'AUTO';
   topRow.primaryAxisSizingMode = 'AUTO';
+  topRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  topRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // topRow.height = 24; // Removed because .height is read-only for auto layout frames
   topRow.itemSpacing = TOKENS.space4;
   topRow.fills = [];
   topRow.strokes = [];

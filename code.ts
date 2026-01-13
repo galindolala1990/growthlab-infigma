@@ -838,6 +838,9 @@ if (figma.editorType === 'figma') {
       const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
       eventCard.name = `Event: ${safeEventName}`;
       eventCard.layoutAlign = 'STRETCH';
+      eventCard.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  eventCard.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
       eventCard.paddingBottom = 16;
       eventCard.paddingTop = 16;
       eventCard.paddingLeft = 16;
