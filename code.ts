@@ -126,12 +126,45 @@ function createConnectorV2(
   const index = options?.index ?? 0;
   let midX, midY;
   let line: VectorNode, arrow: VectorNode | null = null;
+  const cornerRadius = 24; // Radius for rounded corners
   
   if (Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
-    // Horizontal
-    midX = start.x + (end.x - start.x) * 0.5 + index * 12;
-    midY = start.y;
-    const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${midX} ${end.y} L ${end.x} ${end.y}`;
+    // Horizontal - with horizontal segments at start and end
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    
+    let pathData: string;
+    
+    // Check if it's a straight horizontal line (no vertical displacement)
+    if (Math.abs(dy) < 1) {
+      // Simple straight horizontal line
+      pathData = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    } else {
+      // Complex path with vertical segment and rounded corners
+      const radius = Math.min(Math.abs(dy) / 2, cornerRadius);
+      
+      // Calculate midpoint X for the vertical segment
+      midX = start.x + dx * 0.5 + index * 12;
+      
+      // Build path: horizontal right → curve → vertical → curve → horizontal right
+      pathData = `M ${start.x} ${start.y}`;
+      
+      // Initial horizontal segment
+      pathData += ` L ${midX - radius} ${start.y}`;
+      
+      // First corner: horizontal to vertical (going up or down)
+      pathData += ` Q ${midX} ${start.y} ${midX} ${start.y + radius * Math.sign(dy)}`;
+      
+      // Vertical segment
+      pathData += ` L ${midX} ${end.y - radius * Math.sign(dy)}`;
+      
+      // Second corner: vertical to horizontal (going right)
+      pathData += ` Q ${midX} ${end.y} ${midX + radius} ${end.y}`;
+      
+      // Final horizontal segment
+      pathData += ` L ${end.x} ${end.y}`;
+    }
+    
     line = figma.createVector();
     line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
     line.strokes = [{ type: "SOLID", color }];
@@ -155,10 +188,42 @@ function createConnectorV2(
       figma.currentPage.appendChild(arrow);
     }
   } else {
-    // Vertical
-    midX = start.x;
-    midY = start.y + (end.y - start.y) * 0.5 + index * 12;
-    const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
+    // Vertical - with vertical segments at start and end
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    
+    let pathData: string;
+    
+    // Check if it's a straight vertical line (no horizontal displacement)
+    if (Math.abs(dx) < 1) {
+      // Simple straight vertical line
+      pathData = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    } else {
+      // Complex path with horizontal segment and rounded corners
+      const radius = Math.min(Math.abs(dx) / 2, cornerRadius);
+      
+      // Calculate midpoint Y for the horizontal segment
+      midY = start.y + dy * 0.5 + index * 12;
+      
+      // Build path: vertical down → curve → horizontal → curve → vertical down
+      pathData = `M ${start.x} ${start.y}`;
+      
+      // Initial vertical segment
+      pathData += ` L ${start.x} ${midY - radius}`;
+      
+      // First corner: vertical to horizontal (going right or left)
+      pathData += ` Q ${start.x} ${midY} ${start.x + radius * Math.sign(dx)} ${midY}`;
+      
+      // Horizontal segment
+      pathData += ` L ${end.x - radius * Math.sign(dx)} ${midY}`;
+      
+      // Second corner: horizontal to vertical (going down)
+      pathData += ` Q ${end.x} ${midY} ${end.x} ${midY + radius}`;
+      
+      // Final vertical segment
+      pathData += ` L ${end.x} ${end.y}`;
+    }
+    
     line = figma.createVector();
     line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
     line.strokes = [{ type: "SOLID", color }];
@@ -1426,7 +1491,7 @@ if (figma.editorType === 'figma') {
       roundContainer.layoutMode = 'VERTICAL';
       roundContainer.counterAxisSizingMode = 'AUTO';
       roundContainer.primaryAxisSizingMode = 'AUTO';
-      roundContainer.itemSpacing = 20;
+      roundContainer.itemSpacing = 24;
       roundContainer.paddingLeft = roundContainer.paddingRight = 24;
       roundContainer.paddingTop = roundContainer.paddingBottom = 24;
       roundContainer.cornerRadius = 24;
