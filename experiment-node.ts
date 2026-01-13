@@ -295,18 +295,15 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
 
   variantDetailsContainer.appendChild(nameRow);
 
-  // Control label (if first variant or marked as control)
-  const isControl = variantIndex === 0 || variant.key === 'A';
-  if (isControl) {
-    const controlLabel = figma.createText();
-    controlLabel.fontName = getFontStyle("Regular");
-    controlLabel.fontSize = TOKENS.fontSizeBodyMd;
-    controlLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-    controlLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-    controlLabel.characters = '(Control)';
-    controlLabel.name = 'Control Label';
-    variantDetailsContainer.appendChild(controlLabel);
-  }
+  // Variant label (shows variant description for all variants)
+  const variantLabel = figma.createText();
+  variantLabel.fontName = getFontStyle("Regular");
+  variantLabel.fontSize = TOKENS.fontSizeBodyMd;
+  variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+  variantLabel.characters = (variant as any).description || '';
+  variantLabel.name = 'Variant Label';
+  variantDetailsContainer.appendChild(variantLabel);
 
   // Traffic percentage with icon
   const trafficRow = figma.createFrame();
