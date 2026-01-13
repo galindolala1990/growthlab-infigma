@@ -46,16 +46,8 @@ function createMagnetizedConnector(
 }
 
 /**
- * Unified connector creation function for V2 flow system
- * Supports all three connector types: PRIMARY_FLOW_LINE, BRANCH_LINE, MERGE_LINE
- * Figma plugin compliant - uses VectorNode for full control over styling
- * 
- * @param fromNode Source node
- * @param toNode Target node
- * @param type Connector type
- * @param flowFrame Optional parent frame for relative positioning
- * @param options Additional options (label, winner, variantColor, index)
- * @returns Created connector vector node (or group if label included)
+ * Simple connector creation function - clean start
+ * Uses the exact pattern from the working connectNodes function
  */
 function createConnectorV2(
   fromNode: SceneNode & { width: number; height: number },
@@ -70,49 +62,48 @@ function createConnectorV2(
   }
 ): SceneNode {
   const style = getConnectorStyle(type, { winner: options?.winner, variantColor: options?.variantColor });
+  const color = style.color;
+  const strokeWeight = style.strokeWeight;
   
-  // Get absolute positions
+  // Helper to get absolute position (like connectNodes)
   function getAbsolutePos(node: SceneNode): { x: number; y: number } {
-    const transform = node.absoluteTransform;
-    return { x: transform[0][2], y: transform[1][2] };
+    let x = node.x, y = node.y;
+    let parent = node.parent;
+    while (parent && parent.type !== 'PAGE') {
+      if ('x' in parent && 'y' in parent) {
+        x += (parent as any).x;
+        y += (parent as any).y;
+      }
+      parent = parent.parent;
+    }
+    return { x, y };
   }
   
-  // Get edge-to-edge connection points
-  function getEdgeToEdgePoints(
+  // Get edge points (like connectNodes)
+  function getEdgePoints(
     from: SceneNode & { width: number; height: number },
     to: SceneNode & { width: number; height: number }
   ): { from: { x: number; y: number }; to: { x: number; y: number } } {
     const fromAbs = getAbsolutePos(from);
     const toAbs = getAbsolutePos(to);
-    const fromCenter = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height / 2 };
-    const toCenter = { x: toAbs.x + to.width / 2, y: toAbs.y + to.height / 2 };
-    const dx = toCenter.x - fromCenter.x;
-    const dy = toCenter.y - fromCenter.y;
+    const dx = toAbs.x - fromAbs.x;
+    const dy = toAbs.y - fromAbs.y;
     
     let fromPoint, toPoint;
-    
-    // Determine connection points based on connector type
-    if (type === 'PRIMARY_FLOW_LINE') {
-      // Horizontal connection: RIGHT edge to LEFT edge
-      fromPoint = { x: fromAbs.x + from.width, y: fromAbs.y + from.height / 2 };
-      toPoint = { x: toAbs.x, y: toAbs.y + to.height / 2 };
-    } else if (type === 'BRANCH_LINE') {
-      // Vertical connection: BOTTOM edge to TOP edge
-      fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y + from.height };
-      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
-    } else { // MERGE_LINE
-      // Vertical connection: TOP edge to TOP edge (converging)
-      fromPoint = { x: fromAbs.x + from.width / 2, y: fromAbs.y };
-      toPoint = { x: toAbs.x + to.width / 2, y: toAbs.y };
+    if (type === 'PRIMARY_FLOW_LINE' || Math.abs(dx) > Math.abs(dy)) {
+      fromPoint = { x: dx > 0 ? fromAbs.x + from.width : fromAbs.x, y: fromAbs.y + from.height / 2 };
+      toPoint = { x: dx > 0 ? toAbs.x : toAbs.x + to.width, y: toAbs.y + to.height / 2 };
+    } else {
+      fromPoint = { x: fromAbs.x + from.width / 2, y: dy > 0 ? fromAbs.y + from.height : fromAbs.y };
+      toPoint = { x: toAbs.x + to.width / 2, y: dy > 0 ? toAbs.y : toAbs.y + to.height };
     }
-    
     return { from: fromPoint, to: toPoint };
   }
   
-  const { from: startAbs, to: endAbs } = getEdgeToEdgePoints(fromNode, toNode);
-  
-  // Convert to flowFrame-local coordinates if provided
+  const { from: startAbs, to: endAbs } = getEdgePoints(fromNode, toNode);
   let start = { ...startAbs }, end = { ...endAbs };
+  
+  // Convert to flowFrame-local if provided
   if (flowFrame) {
     const frameAbs = getAbsolutePos(flowFrame);
     start.x = startAbs.x - frameAbs.x;
@@ -121,149 +112,66 @@ function createConnectorV2(
     end.y = endAbs.y - frameAbs.y;
   }
   
-  // Add offset for parallel lines (for multiple variants)
   const index = options?.index ?? 0;
   let midX, midY;
+  let line: VectorNode, arrow: VectorNode | null = null;
   
-  if (type === 'PRIMARY_FLOW_LINE' || Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
-    // Horizontal: elbow in X
+  if (Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
+    // Horizontal
     midX = start.x + (end.x - start.x) * 0.5 + index * 12;
     midY = start.y;
+    const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${midX} ${end.y} L ${end.x} ${end.y}`;
+    line = figma.createVector();
+    line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+    line.strokes = [{ type: "SOLID", color }];
+    line.strokeWeight = strokeWeight;
+    line.strokeAlign = "CENTER";
+    if (style.dashPattern) line.dashPattern = style.dashPattern;
+    line.name = `${type} Line`;
+    figma.currentPage.appendChild(line);
+    
+    // Arrowhead
+    if (style.arrowhead) {
+      const size = 10;
+      arrow = figma.createVector();
+      arrow.vectorPaths = [{
+        windingRule: "NONZERO",
+        data: `M ${end.x} ${end.y} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y - size / 2} L ${end.x - size * Math.sign(end.x - start.x)} ${end.y + size / 2} Z`,
+      }];
+      arrow.fills = [{ type: "SOLID", color }];
+      arrow.strokes = [];
+      arrow.name = "Arrowhead";
+      figma.currentPage.appendChild(arrow);
+    }
   } else {
-    // Vertical: elbow in Y
+    // Vertical
     midX = start.x;
     midY = start.y + (end.y - start.y) * 0.5 + index * 12;
-  }
-  
-  // Create path
-  const pathPoints = [
-    { x: start.x, y: start.y },
-    { x: midX, y: midY },
-    { x: midX, y: end.y },
-    { x: end.x, y: end.y },
-  ];
-  
-  // Calculate bounding box
-  const allPoints = [...pathPoints, { x: end.x, y: end.y }];
-  const minX = Math.min(...allPoints.map(p => p.x));
-  const minY = Math.min(...allPoints.map(p => p.y));
-  const maxX = Math.max(...allPoints.map(p => p.x));
-  const maxY = Math.max(...allPoints.map(p => p.y));
-  const width = maxX - minX || 1;
-  const height = maxY - minY || 1;
-  
-  // Make path relative to bounding box
-  const rel = (x: number, y: number) => `${x - minX} ${y - minY}`;
-  const pathData = `M ${rel(start.x, start.y)} L ${rel(midX, midY)} L ${rel(midX, end.y)} L ${rel(end.x, end.y)}`;
-  
-  // Create vector for line
-  const line = figma.createVector();
-  line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
-  line.strokes = [{ type: "SOLID", color: style.color }];
-  line.strokeWeight = style.strokeWeight;
-  line.strokeAlign = "CENTER";
-  if (style.dashPattern) {
-    line.dashPattern = style.dashPattern;
-  }
-  line.name = `${type} Line`;
-  line.x = minX;
-  line.y = minY;
-  line.resizeWithoutConstraints(width, height);
-  
-  // Create arrowhead if needed
-  let arrow: VectorNode | null = null;
-  if (style.arrowhead) {
-    const arrowSize = 10;
-    const dx = end.x - midX;
-    const dy = end.y - start.y;
-    const angle = Math.atan2(dy, dx);
-    const arrowAngle = Math.PI / 6;
-    const arrowX1 = end.x - arrowSize * Math.cos(angle - arrowAngle);
-    const arrowY1 = end.y - arrowSize * Math.sin(angle - arrowAngle);
-    const arrowX2 = end.x - arrowSize * Math.cos(angle + arrowAngle);
-    const arrowY2 = end.y - arrowSize * Math.sin(angle + arrowAngle);
-    
-    const arrowPoints = [
-      { x: end.x, y: end.y },
-      { x: arrowX1, y: arrowY1 },
-      { x: arrowX2, y: arrowY2 },
-    ];
-    const arrowMinX = Math.min(...arrowPoints.map(p => p.x));
-    const arrowMinY = Math.min(...arrowPoints.map(p => p.y));
-    const arrowMaxX = Math.max(...arrowPoints.map(p => p.x));
-    const arrowMaxY = Math.max(...arrowPoints.map(p => p.y));
-    const arrowWidth = arrowMaxX - arrowMinX || 1;
-    const arrowHeight = arrowMaxY - arrowMinY || 1;
-    const arrowRel = (x: number, y: number) => `${x - arrowMinX} ${y - arrowMinY}`;
-    
-    arrow = figma.createVector();
-    arrow.vectorPaths = [{
-      windingRule: "NONZERO",
-      data: `M ${arrowRel(end.x, end.y)} L ${arrowRel(arrowX1, arrowY1)} L ${arrowRel(arrowX2, arrowY2)} Z`,
-    }];
-    arrow.fills = [{ type: "SOLID", color: style.color }];
-    arrow.strokes = [];
-    arrow.name = "Arrowhead";
-    arrow.x = arrowMinX;
-    arrow.y = arrowMinY;
-    arrow.resizeWithoutConstraints(arrowWidth, arrowHeight);
-  }
-  
-  // Create label if provided
-  let labelGroup: FrameNode | null = null;
-  if (options?.label) {
-    const labelFrame = figma.createFrame();
-    labelFrame.layoutMode = 'HORIZONTAL';
-    labelFrame.counterAxisSizingMode = 'AUTO';
-    labelFrame.primaryAxisSizingMode = 'AUTO';
-    labelFrame.paddingLeft = labelFrame.paddingRight = TOKENS.space8;
-    labelFrame.paddingTop = labelFrame.paddingBottom = TOKENS.space4;
-    labelFrame.cornerRadius = TOKENS.radiusSM;
-    labelFrame.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-    labelFrame.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-    labelFrame.strokeWeight = 1;
-    labelFrame.name = 'Connector Label';
-    
-    const labelText = figma.createText();
-    labelText.fontName = getFontStyle("Bold");
-    labelText.fontSize = TOKENS.fontSizeBodySm;
-    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-    labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    labelText.characters = options.label;
-    labelText.name = 'Label Text';
-    labelFrame.appendChild(labelText);
-    
-    // Position label at midpoint
-    labelFrame.x = midX - labelFrame.width / 2;
-    labelFrame.y = midY - labelFrame.height / 2;
-    
-    labelGroup = labelFrame;
-  }
-  
-  // Append to appropriate parent
-  // IMPORTANT: Append connectors to flowFrame so they move with the flow
-  // But ensure flowFrame doesn't clip them
-  if (flowFrame) {
-    // Make sure flowFrame doesn't clip content
-    flowFrame.clipsContent = false;
-    
-    flowFrame.appendChild(line);
-    if (arrow) flowFrame.appendChild(arrow);
-    if (labelGroup) flowFrame.appendChild(labelGroup);
-    
-    console.log(`Created ${type} connector:`, {
-      from: `${fromNode.name || 'unknown'}`,
-      to: `${toNode.name || 'unknown'}`,
-      linePos: { x: line.x, y: line.y },
-      lineSize: { width: line.width, height: line.height }
-    });
-  } else {
+    const pathData = `M ${start.x} ${start.y} L ${midX} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`;
+    line = figma.createVector();
+    line.vectorPaths = [{ windingRule: "NONZERO", data: pathData }];
+    line.strokes = [{ type: "SOLID", color }];
+    line.strokeWeight = strokeWeight;
+    line.strokeAlign = "CENTER";
+    if (style.dashPattern) line.dashPattern = style.dashPattern;
+    line.name = `${type} Line`;
     figma.currentPage.appendChild(line);
-    if (arrow) figma.currentPage.appendChild(arrow);
-    if (labelGroup) figma.currentPage.appendChild(labelGroup);
+    
+    // Arrowhead
+    if (style.arrowhead) {
+      const size = 10;
+      arrow = figma.createVector();
+      arrow.vectorPaths = [{
+        windingRule: "NONZERO",
+        data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${end.y - size * Math.sign(end.y - start.y)} L ${end.x + size / 2} ${end.y - size * Math.sign(end.y - start.y)} Z`,
+      }];
+      arrow.fills = [{ type: "SOLID", color }];
+      arrow.strokes = [];
+      arrow.name = "Arrowhead";
+      figma.currentPage.appendChild(arrow);
+    }
   }
   
-  // Return the line (main connector element)
   return line;
 }
 // ...existing code...
@@ -915,6 +823,7 @@ if (figma.editorType === 'figma') {
         : `Event ${flow.events.indexOf(event) + 1}`;
       const eventGroup = figma.createFrame();
       eventGroup.layoutMode = 'VERTICAL';
+      eventGroup.layoutAlign = 'INHERIT';
       eventGroup.counterAxisSizingMode = 'AUTO';
       eventGroup.primaryAxisSizingMode = 'AUTO';
       eventGroup.itemSpacing = flow.layout?.variantSpacing ?? 32;
