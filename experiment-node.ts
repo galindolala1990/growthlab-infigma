@@ -31,13 +31,16 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   }];
   card.itemSpacing = 12; // 0.75rem gap
   card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'MIN';
+  card.counterAxisAlignItems = 'CENTER';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
   topRow.layoutMode = 'HORIZONTAL';
   topRow.counterAxisSizingMode = 'AUTO';
   topRow.primaryAxisSizingMode = 'AUTO';
+  topRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  topRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // topRow.height = 24; // Removed because .height is read-only for auto layout frames
   topRow.itemSpacing = TOKENS.space4;
   topRow.fills = [];
   topRow.strokes = [];
@@ -135,7 +138,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   card.primaryAxisSizingMode = 'AUTO';
   card.minWidth = 300; // 18.75rem
   card.maxWidth = 400; // 25rem
-  card.resize(300, 280); // Default width 300px (18.75rem)
+  card.resize(300, 400); // Default width 300px (18.75rem)
   card.paddingLeft = 0;
   card.paddingRight = 0;
   card.paddingTop = 16; // 1rem
@@ -157,6 +160,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
 
+  // Header with icon and "Variant" text
   const topRow = figma.createFrame();
   topRow.layoutMode = 'HORIZONTAL';
   topRow.counterAxisSizingMode = 'AUTO';
@@ -166,6 +170,37 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   topRow.strokes = [];
   topRow.name = 'Top Row';
   topRow.layoutAlign = 'MIN'; // Left align to match card alignment
+
+  // Icon: two arrows pointing in opposite directions (using simple rectangles as placeholder)
+  // Note: Complex vector icons would require SVG import, using simple shape as placeholder
+  const iconFrame = figma.createFrame();
+  iconFrame.resize(16, 16);
+  iconFrame.fills = [];
+  iconFrame.strokes = [];
+  iconFrame.name = 'Variant Icon';
+  
+  // Create a simple representation using rectangles
+  // Left arrow body
+  const leftBody = figma.createRectangle();
+  leftBody.resize(4, 1.5);
+  leftBody.x = 2;
+  leftBody.y = 7.25;
+  leftBody.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  leftBody.strokes = [];
+  leftBody.cornerRadius = 0.75;
+  iconFrame.appendChild(leftBody);
+  
+  // Right arrow body
+  const rightBody = figma.createRectangle();
+  rightBody.resize(4, 1.5);
+  rightBody.x = 10;
+  rightBody.y = 7.25;
+  rightBody.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  rightBody.strokes = [];
+  rightBody.cornerRadius = 0.75;
+  iconFrame.appendChild(rightBody);
+  
+  topRow.appendChild(iconFrame);
 
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
@@ -178,6 +213,7 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
 
   card.appendChild(topRow);
 
+  // Image placeholder with checkerboard pattern
   const thumb = figma.createFrame();
   thumb.layoutMode = 'NONE';
   thumb.resize(268, 160);
@@ -205,57 +241,232 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   thumb.strokeWeight = 1;
   card.appendChild(thumb);
 
+  // Variant details section: radio button + name + control label + traffic
+  const variantDetailsContainer = figma.createFrame();
+  variantDetailsContainer.layoutMode = 'VERTICAL';
+  variantDetailsContainer.counterAxisSizingMode = 'AUTO';
+  variantDetailsContainer.primaryAxisSizingMode = 'AUTO';
+  variantDetailsContainer.itemSpacing = 12;
+  variantDetailsContainer.fills = [];
+  variantDetailsContainer.strokes = [];
+  variantDetailsContainer.name = 'Variant Details';
+  variantDetailsContainer.layoutAlign = 'STRETCH';
+  variantDetailsContainer.paddingBottom = 12;
+  variantDetailsContainer.paddingTop = 12;
+
+  // Radio button + variant name row
+  const nameRow = figma.createFrame();
+  nameRow.layoutMode = 'HORIZONTAL';
+  nameRow.counterAxisSizingMode = 'AUTO';
+  nameRow.primaryAxisSizingMode = 'AUTO';
+  nameRow.itemSpacing = TOKENS.space8;
+  nameRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  nameRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
+  nameRow.fills = [];
+  nameRow.strokes = [];
+  nameRow.name = 'Name Row';
+  nameRow.layoutAlign = 'MIN';
+
+  // Blue radio button indicator
+  const radioButton = figma.createEllipse();
+  radioButton.resize(8, 8);
+  radioButton.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+  radioButton.strokes = [];
+  radioButton.name = 'Radio Button';
+  nameRow.appendChild(radioButton);
+
+  // Variant name (e.g., "Variant A")
   const variantNameText = figma.createText();
   variantNameText.fontName = getFontStyle("Bold");
   variantNameText.fontSize = TOKENS.fontSizeBodyLg;
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantNameText.characters = variant.name || 'Variant Name';
+  const variantKey = variant.key || (variantIndex !== undefined ? String.fromCharCode(65 + variantIndex) : 'A');
+  variantNameText.characters = `Variant ${variantKey}`;
   variantNameText.name = 'Variant Name';
-  card.appendChild(variantNameText);
+  nameRow.appendChild(variantNameText);
 
-  // Enhanced Metrics Display
-  const metricsContainer = figma.createFrame();
-  metricsContainer.layoutMode = 'HORIZONTAL';
-  metricsContainer.counterAxisSizingMode = 'AUTO';
-  metricsContainer.primaryAxisSizingMode = 'AUTO';
-  metricsContainer.itemSpacing = TOKENS.space8;
-  metricsContainer.fills = [];
-  metricsContainer.strokes = [];
-  metricsContainer.name = 'Metrics Container';
+  variantDetailsContainer.appendChild(nameRow);
+
+  // Control label (if first variant or marked as control)
+  const isControl = variantIndex === 0 || variant.key === 'A';
+  if (isControl) {
+    const controlLabel = figma.createText();
+    controlLabel.fontName = getFontStyle("Regular");
+    controlLabel.fontSize = TOKENS.fontSizeBodyMd;
+    controlLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    controlLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+    controlLabel.characters = '(Control)';
+    controlLabel.name = 'Control Label';
+    variantDetailsContainer.appendChild(controlLabel);
+  }
+
+  // Traffic percentage with icon
+  const trafficRow = figma.createFrame();
+  trafficRow.layoutMode = 'HORIZONTAL';
+  trafficRow.counterAxisSizingMode = 'AUTO';
+  trafficRow.primaryAxisSizingMode = 'AUTO';
+  trafficRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  trafficRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
+  trafficRow.itemSpacing = TOKENS.space4;
+  trafficRow.fills = [];
+  trafficRow.strokes = [];
+  trafficRow.name = 'Traffic Row';
+  trafficRow.layoutAlign = 'MIN';
+
+  // People icon (two stylized people)
+  const peopleIcon = figma.createFrame();
+  peopleIcon.resize(16, 16);
+  peopleIcon.fills = [];
+  peopleIcon.strokes = [];
+  peopleIcon.name = 'People Icon';
   
+  // Create simple people icon using ellipses
+  const person1 = figma.createEllipse();
+  person1.resize(6, 6);
+  person1.x = 0;
+  person1.y = 5;
+  person1.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  person1.strokes = [];
+  peopleIcon.appendChild(person1);
+  
+  const person2 = figma.createEllipse();
+  person2.resize(6, 6);
+  person2.x = 10;
+  person2.y = 5;
+  person2.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  person2.strokes = [];
+  peopleIcon.appendChild(person2);
+  
+  trafficRow.appendChild(peopleIcon);
+
+  // Traffic percentage text
+  const trafficText = figma.createText();
+  trafficText.fontName = getFontStyle("Regular");
+  trafficText.fontSize = TOKENS.fontSizeBodyMd;
+  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  trafficText.textAutoResize = 'WIDTH_AND_HEIGHT';
+  const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
+  trafficText.characters = `${trafficValue}%`;
+  trafficText.name = 'Traffic Percentage';
+  trafficRow.appendChild(trafficText);
+
+  variantDetailsContainer.appendChild(trafficRow);
+  card.appendChild(variantDetailsContainer);
+
+  // Separator line
+  const separator = figma.createFrame();
+  separator.resize(268, 1);
+  separator.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+  separator.strokes = [];
+  separator.name = 'Separator';
+  separator.layoutAlign = 'MIN';
+  card.appendChild(separator);
+
+  // Metrics section
+  const metricsSection = figma.createFrame();
+  metricsSection.layoutMode = 'VERTICAL';
+  metricsSection.counterAxisSizingMode = 'AUTO';
+  metricsSection.primaryAxisSizingMode = 'AUTO';
+  metricsSection.itemSpacing = TOKENS.space12;
+  metricsSection.fills = [];
+  metricsSection.strokes = [];
+  metricsSection.name = 'Metrics Section';
+  metricsSection.paddingBottom = 12;
+  metricsSection.paddingTop = 12;
+  metricsSection.layoutAlign = 'MIN';
+
+  // Metrics header
+  const metricsHeader = figma.createText();
+  metricsHeader.fontName = getFontStyle("Medium");
+  metricsHeader.fontSize = TOKENS.fontSizeLabel;
+  metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  metricsHeader.textAutoResize = 'WIDTH_AND_HEIGHT';
+  metricsHeader.characters = 'Metrics';
+  metricsHeader.name = 'Metrics Header';
+  metricsSection.appendChild(metricsHeader);
+
+  // Metrics values row
+  const metricsRow = figma.createFrame();
+  metricsRow.layoutMode = 'HORIZONTAL';
+  metricsRow.counterAxisSizingMode = 'AUTO';
+  metricsRow.primaryAxisSizingMode = 'AUTO';
+  metricsRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+  metricsRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
+  metricsRow.itemSpacing = TOKENS.space8;
+  metricsRow.fills = [];
+  metricsRow.strokes = [];
+  metricsRow.name = 'Metrics Row';
+  metricsRow.layoutAlign = 'MIN';
+
   // Format metrics with proper decimal places
   const formatMetric = (value: number | undefined): string => {
     if (value === undefined || value === null) return '0.00';
     return value.toFixed(2);
   };
-  
+
+  // Create metric text items: **CTR** 0.00 format (bold label + regular value)
+  const createMetricItem = (label: string, value: string): FrameNode => {
+    const metricItem = figma.createFrame();
+    metricItem.layoutMode = 'HORIZONTAL';
+    metricItem.counterAxisSizingMode = 'AUTO';
+    metricItem.primaryAxisSizingMode = 'AUTO';
+    metricItem.itemSpacing = 4;
+    metricItem.fills = [];
+    metricItem.strokes = [];
+    metricItem.name = `${label} Metric Item`;
+    
+    // Bold label
+    const labelText = figma.createText();
+    labelText.fontName = getFontStyle("Bold");
+    labelText.fontSize = TOKENS.fontSizeBodySm;
+    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    labelText.characters = label;
+    labelText.name = `${label} Label`;
+    metricItem.appendChild(labelText);
+    
+    // Regular value
+    const valueText = figma.createText();
+    valueText.fontName = getFontStyle("Regular");
+    valueText.fontSize = TOKENS.fontSizeBodyMd;
+    valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    valueText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    valueText.characters = value;
+    valueText.name = `${label} Value`;
+    metricItem.appendChild(valueText);
+    
+    return metricItem;
+  };
+
   if (variant.metrics?.ctr !== undefined) {
-    const ctrChip = createMetricChip('CTR', parseFloat(formatMetric(variant.metrics.ctr)));
-    metricsContainer.appendChild(ctrChip);
+    const ctrItem = createMetricItem('CTR', formatMetric(variant.metrics.ctr));
+    metricsRow.appendChild(ctrItem);
   }
   if (variant.metrics?.cr !== undefined) {
-    const crChip = createMetricChip('CR', parseFloat(formatMetric(variant.metrics.cr)));
-    metricsContainer.appendChild(crChip);
+    const crItem = createMetricItem('CR', formatMetric(variant.metrics.cr));
+    metricsRow.appendChild(crItem);
   }
   if (variant.metrics?.su !== undefined) {
-    const suChip = createMetricChip('SU', parseFloat(formatMetric(variant.metrics.su)));
-    metricsContainer.appendChild(suChip);
+    const suItem = createMetricItem('SU', formatMetric(variant.metrics.su));
+    metricsRow.appendChild(suItem);
   }
-  
-  // Fallback to text if no metrics chips created
-  if (metricsContainer.children.length === 0) {
-    const subtitleText = figma.createText();
-    subtitleText.fontName = getFontStyle("Regular");
-    subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-    subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-    subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    subtitleText.characters = `CTR: ${formatMetric(variant.metrics?.ctr)}  CR: ${formatMetric(variant.metrics?.cr)}  SU: ${formatMetric(variant.metrics?.su)}`;
-    subtitleText.name = 'Variant Metrics Subtitle';
-    card.appendChild(subtitleText);
-  } else {
-    card.appendChild(metricsContainer);
+
+  // Fallback if no metrics
+  if (metricsRow.children.length === 0) {
+    const defaultCtr = createMetricItem('CTR', '0.00');
+    const defaultCr = createMetricItem('CR', '0.00');
+    const defaultSu = createMetricItem('SU', '0.00');
+    metricsRow.appendChild(defaultCtr);
+    metricsRow.appendChild(defaultCr);
+    metricsRow.appendChild(defaultSu);
   }
+
+  metricsSection.appendChild(metricsRow);
+  card.appendChild(metricsSection);
 
   return card;
 }
