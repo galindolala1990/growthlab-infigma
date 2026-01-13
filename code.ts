@@ -832,13 +832,18 @@ if (figma.editorType === 'figma') {
       eventGroup.fills = [];
       eventGroup.strokes = [];
       eventGroup.name = `EventGroup: ${safeEventName}`;
-      eventGroup.resizeWithoutConstraints(220, 300);
+      // Don't set fixed size - let AUTO sizing handle dynamic scaling when variants are added
+      // eventGroup will automatically resize to fit its content (eventCard + variantsContainer)
 
       const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
       eventCard.name = `Event: ${safeEventName}`;
       eventCard.layoutAlign = 'STRETCH';
-      eventCard.paddingLeft = eventCard.paddingRight = 16;
-      eventCard.paddingTop = eventCard.paddingBottom = 16;
+      eventCard.paddingBottom = 16;
+      eventCard.paddingTop = 16;
+      eventCard.paddingLeft = 16;
+      eventCard.paddingRight = 16;
+      // Don't add extra padding - createEventCard already handles sizing and padding
+      // STRETCH ensures the card fills the parent width consistently
       attachNodeMeta(eventCard, {
         name: safeEventName,
         type: 'frame' as CanvasNodeType,
@@ -852,8 +857,11 @@ if (figma.editorType === 'figma') {
           entryNoteId: event.entryNote?.id,
         },
       });
+      // Add event card as first child of eventGroup
       eventGroup.appendChild(eventCard);
 
+      // Create variants container and add ALL variants to it
+      // Structure: eventGroup (parent) -> variantsContainer -> variantCards (children)
       if (event.variants && event.variants.length > 0) {
         const variantsContainer = figma.createFrame();
         variantsContainer.layoutMode = 'VERTICAL';
@@ -866,22 +874,47 @@ if (figma.editorType === 'figma') {
         variantsContainer.fills = [];
         variantsContainer.strokes = [];
         variantsContainer.name = `Variants: ${safeEventName}`;
+        
+        // Process ALL variants for this event - each variant becomes a card inside variantsContainer
         for (const [vIdx, variant] of event.variants.entries()) {
           const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
             ? variant.name
             : `Variant ${String.fromCharCode(65 + vIdx)}`;
+          // Extract color from style.variantColor if it exists (UI sends it this way)
+          const variantColor = (variant as any).color || variant.style?.variantColor;
+          
+          // Normalize metrics - convert empty strings to undefined/0 for new variants
+          const normalizeMetrics = (metrics: any) => {
+            if (!metrics) return { ctr: 0, cr: 0, su: 0 };
+            return {
+              ctr: metrics.ctr !== undefined && metrics.ctr !== '' && metrics.ctr !== null 
+                ? (typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0)
+                : 0,
+              cr: metrics.cr !== undefined && metrics.cr !== '' && metrics.cr !== null
+                ? (typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0)
+                : 0,
+              su: metrics.su !== undefined && metrics.su !== '' && metrics.su !== null
+                ? (typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0)
+                : 0,
+            };
+          };
+          
           const variantForCard = {
             ...variant,
             name: safeVariantName,
             status: (variant as any).status || 'none',
-            metrics: variant.metrics || { ctr: 0, cr: 0, su: 0 },
+            metrics: normalizeMetrics(variant.metrics),
+            color: variantColor, // Preserve color for connector rendering
           };
           const variantCard = createVariantCard(variantForCard, vIdx);
           variantCard.name = `Variant: ${safeVariantName}`;
           variantCard.layoutAlign = 'STRETCH';
-          variantCard.paddingLeft = variantCard.paddingRight = 16;
-          variantCard.paddingTop = variantCard.paddingBottom = 16;
-          variantCard.resizeWithoutConstraints(300, 280);
+          variantCard.paddingBottom = 16;
+          variantCard.paddingTop = 16;
+          variantCard.paddingLeft = 16;
+          variantCard.paddingRight = 16;
+          // Don't add extra padding or resize - createVariantCard already handles sizing and padding
+          // STRETCH ensures the card fills the parent width consistently
           attachNodeMeta(variantCard, {
             name: safeVariantName,
             type: 'frame' as CanvasNodeType,
@@ -897,10 +930,13 @@ if (figma.editorType === 'figma') {
               parentEventId: variant.parentEventId,
             },
           });
+          // Add each variant card to the variantsContainer (inside event parent)
           variantsContainer.appendChild(variantCard);
         }
+        // Add variantsContainer to eventGroup (event parent) - this ensures all variants are nested inside the event
         eventGroup.appendChild(variantsContainer);
       }
+      // Add the complete eventGroup (with eventCard + variantsContainer) to the flowFrame
       flowFrame.appendChild(eventGroup);
     }
 
