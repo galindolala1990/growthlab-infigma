@@ -958,17 +958,18 @@ if (figma.editorType === 'figma') {
         nodeType: 'EXIT_NODE',
       },
     });
-    // Always place exit node at the end of the spine (rightmost in horizontal layout)
-    // Remove and re-append to ensure it's last
-    if (flowFrame.children.length > 0 && flowFrame.children[flowFrame.children.length - 1] !== exitCard) {
-      if (exitCard.parent) exitCard.remove();
-      flowFrame.appendChild(exitCard);
-    }
+    // Append exit node to flowFrame
+    flowFrame.appendChild(exitCard);
 
     // --- Position and append to canvas ---
 
     const center = figma.viewport.center;
-    const gap = 100;
+    const gap = 100; // 100px gap between infoCard and flowFrame
+    const infoCardX = 100; // Fixed X position for infoCard
+    const sharedY = center.y; // Y position for top alignment
+    const minInfoWidth = 240;
+    const minFlowWidth = 600;
+    
     // Always append both to the canvas before setting positions
     if (infoCard && infoCard.parent === null) {
       figma.currentPage.appendChild(infoCard);
@@ -976,25 +977,55 @@ if (figma.editorType === 'figma') {
     if (flowFrame && flowFrame.parent === null) {
       figma.currentPage.appendChild(flowFrame);
     }
-    // Guarantee both are visible and never overlap by enforcing a minimum width
-    const minInfoWidth = 240;
-    const minFlowWidth = 600;
-    const infoWidth = infoCard ? Math.max(infoCard.width, minInfoWidth) : minInfoWidth;
-    const infoHeight = infoCard ? infoCard.height : 0;
-    const flowWidth = Math.max(flowFrame.width, minFlowWidth);
-    const flowHeight = flowFrame.height;
-    const totalWidth = infoWidth + gap + flowWidth;
-    const startX = center.x - totalWidth / 2;
-    const sharedY = center.y;
+    
+    // Wait a moment for layout to settle after appending
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Position infoCard FIRST at a fixed location
     if (infoCard) {
-      infoCard.x = 100;
-      infoCard.y = sharedY - infoHeight / 2;
-      if (infoCard.width < minInfoWidth) infoCard.resizeWithoutConstraints(minInfoWidth, infoCard.height);
+      // Ensure minimum width before positioning
+      if (infoCard.width < minInfoWidth) {
+        infoCard.resizeWithoutConstraints(minInfoWidth, infoCard.height);
+      }
+      // Set position explicitly - top-aligned
+      infoCard.x = infoCardX;
+      infoCard.y = sharedY;
     }
+    
+    // Wait for layout to fully settle after infoCard positioning
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Position flowFrame 100px to the right of infoCard's right edge
     if (flowFrame) {
-      flowFrame.x = 450;
-      flowFrame.y = sharedY - flowHeight / 2;
-      if (flowFrame.width < minFlowWidth) flowFrame.resizeWithoutConstraints(minFlowWidth, flowFrame.height);
+      let flowFrameX: number;
+      
+      if (infoCard) {
+        // Get the actual width and position of infoCard
+        const infoCardWidth = infoCard.width;
+        const infoCardXPos = infoCard.x;
+        const infoCardRightEdge = infoCardXPos + infoCardWidth;
+        
+        // Position flowFrame 100px to the right of infoCard's right edge
+        flowFrameX = infoCardRightEdge + gap;
+      } else {
+        // Fallback if no infoCard exists
+        flowFrameX = infoCardX + minInfoWidth + gap;
+      }
+      
+      // Set flowFrame position explicitly - top-aligned with infoCard
+      flowFrame.x = flowFrameX;
+      flowFrame.y = sharedY; // Same Y as infoCard for top alignment
+      
+      // Ensure minimum width for flowFrame (after positioning)
+      if (flowFrame.width < minFlowWidth) {
+        flowFrame.resizeWithoutConstraints(minFlowWidth, flowFrame.height);
+      }
+      
+      // Final verification: ensure flowFrame is to the right of infoCard
+      if (infoCard && flowFrame.x <= infoCard.x + infoCard.width) {
+        // Force correct spacing if they would overlap
+        flowFrame.x = infoCard.x + infoCard.width + gap;
+      }
     }
 
     // Align all eventGroups (children of flowFrame) to the shared Y axis

@@ -31,7 +31,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   }];
   card.itemSpacing = 12; // 0.75rem gap
   card.primaryAxisAlignItems = 'MIN';
-  card.counterAxisAlignItems = 'CENTER';
+  card.counterAxisAlignItems = 'MIN';
   card.name = `Event: ${eventName}`;
 
   const topRow = figma.createFrame();
@@ -80,6 +80,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     thumb.layoutAlign = 'MIN';
   } else {
     const placeholder = figma.createFrame();
+    placeholder.layoutMode = 'NONE';
     placeholder.resize(268, 160);
     placeholder.cornerRadius = TOKENS.radiusSM;
     placeholder.name = 'Thumbnail';
