@@ -4,6 +4,88 @@
 import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle } from './layout-utils';
 
+/**
+ * Create an icon from SVG string using Figma's importSVGAsync
+ * @param svgString - Complete SVG string
+ * @param size - Desired icon size
+ * @param name - Node name
+ * @returns Promise<FrameNode> containing the imported SVG
+ */
+async function createIconFromSVG(
+  svgString: string,
+  size: number = 16,
+  name: string = 'Icon',
+  color: RGB = { r: 0, g: 0, b: 0 } // Default black
+): Promise<FrameNode> {
+  // Create container frame first
+  const frame = figma.createFrame();
+  frame.resize(size, size);
+  frame.fills = [];
+  frame.strokes = [];
+  frame.name = name;
+  frame.clipsContent = false;
+
+  try {
+    // Check if importSVGAsync exists
+    if (typeof (figma as any).importSVGAsync !== 'function') {
+      console.warn('importSVGAsync not available, using fallback');
+      return frame;
+    }
+
+    // Use type assertion to access importSVGAsync (may not be in TypeScript types)
+    const importedNode = await (figma as any).importSVGAsync(svgString);
+    
+    if (!importedNode) {
+      console.warn('importSVGAsync returned null/undefined');
+      return frame;
+    }
+    
+    // Recursively update stroke colors to the desired color
+    function updateStrokeColors(node: SceneNode) {
+      if (node.type === 'VECTOR') {
+        if (node.strokes && node.strokes.length > 0) {
+          node.strokes = [{ type: 'SOLID', color }];
+        }
+      } else if ('children' in node) {
+        for (const child of node.children) {
+          updateStrokeColors(child);
+        }
+      }
+    }
+    updateStrokeColors(importedNode);
+    
+    // Append the imported node to frame
+    frame.appendChild(importedNode);
+    
+    // Scale the imported node to fit the desired size
+    // The SVG has viewBox="0 0 16 16", so we need to scale it
+    const scale = size / 16;
+    if (importedNode.width > 0 && importedNode.height > 0) {
+      importedNode.resize(importedNode.width * scale, importedNode.height * scale);
+    } else {
+      // If width/height are 0, try to set a default size
+      importedNode.resize(size, size);
+    }
+    
+    // Center the imported node in the frame
+    importedNode.x = (size - importedNode.width) / 2;
+    importedNode.y = (size - importedNode.height) / 2;
+    
+    return frame;
+  } catch (error) {
+    console.error('Failed to import SVG:', error);
+    // Fallback: create a simple placeholder rectangle so something is visible
+    const placeholder = figma.createRectangle();
+    placeholder.resize(size, size);
+    placeholder.fills = [{ type: 'SOLID', color }];
+    placeholder.strokes = [];
+    placeholder.cornerRadius = 2;
+    frame.appendChild(placeholder);
+    return frame;
+  }
+}
+
+
 
 
 export function createEventCard(eventName: string, variantCount?: number): FrameNode {
@@ -136,7 +218,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
 
 import type { Variant } from './code';
 
-export function createVariantCard(variant: Variant, variantIndex?: number): FrameNode {
+export async function createVariantCard(variant: Variant, variantIndex?: number): Promise<FrameNode> {
   const card = figma.createFrame();
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';
@@ -179,35 +261,36 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   topRow.name = 'Top Row';
   topRow.layoutAlign = 'MIN'; // Left align to match card alignment
 
-  // Icon: two arrows pointing in opposite directions (using simple rectangles as placeholder)
-  // Note: Complex vector icons would require SVG import, using simple shape as placeholder
+  // Icon: split icon representation using simple rectangles (fallback approach)
+  // SVG import is not reliable, so using simple shapes that work consistently
+  // HIDDEN: Icon is hidden per user request
   const iconFrame = figma.createFrame();
   iconFrame.resize(16, 16);
   iconFrame.fills = [];
   iconFrame.strokes = [];
   iconFrame.name = 'Variant Icon';
+  iconFrame.visible = false; // Hide the icon
   
-  // Create a simple representation using rectangles
-  // Left arrow body
-  const leftBody = figma.createRectangle();
-  leftBody.resize(4, 1.5);
-  leftBody.x = 2;
-  leftBody.y = 7.25;
-  leftBody.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  leftBody.strokes = [];
-  leftBody.cornerRadius = 0.75;
-  iconFrame.appendChild(leftBody);
+  // Create a simple split icon representation using rectangles
+  // Left arrow pointing left
+  const leftArrow = figma.createRectangle();
+  leftArrow.resize(3, 1.5);
+  leftArrow.x = 2;
+  leftArrow.y = 7.25;
+  leftArrow.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+  leftArrow.strokes = [];
+  leftArrow.cornerRadius = 0.75;
+  iconFrame.appendChild(leftArrow);
   
-  // Right arrow body
-  const rightBody = figma.createRectangle();
-  rightBody.resize(4, 1.5);
-  rightBody.x = 10;
-  rightBody.y = 7.25;
-  rightBody.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  rightBody.strokes = [];
-  rightBody.cornerRadius = 0.75;
-  iconFrame.appendChild(rightBody);
-  
+  // Right arrow pointing right
+  const rightArrow = figma.createRectangle();
+  rightArrow.resize(3, 1.5);
+  rightArrow.x = 11;
+  rightArrow.y = 7.25;
+  rightArrow.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
+  rightArrow.strokes = [];
+  rightArrow.cornerRadius = 0.75;
+  iconFrame.appendChild(rightArrow);
   topRow.appendChild(iconFrame);
 
   const variantTypeLabel = figma.createText();
@@ -323,11 +406,13 @@ export function createVariantCard(variant: Variant, variantIndex?: number): Fram
   trafficRow.layoutAlign = 'MIN';
 
   // People icon (two stylized people)
+  // HIDDEN: Icon is hidden per user request
   const peopleIcon = figma.createFrame();
   peopleIcon.resize(16, 16);
   peopleIcon.fills = [];
   peopleIcon.strokes = [];
   peopleIcon.name = 'People Icon';
+  peopleIcon.visible = false; // Hide the icon
   
   // Create simple people icon using ellipses
   const person1 = figma.createEllipse();

@@ -967,7 +967,7 @@ if (figma.editorType === 'figma') {
             color: variantColor,
           };
           
-          const variantCard = createVariantCard(variantForCard, vIdx);
+          const variantCard = await createVariantCard(variantForCard, vIdx);
           variantCard.name = `Variant: ${safeVariantName}`;
           attachNodeMeta(variantCard, {
             name: safeVariantName,
@@ -1478,7 +1478,7 @@ if (figma.editorType === 'figma') {
       let entryCard: FrameNode;
       const matchingVariant = variants.find((v: any) => v.name === entryLabel);
       if (matchingVariant) {
-        entryCard = createVariantCard(matchingVariant);
+        entryCard = await createVariantCard(matchingVariant);
         entryCard.name = 'Entry Variant Node';
       } else {
         entryCard = createEventCard(entryLabel, 0);
@@ -1502,7 +1502,7 @@ if (figma.editorType === 'figma') {
       const variantNodes: FrameNode[] = [];
       for (let i = 0; i < variants.length; i++) {
         const v = variants[i];
-        const card = createVariantCard(v);
+        const card = await createVariantCard(v);
         if (selection[i]) {
           const thumb = selection[i].clone();
           thumb.resize(240, 140);
