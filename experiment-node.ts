@@ -142,27 +142,64 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
 
   card.appendChild(topRow);
 
-  let thumb: FrameNode | SceneNode;
+  let thumb: FrameNode;
   const selection = figma.currentPage.selection;
-  let imageNode: RectangleNode | null = null;
-  if (
-    selection &&
-    selection.length > 0 &&
-    selection[0].type === 'RECTANGLE'
-  ) {
-    const rect = selection[0] as RectangleNode;
-    const fills = rect.fills;
-    if (Array.isArray(fills) && fills.length > 0 && fills[0].type === 'IMAGE') {
-      imageNode = rect;
+  
+  // Check if user has selected a Frame or Rectangle to use as thumbnail
+  if (selection && selection.length > 0) {
+    const selectedNode = selection[0];
+    
+    // If it's already a Frame, clone it directly
+    if (selectedNode.type === 'FRAME') {
+      thumb = selectedNode.clone() as FrameNode;
+      thumb.resize(268, 160);
+      thumb.cornerRadius = TOKENS.radiusSM;
+      thumb.name = 'Thumbnail';
+      thumb.layoutAlign = 'MIN';
+      thumb.clipsContent = true;
     }
-  }
-  if (imageNode) {
-    thumb = imageNode.clone();
-    thumb.resize(268, 160);
-    if ('cornerRadius' in thumb) thumb.cornerRadius = 16;
-    thumb.name = 'Thumbnail';
-    thumb.layoutAlign = 'MIN';
+    // If it's a Rectangle (with or without image fill), wrap it in a Frame
+    else if (selectedNode.type === 'RECTANGLE') {
+      const rect = selectedNode.clone() as RectangleNode;
+      thumb = figma.createFrame();
+      thumb.layoutMode = 'NONE';
+      thumb.resize(268, 160);
+      thumb.cornerRadius = TOKENS.radiusSM;
+      thumb.name = 'Thumbnail';
+      thumb.layoutAlign = 'MIN';
+      thumb.clipsContent = true;
+      
+      // Resize and center the rectangle in the frame
+      rect.resize(268, 160);
+      rect.x = 0;
+      rect.y = 0;
+      if ('cornerRadius' in rect) rect.cornerRadius = TOKENS.radiusSM;
+      thumb.appendChild(rect);
+    }
+    // For other node types (GROUP, etc.), wrap in a Frame
+    else {
+      const clonedNode = selectedNode.clone();
+      thumb = figma.createFrame();
+      thumb.layoutMode = 'NONE';
+      thumb.resize(268, 160);
+      thumb.cornerRadius = TOKENS.radiusSM;
+      thumb.name = 'Thumbnail';
+      thumb.layoutAlign = 'MIN';
+      thumb.clipsContent = true;
+      
+      // Scale and center the cloned node to fit (only if it supports resize)
+      if ('resize' in clonedNode && typeof clonedNode.resize === 'function') {
+        const scaleX = 268 / clonedNode.width;
+        const scaleY = 160 / clonedNode.height;
+        const scale = Math.min(scaleX, scaleY);
+        clonedNode.resize(clonedNode.width * scale, clonedNode.height * scale);
+        clonedNode.x = (268 - clonedNode.width) / 2;
+        clonedNode.y = (160 - clonedNode.height) / 2;
+      }
+      thumb.appendChild(clonedNode);
+    }
   } else {
+    // Create empty placeholder Frame ready for "Replace with"
     const placeholder = figma.createFrame();
     placeholder.layoutMode = 'NONE';
     placeholder.resize(268, 160);
@@ -170,24 +207,10 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     placeholder.name = 'Thumbnail';
     placeholder.layoutAlign = 'MIN';
     placeholder.clipsContent = true;
-    const squareSize = 32;
-    const cols = Math.ceil(268 / squareSize);
-    const rows = Math.ceil(160 / squareSize);
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const square = figma.createRectangle();
-        square.resize(squareSize, squareSize);
-        square.x = x * squareSize;
-        square.y = y * squareSize;
-        square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? TOKENS.checkerLight : TOKENS.checkerDark }];
-        square.strokes = [];
-        square.strokeWeight = 0;
-        square.name = 'Checker';
-        placeholder.appendChild(square);
-      }
-    }
+    placeholder.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
     placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     placeholder.strokeWeight = 1;
+    // Empty Frame with background fill - ready for "Replace with"
     thumb = placeholder;
   }
   card.appendChild(thumb);
@@ -304,7 +327,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
 
   card.appendChild(topRow);
 
-  // Image placeholder with checkerboard pattern
+  // Empty placeholder Frame ready for "Replace with"
   const thumb = figma.createFrame();
   thumb.layoutMode = 'NONE';
   thumb.resize(268, 160);
@@ -312,24 +335,10 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   thumb.name = 'Thumbnail';
   thumb.layoutAlign = 'MIN';
   thumb.clipsContent = true;
-  const squareSize = 32;
-  const cols = Math.ceil(268 / squareSize);
-  const rows = Math.ceil(160 / squareSize);
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const square = figma.createRectangle();
-      square.resize(squareSize, squareSize);
-      square.x = x * squareSize;
-      square.y = y * squareSize;
-      square.fills = [{ type: 'SOLID', color: (x + y) % 2 === 0 ? TOKENS.checkerLight : TOKENS.checkerDark }];
-      square.strokes = [];
-      square.strokeWeight = 0;
-      square.name = 'Checker';
-      thumb.appendChild(square);
-    }
-  }
+  thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
   thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
   thumb.strokeWeight = 1;
+  // Empty Frame with background fill - ready for "Replace with"
   card.appendChild(thumb);
 
   // Variant details section: radio button + name + control label + traffic
