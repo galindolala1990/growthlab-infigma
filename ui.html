@@ -3412,12 +3412,17 @@
             colorIndicator.classList.add('active');
           }
         });
+      // Unified fallback: if name is empty or a single letter, use 'Variant <index+1>'
+      let displayName = variant.name;
+      if (!displayName || (/^[A-Z]$/i).test(displayName)) {
+        displayName = `Variant ${variantIndex + 1}`;
+      }
       const nameField = createInputField({
         id: `variant-name-${eventIndex}-${variantIndex}`,
         label: 'Variant name',
         showLabel: false,
         help: 'Variant name',
-        text: variant.name || '',
+        text: displayName,
         variant: 'vertical',
         prefixElement: colorIndicator,
         onChange: (value) => {
@@ -4480,12 +4485,17 @@
       events.forEach((event, eventIndex) => {
         if (event.variants && event.variants.length > 0) {
           event.variants.forEach((variant, variantIndex) => {
+            // Unified fallback: if name is empty or a single letter, use 'Variant <index+1>'
+            let displayName = variant.name;
+            if (!displayName || (/^[A-Z]$/i).test(displayName)) {
+              displayName = `Variant ${variantIndex + 1}`;
+            }
             allVariants.push({
               ...variant,
               eventIndex,
               variantIndex,
               eventName: event.name || `Event ${eventIndex + 1}`,
-              displayName: variant.name || `Variant ${variantLetters[variantIndex]}`
+              displayName
             });
           });
         }

@@ -221,7 +221,14 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventNameText.textAlignHorizontal = 'LEFT';
-  eventNameText.characters = eventName || 'Event Name';
+  // Auto-number fallback: if eventName is empty, use 'Event <n>'
+  // Try to extract a number from the card name if possible
+  let fallbackEventNumber = 1;
+  const match = card.name.match(/Event: (\\d+)/);
+  if (!eventName && match && match[1]) {
+    fallbackEventNumber = parseInt(match[1], 10);
+  }
+  eventNameText.characters = eventName || `Event ${fallbackEventNumber}`;
   eventNameText.name = 'Event Name Text';
   card.appendChild(eventNameText);
 
@@ -270,32 +277,27 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
 
-  // Header with icon and "Variant" text
+  // Header with icon, "Variant" text, and traffic percentage
   const topRow = figma.createFrame();
   topRow.layoutMode = 'HORIZONTAL';
   topRow.counterAxisSizingMode = 'AUTO';
   topRow.primaryAxisSizingMode = 'AUTO';
-  topRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
-  topRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
-  // topRow.height = 24; // Removed because .height is read-only for auto layout frames
+  topRow.primaryAxisAlignItems = 'MIN';
+  topRow.counterAxisAlignItems = 'CENTER';
   topRow.itemSpacing = TOKENS.space4;
   topRow.fills = [];
   topRow.strokes = [];
   topRow.name = 'Top Row';
-  topRow.layoutAlign = 'MIN'; // Left align to match card alignment
+  topRow.layoutAlign = 'MIN';
 
-  // Icon: split icon representation using simple rectangles (fallback approach)
-  // SVG import is not reliable, so using simple shapes that work consistently
-  // HIDDEN: Icon is hidden per user request
+  // Icon: split icon representation using simple rectangles (hidden)
   const iconFrame = figma.createFrame();
   iconFrame.resize(16, 16);
   iconFrame.fills = [];
   iconFrame.strokes = [];
   iconFrame.name = 'Variant Icon';
-  iconFrame.visible = false; // Hide the icon
-  
-  // Create a simple split icon representation using rectangles
-  // Left arrow pointing left
+  iconFrame.visible = false;
+  // Left arrow
   const leftArrow = figma.createRectangle();
   leftArrow.resize(3, 1.5);
   leftArrow.x = 2;
@@ -304,8 +306,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   leftArrow.strokes = [];
   leftArrow.cornerRadius = 0.75;
   iconFrame.appendChild(leftArrow);
-  
-  // Right arrow pointing right
+  // Right arrow
   const rightArrow = figma.createRectangle();
   rightArrow.resize(3, 1.5);
   rightArrow.x = 11;
@@ -316,12 +317,15 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   iconFrame.appendChild(rightArrow);
   topRow.appendChild(iconFrame);
 
+  // Variant label with traffic percentage
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
   variantTypeLabel.fontSize = TOKENS.fontSizeBodyMd;
   variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantTypeLabel.characters = 'Variant';
+  // Get traffic value
+  const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
+  variantTypeLabel.characters = `Variant (${trafficValue}%)`;
   variantTypeLabel.name = 'Variant Type Label';
   topRow.appendChild(variantTypeLabel);
 
@@ -377,14 +381,18 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   radioButton.name = 'Radio Button';
   nameRow.appendChild(radioButton);
 
-  // Variant name (e.g., "Variant A")
+  // Variant name (with fallback logic always applied)
   const variantNameText = figma.createText();
   variantNameText.fontName = getFontStyle("Bold");
   variantNameText.fontSize = TOKENS.fontSizeBodyLg;
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  const variantName = variant.name || (variantIndex !== undefined ? String.fromCharCode(65 + variantIndex) : 'A');
-  variantNameText.characters = `${variantName}`;
+  // Always apply fallback: if name is empty or a single letter, use 'Variant <index+1>'
+  let displayName = variant.name;
+  if (!displayName || (/^[A-Z]$/i).test(displayName)) {
+    displayName = variantIndex !== undefined ? `Variant ${variantIndex + 1}` : 'Variant';
+  }
+  variantNameText.characters = displayName;
   variantNameText.name = 'Variant Name';
   nameRow.appendChild(variantNameText);
 
@@ -396,64 +404,11 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   variantLabel.fontSize = TOKENS.fontSizeBodyMd;
   variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantLabel.characters = (variant as any).description || '';
+  variantLabel.characters = (variant as any).description || 'Variant description goes here.';
   variantLabel.name = 'Variant Label';
   variantDetailsContainer.appendChild(variantLabel);
 
-  // Traffic percentage with icon
-  const trafficRow = figma.createFrame();
-  trafficRow.layoutMode = 'HORIZONTAL';
-  trafficRow.counterAxisSizingMode = 'AUTO';
-  trafficRow.primaryAxisSizingMode = 'AUTO';
-  trafficRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
-  trafficRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
-  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
-  trafficRow.itemSpacing = TOKENS.space4;
-  trafficRow.fills = [];
-  trafficRow.strokes = [];
-  trafficRow.name = 'Traffic Row';
-  trafficRow.layoutAlign = 'MIN';
-
-  // People icon (two stylized people)
-  // HIDDEN: Icon is hidden per user request
-  const peopleIcon = figma.createFrame();
-  peopleIcon.resize(16, 16);
-  peopleIcon.fills = [];
-  peopleIcon.strokes = [];
-  peopleIcon.name = 'People Icon';
-  peopleIcon.visible = false; // Hide the icon
-  
-  // Create simple people icon using ellipses
-  const person1 = figma.createEllipse();
-  person1.resize(6, 6);
-  person1.x = 0;
-  person1.y = 5;
-  person1.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  person1.strokes = [];
-  peopleIcon.appendChild(person1);
-  
-  const person2 = figma.createEllipse();
-  person2.resize(6, 6);
-  person2.x = 10;
-  person2.y = 5;
-  person2.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  person2.strokes = [];
-  peopleIcon.appendChild(person2);
-  
-  trafficRow.appendChild(peopleIcon);
-
-  // Traffic percentage text
-  const trafficText = figma.createText();
-  trafficText.fontName = getFontStyle("Regular");
-  trafficText.fontSize = TOKENS.fontSizeBodyMd;
-  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-  trafficText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
-  trafficText.characters = `${trafficValue}%`;
-  trafficText.name = 'Traffic Percentage';
-  trafficRow.appendChild(trafficText);
-
-  variantDetailsContainer.appendChild(trafficRow);
+  // ...traffic row removed, now shown in topRow...
   card.appendChild(variantDetailsContainer);
 
   // Separator line
