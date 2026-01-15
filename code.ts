@@ -802,7 +802,7 @@ if (figma.editorType === 'figma') {
         },
         {
           key: 'C', // THIS IS A VARIANT KEY IN AN VARIANT CARD, RELATED TO AN EVENT
-          name: 'Variation B', // THIS IS A VARIANT NAME IN AN VARIANT CARD, RELATED TO AN EVENT
+          name: '', // BLANK NAME TO TRIGGER FALLBACK
           description: 'CTA with icon', // THIS IS A VARIANT DESCRIPTION IN AN VARIANT CARD, RELATED TO AN EVENT
           color: TOKENS.yellow600, // THIS IS THE COLOR FOR THIS VARIANT IN AN EVENT CARD
           traffic: 20, // THIS IS THE TRAFFIC PERCENTAGE FOR THIS VARIANT IN AN EVENT CARD
@@ -1262,7 +1262,7 @@ if (figma.editorType === 'figma') {
         for (const [vIdx, variant] of event.variants.entries()) {
           const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
             ? variant.name
-            : `Variant ${String.fromCharCode(65 + vIdx)}`;
+            : `Variant ${vIdx + 1}`;
           
           const variantColor = (variant as any).color || variant.style?.variantColor;
           

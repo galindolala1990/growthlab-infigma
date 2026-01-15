@@ -4350,7 +4350,7 @@
         event.variants = event.variants.map((variant, vIdx) => {
           let safeName = typeof variant.name === 'string' && variant.name.trim().length > 0
             ? variant.name
-            : `Variant ${String.fromCharCode(65 + vIdx)}`;
+            : `Variant ${vIdx + 1}`;
           return {
             id: variant.id || `variant-${eventIdx}-${vIdx}-${Date.now()}`,
             parentEventId: event.id || `event-${eventIdx}`,

@@ -387,11 +387,10 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   variantNameText.fontSize = TOKENS.fontSizeBodyLg;
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  // Always apply fallback: if name is empty or a single letter, use 'Variant <index+1>'
-  let displayName = variant.name;
-  if (!displayName || (/^[A-Z]$/i).test(displayName)) {
-    displayName = variantIndex !== undefined ? `Variant ${variantIndex + 1}` : 'Variant';
-  }
+  // Always apply fallback: if name is empty, whitespace, or missing, use 'Variant <index+1>'
+  let displayName = (typeof variant.name === 'string' && variant.name.trim().length > 0)
+    ? variant.name
+    : (variantIndex !== undefined ? `Variant ${variantIndex + 1}` : 'Variant');
   variantNameText.characters = displayName;
   variantNameText.name = 'Variant Name';
   nameRow.appendChild(variantNameText);
