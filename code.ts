@@ -1034,35 +1034,87 @@ function createConnectorV2(
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     
-    let pathData: string;
+    let pathData: string = ''; // Initialize to avoid TypeScript error
     
     // Track the actual end point of the path for arrowhead positioning
     let actualPathEnd = { x: end.x, y: end.y };
     let pathEndDirection = { x: 1, y: 0 }; // Default direction (right)
     
-    // PRIMARY_FLOW_LINE should ALWAYS be straight horizontal
+    // Get path coordinates (for all connector types)
+    const pathStartX = flowFrame ? start.x : startAbs.x;
+    const pathStartY = flowFrame ? start.y : startAbs.y;
+    const pathEndX = flowFrame ? end.x : endAbs.x;
+    const pathEndY = flowFrame ? end.y : endAbs.y;
+    const pathDy = pathEndY - pathStartY;
+    
+    // PRIMARY_FLOW_LINE: entry/exit points are always straight horizontal (0 degrees), curve only at midpoint if vertically offset
     if (type === 'PRIMARY_FLOW_LINE') {
-      // Force straight horizontal line for primary flows
-      // CRITICAL: Path must start and end at EXACT card edge coordinates
-      // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
-      const pathStartX = flowFrame ? start.x : startAbs.x;
-      const pathStartY = flowFrame ? start.y : startAbs.y;
-      const pathEndX = flowFrame ? end.x : endAbs.x;
+      // PRIMARY_FLOW_LINE connects event to event (left to right)
+      // Entry point: straight horizontal (0 degrees) from event right edge
+      // Exit point: straight horizontal (0 degrees) to event left edge
+      // Midpoint: curve only if nodes are vertically offset
+      const absDy = Math.abs(pathDy);
       
-      pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY}`;
-      // Actual path end is at the card edge (horizontal line, so Y matches start, X matches end)
-      // Use endAbs.x for horizontal position, startAbs.y for vertical (since it's a horizontal line)
-      actualPathEnd = { x: endAbs.x, y: startAbs.y };
-      // Direction is horizontal, pointing toward the card
-      pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
-    } else if (Math.abs(dy) < 1) {
-      // Simple straight horizontal line (no vertical displacement)
+      // If nodes are vertically aligned, use straight horizontal line (0 degrees at entry and exit)
+      if (absDy < 2) {
+        // Vertically aligned - straight horizontal line
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY}`;
+        // Actual path end is at the card edge (horizontal line, so Y matches start, X matches end)
+        actualPathEnd = { x: endAbs.x, y: startAbs.y };
+        // Direction is horizontal, pointing toward the card (0 degrees)
+        pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
+      } else {
+        // Vertically offset - use midpoint curve with straight horizontal entry/exit segments
+        // Calculate midpoint X
+        const midX = (pathStartX + pathEndX) / 2;
+        const absDx = Math.abs(pathEndX - pathStartX);
+        
+        // Corner radius scales with distance, max 20px
+        const cornerRadius = Math.min(20, Math.min(absDx, absDy) * 0.4);
+        
+        // Path structure:
+        // 1. Straight horizontal from entry (startX to midX - radius) - 0 degrees
+        // 2. Curve from horizontal to vertical at midpoint
+        // 3. Straight vertical segment
+        // 4. Curve from vertical to horizontal at midpoint
+        // 5. Straight horizontal to exit (midX + radius to endX) - 0 degrees
+        
+        pathData = `M ${pathStartX} ${pathStartY}`;
+        
+        // Straight horizontal segment from entry (0 degrees)
+        const horizontalEndX = midX - cornerRadius;
+        pathData += ` L ${horizontalEndX} ${pathStartY}`;
+        
+        // Curve from horizontal to vertical (at midpoint)
+        // Control point creates smooth transition
+        const verticalStartY = pathDy > 0 
+          ? pathStartY + cornerRadius  // Going down
+          : pathStartY - cornerRadius; // Going up
+        
+        // Quadratic bezier: from (midX - radius, startY) via (midX, startY) to (midX, startY ± radius)
+        pathData += ` Q ${midX} ${pathStartY} ${midX} ${verticalStartY}`;
+        
+        // Straight vertical segment
+        const verticalEndY = pathDy > 0
+          ? pathEndY - cornerRadius  // Going down
+          : pathEndY + cornerRadius; // Going up
+        pathData += ` L ${midX} ${verticalEndY}`;
+        
+        // Curve from vertical to horizontal (at midpoint)
+        // Quadratic bezier: from (midX, endY ± radius) via (midX, endY) to (midX + radius, endY)
+        pathData += ` Q ${midX} ${pathEndY} ${midX + cornerRadius} ${pathEndY}`;
+        
+        // Straight horizontal segment to exit (0 degrees)
+        pathData += ` L ${pathEndX} ${pathEndY}`;
+        
+        // Actual path end is at the card edge
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        // Direction is horizontal, pointing toward the card (0 degrees)
+        pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
+      }
+    } else if (Math.abs(pathDy) < 1) {
+      // Simple straight horizontal line (no vertical displacement) - for other connector types
       // CRITICAL: Path must start and end at EXACT card edge coordinates
-      // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
-      const pathStartX = flowFrame ? start.x : startAbs.x;
-      const pathStartY = flowFrame ? start.y : startAbs.y;
-      const pathEndX = flowFrame ? end.x : endAbs.x;
-      const pathEndY = flowFrame ? end.y : endAbs.y;
       
       pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
       // Actual path end is at the card edge
@@ -1155,41 +1207,10 @@ function createConnectorV2(
         const length = Math.sqrt(dx * dx + dy * dy);
         pathEndDirection = length > 0 ? { x: dx / length, y: dy / length } : { x: 1, y: 0 };
       } else {
-        // Complex path with vertical segment and rounded corners (for PRIMARY_FLOW_LINE with vertical displacement)
-        const radius = Math.min(Math.abs(dy) / 2, cornerRadius);
-        
-        // Calculate midpoint X for the vertical segment
-        midX = start.x + dx * 0.5 + index * 12;
-        
-        // Build path: horizontal right → curve → vertical → curve → horizontal right
-        // CRITICAL: Path must start and end at EXACT card edge coordinates
-        const pathStartX = flowFrame ? start.x : startAbs.x;
-        const pathStartY = flowFrame ? start.y : startAbs.y;
-        const pathEndX = flowFrame ? end.x : endAbs.x;
-        const pathEndY = flowFrame ? end.y : endAbs.y;
-        
-        pathData = `M ${pathStartX} ${pathStartY}`;
-        
-        // Initial horizontal segment - starts from card edge
-        pathData += ` L ${midX - radius} ${pathStartY}`;
-        
-        // First corner: horizontal to vertical (going up or down)
-        pathData += ` Q ${midX} ${pathStartY} ${midX} ${pathStartY + radius * Math.sign(dy)}`;
-        
-        // Vertical segment
-        pathData += ` L ${midX} ${pathEndY - radius * Math.sign(dy)}`;
-        
-        // Second corner: vertical to horizontal (going right)
-        pathData += ` Q ${midX} ${pathEndY} ${midX + radius} ${pathEndY}`;
-        
-        // Final horizontal segment - ends exactly at the card edge
-        const finalSegmentStart = { x: midX + radius, y: pathEndY };
-        pathData += ` L ${pathEndX} ${pathEndY}`;
-        
-        // actualPathEnd MUST be the exact card edge position (endAbs) for arrowhead positioning
+        // Fallback for any other connector types (should not normally occur)
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
         actualPathEnd = { x: endAbs.x, y: endAbs.y };
-        // Direction is horizontal, pointing toward the card (from final segment start to end)
-        pathEndDirection = { x: Math.sign(pathEndX - finalSegmentStart.x), y: 0 };
+        pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
       }
     }
     
