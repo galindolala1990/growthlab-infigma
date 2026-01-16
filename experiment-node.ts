@@ -394,7 +394,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   metricsSection.layoutMode = 'VERTICAL';
   metricsSection.counterAxisSizingMode = 'AUTO';
   metricsSection.primaryAxisSizingMode = 'AUTO';
-  metricsSection.itemSpacing = TOKENS.space12;
+  metricsSection.itemSpacing = TOKENS.space8;
   metricsSection.fills = [];
   metricsSection.strokes = [];
   metricsSection.name = 'Metrics Section';

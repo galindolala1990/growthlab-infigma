@@ -726,13 +726,62 @@ function createBranchingTree(
     // Create branch path with elbow from trunk end to variant
     let branchPath: string;
     
-    // Simple straight line from trunk end directly to variant top (no elbow)
-    // This was the "almost perfect" version the user mentioned
     const dx = endPoint.x - trunkEnd.x;
     const dy = endPoint.y - trunkEnd.y;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
     
-    // Just draw a straight line from trunk end to variant
-    branchPath = `M ${trunkEnd.x} ${trunkEnd.y} L ${endPoint.x} ${endPoint.y}`;
+    // If variant is directly below trunk (no horizontal offset), use straight line
+    // Otherwise, create an elbow with smooth rounded corners
+    if (absDx < 1) {
+      // Straight vertical line - variant is directly below trunk
+      branchPath = `M ${trunkEnd.x} ${trunkEnd.y} L ${endPoint.x} ${endPoint.y}`;
+    } else {
+      // Create elbow path with rounded corners
+      // Corner radius scales with distance for smoother, scalable appearance
+      const cornerRadius = Math.min(20, Math.min(absDx, absDy) * 0.4); // Scale radius, max 20px
+      
+      // Elbow path: horizontal segment → rounded corner → vertical segment
+      // Start from trunk end, go horizontally first, then vertically to variant
+      const elbowX = endPoint.x; // Target X (variant's X position)
+      const elbowY = trunkEnd.y; // Keep same Y as trunk end for horizontal segment
+      
+      // Path: Start → horizontal segment → rounded corner → vertical segment → end
+      branchPath = `M ${trunkEnd.x} ${trunkEnd.y}`;
+      
+      // Horizontal segment: move from trunk end X toward variant X
+      // Stop before the corner by the radius distance
+      if (absDx > cornerRadius) {
+        // Enough horizontal distance for a corner
+        const horizontalEndX = dx > 0 
+          ? elbowX - cornerRadius  // Variant is to the right
+          : elbowX + cornerRadius; // Variant is to the left
+        
+        branchPath += ` L ${horizontalEndX} ${elbowY}`;
+        
+        // Rounded corner (quadratic bezier for smooth curve)
+        // Corner transitions from horizontal to vertical
+        // Control point is at the actual corner (elbowX, elbowY)
+        // End point is vertical segment start
+        const verticalStartY = dy > 0 
+          ? elbowY + cornerRadius  // Going down
+          : elbowY - cornerRadius; // Going up
+        
+        branchPath += ` Q ${elbowX} ${elbowY} ${elbowX} ${verticalStartY}`;
+        
+        // Vertical segment to variant
+        if (absDy > cornerRadius) {
+          // Enough vertical distance, connect to variant
+          branchPath += ` L ${endPoint.x} ${endPoint.y}`;
+        } else {
+          // Very short vertical - already at variant from corner
+          branchPath += ` L ${endPoint.x} ${endPoint.y}`;
+        }
+      } else {
+        // Very small horizontal distance - use straight line
+        branchPath += ` L ${endPoint.x} ${endPoint.y}`;
+      }
+    }
     
     const branch = figma.createVector();
     branch.vectorPaths = [{ windingRule: "NONZERO", data: branchPath }];
@@ -1022,22 +1071,85 @@ function createConnectorV2(
       // Direction is horizontal, pointing toward the card
       pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
     } else {
-      // For variant connectors (BRANCH_LINE, MERGE_LINE), use straight direct lines
-      // For PRIMARY_FLOW_LINE with vertical displacement, use curved path
-      if (type === 'BRANCH_LINE' || type === 'MERGE_LINE') {
-        // Straight direct line from card edge to card edge (no curves, no angles)
-        // CRITICAL: Path must start and end at EXACT card edge coordinates
+      // For BRANCH_LINE: entry/exit points are always straight, curve only at midpoint if offset
+      if (type === 'BRANCH_LINE') {
+        // BRANCH_LINE connects event bottom center to variant top center
+        // Entry point: straight vertical (90 degrees) from event bottom
+        // Exit point: straight vertical (90 degrees) to variant top
+        // Midpoint: curve only if nodes are offset horizontally
         const pathStartX = flowFrame ? start.x : startAbs.x;
         const pathStartY = flowFrame ? start.y : startAbs.y;
         const pathEndX = flowFrame ? end.x : endAbs.x;
         const pathEndY = flowFrame ? end.y : endAbs.y;
         
-        // Simple straight line directly connecting the edges
-        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+        const dx = pathEndX - pathStartX;
+        const dy = pathEndY - pathStartY;
+        const absDx = Math.abs(dx);
+        
+        // Magnet behavior: if nodes are horizontally aligned (X centers match), use straight vertical line
+        if (absDx < 2) {
+          // Horizontally aligned - straight vertical line (90 degrees at entry and exit)
+          pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+          pathEndDirection = { x: 0, y: Math.sign(dy) }; // Straight vertical
+        } else {
+          // Not aligned - use midpoint curve with straight entry/exit segments
+          // Calculate midpoint Y
+          const midY = (pathStartY + pathEndY) / 2;
+          const absDy = Math.abs(dy);
+          
+          // Corner radius scales with distance, max 20px
+          const cornerRadius = Math.min(20, Math.min(absDx, absDy) * 0.4);
+          
+          // Path structure: 
+          // 1. Straight vertical from entry (startY to midY - radius) - 90 degrees
+          // 2. Curve from vertical to horizontal at midpoint
+          // 3. Straight horizontal segment
+          // 4. Curve from horizontal to vertical at midpoint  
+          // 5. Straight vertical to exit (midY + radius to endY) - 90 degrees
+          
+          pathData = `M ${pathStartX} ${pathStartY}`;
+          
+          // Straight vertical segment from entry (90 degrees)
+          const verticalEndY = midY - cornerRadius;
+          pathData += ` L ${pathStartX} ${verticalEndY}`;
+          
+          // Curve from vertical to horizontal (at midpoint)
+          // Control point creates smooth transition
+          const horizontalStartX = dx > 0 
+            ? pathStartX + cornerRadius  // Going right
+            : pathStartX - cornerRadius; // Going left
+          
+          // Quadratic bezier: from (startX, midY - radius) via (startX, midY) to (startX ± radius, midY)
+          pathData += ` Q ${pathStartX} ${midY} ${horizontalStartX} ${midY}`;
+          
+          // Straight horizontal segment
+          const horizontalEndX = dx > 0
+            ? pathEndX - cornerRadius  // Going right
+            : pathEndX + cornerRadius; // Going left
+          pathData += ` L ${horizontalEndX} ${midY}`;
+          
+          // Curve from horizontal to vertical (at midpoint)
+          // Quadratic bezier: from (endX ± radius, midY) via (endX, midY) to (endX, midY + radius)
+          pathData += ` Q ${pathEndX} ${midY} ${pathEndX} ${midY + cornerRadius}`;
+          
+          // Straight vertical segment to exit (90 degrees)
+          pathData += ` L ${pathEndX} ${pathEndY}`;
+          
+          pathEndDirection = { x: 0, y: Math.sign(dy) }; // Exit is straight vertical
+        }
         
         // actualPathEnd is the exact card edge position
         actualPathEnd = { x: endAbs.x, y: endAbs.y };
-        // Direction points directly toward the card
+      } else if (type === 'MERGE_LINE') {
+        // MERGE_LINE uses straight direct line from card edge to card edge
+        const pathStartX = flowFrame ? start.x : startAbs.x;
+        const pathStartY = flowFrame ? start.y : startAbs.y;
+        const pathEndX = flowFrame ? end.x : endAbs.x;
+        const pathEndY = flowFrame ? end.y : endAbs.y;
+        
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+        
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
         const dx = pathEndX - pathStartX;
         const dy = pathEndY - pathStartY;
         const length = Math.sqrt(dx * dx + dy * dy);
@@ -1162,9 +1274,74 @@ function createConnectorV2(
     let actualPathEnd = { x: end.x, y: end.y };
     let pathEndDirection = { x: 0, y: 1 }; // Default direction (down)
     
-    // Check if it's a straight vertical line (no horizontal displacement)
-    if (Math.abs(dx) < 1) {
-      // Simple straight vertical line
+    // For BRANCH_LINE in vertical orientation: entry/exit points are always straight, curve only at midpoint if offset
+    if (type === 'BRANCH_LINE') {
+      // BRANCH_LINE connects event bottom center to variant top center
+      // Entry point: straight vertical (90 degrees) from event bottom
+      // Exit point: straight vertical (90 degrees) to variant top
+      // Midpoint: curve only if nodes are offset horizontally
+      const pathStartX = flowFrame ? start.x : startAbs.x;
+      const pathStartY = flowFrame ? start.y : startAbs.y;
+      const pathEndX = flowFrame ? end.x : endAbs.x;
+      const pathEndY = flowFrame ? end.y : endAbs.y;
+      
+      const absDx = Math.abs(dx);
+      
+      // Magnet behavior: if nodes are horizontally aligned (X centers match), use straight vertical line
+      if (absDx < 2) {
+        // Horizontally aligned - straight vertical line (90 degrees at entry and exit)
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        pathEndDirection = { x: 0, y: Math.sign(pathEndY - pathStartY) }; // Straight vertical
+      } else {
+        // Not aligned - use midpoint curve with straight entry/exit segments
+        // Calculate midpoint Y
+        const midY = (pathStartY + pathEndY) / 2;
+        const absDy = Math.abs(dy);
+        
+        // Corner radius scales with distance, max 20px
+        const cornerRadius = Math.min(20, Math.min(absDx, absDy) * 0.4);
+        
+        // Path structure: 
+        // 1. Straight vertical from entry (startY to midY - radius) - 90 degrees
+        // 2. Curve from vertical to horizontal at midpoint
+        // 3. Straight horizontal segment
+        // 4. Curve from horizontal to vertical at midpoint  
+        // 5. Straight vertical to exit (midY + radius to endY) - 90 degrees
+        
+        pathData = `M ${pathStartX} ${pathStartY}`;
+        
+        // Straight vertical segment from entry (90 degrees)
+        const verticalEndY = midY - cornerRadius;
+        pathData += ` L ${pathStartX} ${verticalEndY}`;
+        
+        // Curve from vertical to horizontal (at midpoint)
+        // Control point creates smooth transition
+        const horizontalStartX = dx > 0 
+          ? pathStartX + cornerRadius  // Going right
+          : pathStartX - cornerRadius; // Going left
+        
+        // Quadratic bezier: from (startX, midY - radius) via (startX, midY) to (startX ± radius, midY)
+        pathData += ` Q ${pathStartX} ${midY} ${horizontalStartX} ${midY}`;
+        
+        // Straight horizontal segment
+        const horizontalEndX = dx > 0
+          ? pathEndX - cornerRadius  // Going right
+          : pathEndX + cornerRadius; // Going left
+        pathData += ` L ${horizontalEndX} ${midY}`;
+        
+        // Curve from horizontal to vertical (at midpoint)
+        // Quadratic bezier: from (endX ± radius, midY) via (endX, midY) to (endX, midY + radius)
+        pathData += ` Q ${pathEndX} ${midY} ${pathEndX} ${midY + cornerRadius}`;
+        
+        // Straight vertical segment to exit (90 degrees)
+        pathData += ` L ${pathEndX} ${pathEndY}`;
+        
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        pathEndDirection = { x: 0, y: Math.sign(pathEndY - pathStartY) }; // Exit is straight vertical
+      }
+    } else if (Math.abs(dx) < 1) {
+      // Simple straight vertical line (for other connector types)
       // CRITICAL: Path must start and end at EXACT card edge coordinates
       // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
       const pathStartX = flowFrame ? start.x : startAbs.x;
@@ -1179,9 +1356,9 @@ function createConnectorV2(
       // Direction is vertical, pointing toward the card
       pathEndDirection = { x: 0, y: Math.sign(pathEndY - pathStartY) };
     } else {
-      // For variant connectors (BRANCH_LINE, MERGE_LINE), use straight direct lines
+      // For MERGE_LINE, use straight direct line
       // For PRIMARY_FLOW_LINE with horizontal displacement, use curved path
-      if (type === 'BRANCH_LINE' || type === 'MERGE_LINE') {
+      if (type === 'MERGE_LINE') {
         // Straight direct line from card edge to card edge (no curves, no angles)
         // CRITICAL: Path must start and end at EXACT card edge coordinates
         const pathStartX = flowFrame ? start.x : startAbs.x;
@@ -2189,32 +2366,25 @@ if (figma.editorType === 'figma') {
     console.log('NodeMap keys:', Object.keys(nodeMap));
     
     if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
-      // Group branch connectors by source event for trunk+split pattern
-      const branchGroups = new Map<string, ConnectorV2[]>();
       // Group merge connectors by destination event for merge+trunk pattern
       const mergeGroups = new Map<string, ConnectorV2[]>();
-      const primaryFlowConnectors: ConnectorV2[] = [];
+      const directConnectors: ConnectorV2[] = []; // PRIMARY_FLOW_LINE and BRANCH_LINE use direct connections
       
       for (const connector of flow.connectors) {
-        if (connector.type === 'BRANCH_LINE') {
-          const fromId = connector.from.id;
-          if (!branchGroups.has(fromId)) {
-            branchGroups.set(fromId, []);
-          }
-          branchGroups.get(fromId)!.push(connector);
-        } else if (connector.type === 'MERGE_LINE') {
+        if (connector.type === 'MERGE_LINE') {
           const toId = connector.to.id;
           if (!mergeGroups.has(toId)) {
             mergeGroups.set(toId, []);
           }
           mergeGroups.get(toId)!.push(connector);
         } else {
-          primaryFlowConnectors.push(connector);
+          // PRIMARY_FLOW_LINE and BRANCH_LINE use direct connections (no grouping)
+          directConnectors.push(connector);
         }
       }
       
-      // Render primary flow connectors first
-      for (const connector of primaryFlowConnectors) {
+      // Render direct connectors (PRIMARY_FLOW_LINE and BRANCH_LINE)
+      for (const connector of directConnectors) {
         console.log(`Processing connector: ${connector.type} from ${connector.from.id} to ${connector.to.id}`);
         
         const fromNode = nodeMap[connector.from.id];
@@ -2281,36 +2451,6 @@ if (figma.editorType === 'figma') {
             fromFound: !!fromNode,
             toFound: !!toNode
           });
-        }
-      }
-      
-      // Render branch connectors as trunk+split groups
-      for (const [eventId, branches] of branchGroups.entries()) {
-        console.log(`Processing branch group from event ${eventId} to ${branches.length} variants`);
-        
-        const eventNode = nodeMap[eventId];
-        if (!eventNode) {
-          console.warn('✗ Event node not found for branch group:', eventId);
-          continue;
-        }
-        
-        // Get all variant nodes for this branch group
-        const variantNodes = branches
-          .map(b => ({ connector: b, node: nodeMap[b.to.id] }))
-          .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
-        
-        if (variantNodes.length === 0) {
-          console.warn('✗ No variant nodes found for branch group');
-          continue;
-        }
-        
-        try {
-          // Create trunk+split branching structure
-          const branchConnectors = createBranchingTree(eventNode, variantNodes, experiment.id);
-          createdConnectors.push(...branchConnectors);
-          console.log(`✓ Created trunk+split branch with ${branchConnectors.length} elements`);
-        } catch (error) {
-          console.error('ERROR creating branch group:', error);
         }
       }
       
