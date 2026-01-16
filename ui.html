@@ -4437,7 +4437,7 @@
       // --- Send v2 payload ---
       parent.postMessage({ pluginMessage: {
         type: 'create-flow-v2',
-        payload: { experiment, flow }
+        payload: { experiment, flow, metrics: filledMetrics }
       } }, '*');
     };
 

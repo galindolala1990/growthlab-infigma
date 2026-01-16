@@ -1743,9 +1743,18 @@ export interface FlowV2 {
 }
 let selectedEventIndex = 0; // Default to first event selected
 
+export interface MetricDefinition {
+  id: string;
+  name: string;
+  abbreviation?: string;
+  min?: number;
+  max?: number;
+}
+
 export interface CreateFlowV2Payload {
   experiment: ExperimentV2;
   flow: FlowV2;
+  metrics?: MetricDefinition[];
 }
 
 export interface PluginMessageV2 {
@@ -1763,9 +1772,7 @@ interface PluginMessage {
 type VariantStatus = "running" | "winner" | "none";
 
 type VariantMetrics = {
-  ctr: number;
-  cr: number;
-  su: number;
+  [key: string]: number; // Dynamic metrics based on plugin configuration
 };
 
 export type Variant = {
@@ -2164,7 +2171,7 @@ if (figma.editorType === 'figma') {
 
   // --- Unified V2 Flow Creation Function ---
   // Extracted from message handler for reuse by both UI messages and sample flows
-  async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2): Promise<void> {
+  async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metrics?: MetricDefinition[]): Promise<void> {
     await loadFonts();
 
     // Remove any existing flow frames with the same name/id
@@ -2230,57 +2237,55 @@ if (figma.editorType === 'figma') {
     const variantWidthsByEvent: Map<string, number> = new Map();
     const variantCardsByEvent: Map<string, FrameNode[]> = new Map();
     
+    // Generate metric key from abbreviation or name (same logic as UI)
+    const getMetricKey = (metric: MetricDefinition): string => {
+      if (metric.abbreviation) {
+        return metric.abbreviation.toLowerCase();
+      }
+      return metric.name.replace(/\s+/g, '_').toLowerCase();
+    };
+    
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
-        // Calculate which variant wins each metric (data-driven winner)
-        const calculateMetricWinners = (variants: any[]) => {
-          const winners: { ctr?: string; cr?: string; su?: string } = {};
+        // Calculate which variant wins each metric (data-driven winner, dynamic based on available metrics)
+        const calculateMetricWinners = (variants: any[]): Record<string, string> => {
+          const winners: Record<string, string> = {};
           
-          // Find highest CTR
-          let maxCTR = -1;
-          let ctrWinner: string | undefined;
-          // Find highest CR
-          let maxCR = -1;
-          let crWinner: string | undefined;
-          // Find highest SU
-          let maxSU = -1;
-          let suWinner: string | undefined;
-          
-          for (const variant of variants) {
-            const metrics = variant.metrics || {};
-            const variantId = variant.id;
-            
-            // CTR winner
-            const ctr = typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0;
-            if (ctr > maxCTR) {
-              maxCTR = ctr;
-              ctrWinner = variantId;
-            }
-            
-            // CR winner
-            const cr = typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0;
-            if (cr > maxCR) {
-              maxCR = cr;
-              crWinner = variantId;
-            }
-            
-            // SU winner
-            const su = typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0;
-            if (su > maxSU) {
-              maxSU = su;
-              suWinner = variantId;
-            }
+          if (!metrics || metrics.length === 0) {
+            return winners;
           }
           
-          if (ctrWinner) winners.ctr = ctrWinner;
-          if (crWinner) winners.cr = crWinner;
-          if (suWinner) winners.su = suWinner;
+          // For each metric, find the variant with the highest value
+          for (const metric of metrics) {
+            if (!metric.name) continue;
+            
+            const metricKey = getMetricKey(metric);
+            let maxValue = -1;
+            let winnerId: string | undefined;
+            
+            for (const variant of variants) {
+              const variantMetrics = variant.metrics || {};
+              const variantId = variant.id;
+              const value = typeof variantMetrics[metricKey] === 'number' 
+                ? variantMetrics[metricKey] 
+                : parseFloat(String(variantMetrics[metricKey])) || 0;
+              
+              if (value > maxValue) {
+                maxValue = value;
+                winnerId = variantId;
+              }
+            }
+            
+            if (winnerId) {
+              winners[metricKey] = winnerId;
+            }
+          }
           
           return winners;
         };
         
         // Calculate which variant is the recommended winner (wins most metrics)
-        const calculateRecommendedWinner = (variants: any[], winningMetrics: { ctr?: string; cr?: string; su?: string }): string | undefined => {
+        const calculateRecommendedWinner = (variants: any[], winningMetrics: Record<string, string>): string | undefined => {
           // Count how many metrics each variant wins
           const variantScores: Record<string, number> = {};
           
@@ -2289,10 +2294,10 @@ if (figma.editorType === 'figma') {
             variantScores[variant.id] = 0;
           }
           
-          // Count wins for each variant
-          if (winningMetrics.ctr) variantScores[winningMetrics.ctr] = (variantScores[winningMetrics.ctr] || 0) + 1;
-          if (winningMetrics.cr) variantScores[winningMetrics.cr] = (variantScores[winningMetrics.cr] || 0) + 1;
-          if (winningMetrics.su) variantScores[winningMetrics.su] = (variantScores[winningMetrics.su] || 0) + 1;
+          // Count wins for each variant (dynamic based on available metrics)
+          for (const [metricKey, winnerId] of Object.entries(winningMetrics)) {
+            variantScores[winnerId] = (variantScores[winnerId] || 0) + 1;
+          }
           
           // Find variant with highest score
           let maxScore = -1;
@@ -2305,20 +2310,22 @@ if (figma.editorType === 'figma') {
             }
           }
           
-          // If there's a tie, prioritize CR winner, then CTR, then SU
-          if (maxScore > 0) {
+          // If there's a tie, prioritize by metric order (first metric wins)
+          if (maxScore > 0 && metrics && metrics.length > 0) {
             const tiedVariants = Object.entries(variantScores)
               .filter(([_, score]) => score === maxScore)
               .map(([variantId]) => variantId);
             
             if (tiedVariants.length > 1) {
-              // Break tie: CR > CTR > SU
-              if (winningMetrics.cr && tiedVariants.includes(winningMetrics.cr)) {
-                recommendedWinner = winningMetrics.cr;
-              } else if (winningMetrics.ctr && tiedVariants.includes(winningMetrics.ctr)) {
-                recommendedWinner = winningMetrics.ctr;
-              } else if (winningMetrics.su && tiedVariants.includes(winningMetrics.su)) {
-                recommendedWinner = winningMetrics.su;
+              // Break tie: use first metric's winner
+              for (const metric of metrics) {
+                if (!metric.name) continue;
+                const metricKey = getMetricKey(metric);
+                const winnerId = winningMetrics[metricKey];
+                if (winnerId && tiedVariants.includes(winnerId)) {
+                  recommendedWinner = winnerId;
+                  break;
+                }
               }
             }
           }
@@ -2339,22 +2346,6 @@ if (figma.editorType === 'figma') {
           
           const variantColor = (variant as any).color || variant.style?.variantColor;
           
-          // Normalize metrics
-          const normalizeMetrics = (metrics: any) => {
-            if (!metrics) return { ctr: 0, cr: 0, su: 0 };
-            return {
-              ctr: metrics.ctr !== undefined && metrics.ctr !== '' && metrics.ctr !== null 
-                ? (typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0)
-                : 0,
-              cr: metrics.cr !== undefined && metrics.cr !== '' && metrics.cr !== null
-                ? (typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0)
-                : 0,
-              su: metrics.su !== undefined && metrics.su !== '' && metrics.su !== null
-                ? (typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0)
-                : 0,
-            };
-          };
-          
           // Check if this variant is rolled out (rolled-out variant is the winner)
           const isRolledout = experiment.outcomes?.rolledoutVariantId === variant.id;
           
@@ -2363,7 +2354,7 @@ if (figma.editorType === 'figma') {
             name: safeVariantName,
             // If this is the rolled-out variant, it's the winner
             status: isRolledout ? 'winner' : ((variant as any).status || 'none'),
-            metrics: normalizeMetrics(variant.metrics),
+            metrics: variant.metrics || {}, // Use metrics as-is, no normalization needed
             color: variantColor,
           };
           
@@ -2374,7 +2365,8 @@ if (figma.editorType === 'figma') {
             rolledout: isRolledout,
             winningMetrics: winningMetrics,
             variantId: variant.id,
-            isRecommendedWinner: isRecommendedWinner
+            isRecommendedWinner: isRecommendedWinner,
+            metrics: metrics
           });
           // Position off-screen temporarily to measure width
           variantCard.x = -10000;
@@ -2802,51 +2794,9 @@ if (figma.editorType === 'figma') {
       }
     }
 
-    // --- Outcome Annotation Rendering ---
-    if (experiment.outcomes && typeof experiment.outcomes.notes === 'string') {
-      const outcomeFrame = figma.createFrame();
-      outcomeFrame.layoutMode = 'VERTICAL';
-      outcomeFrame.counterAxisSizingMode = 'AUTO';
-      outcomeFrame.primaryAxisSizingMode = 'AUTO';
-      outcomeFrame.paddingLeft = outcomeFrame.paddingRight = 16;
-      outcomeFrame.paddingTop = outcomeFrame.paddingBottom = 10;
-      outcomeFrame.cornerRadius = 10;
-      outcomeFrame.fills = [{ type: 'SOLID', color: { r: 0.9, g: 1, b: 0.9 } }];
-      outcomeFrame.strokes = [{ type: 'SOLID', color: { r: 0.3, g: 0.7, b: 0.3 } }];
-      outcomeFrame.strokeWeight = 1;
-      outcomeFrame.name = 'Outcome Note';
+    // Outcome Note removed
 
-      const outcomeText = figma.createText();
-      outcomeText.fontName = { family: 'Figtree', style: 'Regular' };
-      outcomeText.fontSize = 14;
-      outcomeText.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.3, b: 0.1 } }];
-      outcomeText.characters = experiment.outcomes.notes || '';
-      outcomeText.textAutoResize = 'WIDTH_AND_HEIGHT';
-      outcomeFrame.appendChild(outcomeText);
-
-      attachNodeMeta(outcomeFrame, {
-        name: 'Outcome Note',
-        type: 'frame',
-        description: 'Outcome annotation',
-        extra: {
-          role: 'outcome-note',
-          experimentId: experiment.id,
-        },
-      });
-
-      // Place outcome note above the first node
-      const firstNode = allNodes[0];
-      if (firstNode) {
-        outcomeFrame.x = firstNode.node.x;
-        outcomeFrame.y = firstNode.node.y - 100;
-      } else {
-        outcomeFrame.x = baseX;
-        outcomeFrame.y = baseY - 100;
-      }
-      figma.currentPage.appendChild(outcomeFrame);
-    }
-
-    figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
+    figma.notify('Experiment flow v2: nodes, connectors, and entry notes created.');
     
     // Set up auto-refresh for connectors in regular Figma
     // (In FigJam, native connectors auto-update, so this isn't needed)
@@ -2860,8 +2810,8 @@ if (figma.editorType === 'figma') {
       figma.notify('Handler: create-flow-v2 (NEW SCHEMA)');
       console.log('Handler: create-flow-v2 (NEW SCHEMA)');
       // --- NEW V2 FLOW HANDLER ---
-      const { experiment, flow } = msg.payload as CreateFlowV2Payload;
-      await createFlowV2FromData(experiment, flow);
+      const { experiment, flow, metrics } = msg.payload as CreateFlowV2Payload;
+      await createFlowV2FromData(experiment, flow, metrics);
     }
     
     if (msg.type === 'refresh-connectors') {
