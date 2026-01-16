@@ -2523,6 +2523,7 @@
       <!-- Footer Section -->
       <footer class="section-footer">
         <button type="submit" class="Button brand">Create flow</button>
+        <button type="button" id="refreshConnectors" class="Button secondary" title="Refresh connector positions after moving cards">Refresh Connectors</button>
         <button type="button" id="cancel" class="Button secondary">Cancel</button>
       </footer>
       <!-- Debug Panel (collapsible, below footer) -->
@@ -4425,7 +4426,7 @@
 
       const flow = {
         id: `flow-${experimentId}`,
-        layout: { direction: 'VERTICAL', eventSpacing: 64, variantSpacing: 100 },
+        layout: { direction: 'VERTICAL', eventSpacing: 80, variantSpacing: 40 },
         entry: entryNode,
         events: sanitizedEvents,
         exit: exitNode,
@@ -4441,6 +4442,11 @@
 
     document.getElementById('cancel').onclick = () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    };
+
+    // Refresh Connectors button
+    document.getElementById('refreshConnectors').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'refresh-connectors' } }, '*');
     };
 
     document.querySelector('.btn-add-metric').onclick = (e) => {

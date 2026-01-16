@@ -5,6 +5,7 @@ import { createExperimentInfoCard } from './experiment-info-card';
 // --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
 /**
  * Creates a Figma ConnectorNode between two nodes, magnetized to specified edges.
+ * These connectors automatically update when nodes are moved!
  * @param fromNode The node to start from
  * @param toNode The node to end at
  * @param fromMagnet 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
@@ -12,6 +13,24 @@ import { createExperimentInfoCard } from './experiment-info-card';
  * @param options Optional styling (color, strokeWeight, etc)
  * @returns The created ConnectorNode
  */
+/**
+ * Check if we're running in FigJam (where ConnectorNode is available)
+ * vs regular Figma (where it's not)
+ */
+function isFigJam(): boolean {
+  try {
+    // Check if createConnector is available
+    if (typeof (figma as any).createConnector === 'function') {
+      // Try to create a test connector to see if it actually works
+      // But we can't do that without side effects, so check editorType instead
+      return figma.editorType === 'figjam';
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function createMagnetizedConnector(
   fromNode: BaseNode & { id: string },
   toNode: BaseNode & { id: string },
@@ -21,28 +40,599 @@ function createMagnetizedConnector(
     color?: RGB;
     strokeWeight?: number;
     cornerRadius?: number;
-    connectorLineType?: 'ELBOWED' | 'STRAIGHT';
+    connectorLineType?: 'ELBOWED' | 'STRAIGHT' | 'CURVED';
   }
-): ConnectorNode {
-  const connector = figma.createConnector();
-  connector.connectorStart = {
-    endpointNodeId: fromNode.id,
-    magnet: fromMagnet
-  };
-  connector.connectorEnd = {
-    endpointNodeId: toNode.id,
-    magnet: toMagnet
-  };
-  connector.connectorLineType = options?.connectorLineType || 'ELBOWED';
-  connector.strokeWeight = options?.strokeWeight ?? 4;
-  // connector.cornerRadius = options?.cornerRadius ?? 24; // Not allowed on ConnectorNode
-  connector.strokeJoin = 'ROUND';
-  // connector.strokeCap = 'NONE'; // Not allowed on ConnectorNode
-  connector.connectorEndStrokeCap = 'ARROW_LINES';
-  connector.strokes = [{ type: 'SOLID', color: options?.color ?? hexToRgb(TOKENS.royalBlue600) }];
-  connector.name = 'Connector line';
-  // Don't append here - let the caller decide where to append
-  return connector;
+): ConnectorNode | null {
+  // Only try native connectors in FigJam
+  if (!isFigJam()) {
+    console.log('Native ConnectorNode only available in FigJam, using VectorNode fallback');
+    return null;
+  }
+  
+  try {
+    const connector = figma.createConnector();
+    connector.connectorStart = {
+      endpointNodeId: fromNode.id,
+      magnet: fromMagnet
+    };
+    connector.connectorEnd = {
+      endpointNodeId: toNode.id,
+      magnet: toMagnet
+    };
+    connector.connectorLineType = options?.connectorLineType || 'ELBOWED';
+    connector.strokeWeight = options?.strokeWeight ?? 4;
+    connector.strokeJoin = 'ROUND';
+    connector.connectorEndStrokeCap = 'ARROW_LINES';
+    connector.strokes = [{ type: 'SOLID', color: options?.color ?? hexToRgb(TOKENS.royalBlue600) }];
+    connector.name = 'Connector line';
+    return connector;
+  } catch (error) {
+    console.warn('Native ConnectorNode creation failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Determines the best magnet position for a connector based on node positions and connector type
+ */
+function getMagnetPositions(
+  fromNode: SceneNode & { width: number; height: number },
+  toNode: SceneNode & { width: number; height: number },
+  type: ConnectorTypeV2
+): { fromMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'; toMagnet: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' } {
+  // Helper to get absolute position
+  function getAbsolutePos(node: SceneNode): { x: number; y: number } {
+    let x = node.x, y = node.y;
+    let parent = node.parent;
+    while (parent && parent.type !== 'PAGE') {
+      if ('x' in parent && 'y' in parent) {
+        x += (parent as any).x;
+        y += (parent as any).y;
+      }
+      parent = parent.parent;
+    }
+    return { x, y };
+  }
+  
+  const fromAbs = getAbsolutePos(fromNode);
+  const toAbs = getAbsolutePos(toNode);
+  const dx = toAbs.x - fromAbs.x;
+  const dy = toAbs.y - fromAbs.y;
+  
+  if (type === 'PRIMARY_FLOW_LINE' || type === 'MERGE_LINE') {
+    // Horizontal connections: RIGHT to LEFT
+    return { fromMagnet: 'RIGHT', toMagnet: 'LEFT' };
+  } else if (type === 'BRANCH_LINE') {
+    // Vertical connections: BOTTOM to TOP
+    return { fromMagnet: 'BOTTOM', toMagnet: 'TOP' };
+  } else {
+    // Auto-detect based on distance
+    if (Math.abs(dx) > Math.abs(dy)) {
+      return { fromMagnet: dx > 0 ? 'RIGHT' : 'LEFT', toMagnet: dx > 0 ? 'LEFT' : 'RIGHT' };
+    } else {
+      return { fromMagnet: dy > 0 ? 'BOTTOM' : 'TOP', toMagnet: dy > 0 ? 'TOP' : 'BOTTOM' };
+    }
+  }
+}
+
+/**
+ * Creates a dynamic connector that automatically updates when nodes move.
+ * Tries native ConnectorNode first (best option), falls back to VectorNode with refresh capability.
+ * @param fromNode The source node
+ * @param toNode The destination node
+ * @param type The connector type
+ * @param options Optional styling and metadata
+ * @returns The created connector node (ConnectorNode or VectorNode)
+ */
+function createDynamicConnector(
+  fromNode: SceneNode & { width: number; height: number; id: string },
+  toNode: SceneNode & { width: number; height: number; id: string },
+  type: ConnectorTypeV2,
+  options?: {
+    label?: string;
+    winner?: boolean;
+    variantColor?: string;
+    index?: number;
+    useNativeConnector?: boolean; // Force native connector if available
+  }
+): SceneNode {
+  const useNative = options?.useNativeConnector !== false; // Default to true
+  
+  if (useNative) {
+    // Try native ConnectorNode first (automatically updates when nodes move!)
+    const { fromMagnet, toMagnet } = getMagnetPositions(fromNode, toNode, type);
+    const style = getConnectorStyle(type, { winner: options?.winner, variantColor: options?.variantColor });
+    
+    const nativeConnector = createMagnetizedConnector(
+      fromNode,
+      toNode,
+      fromMagnet,
+      toMagnet,
+      {
+        color: style.color,
+        strokeWeight: style.strokeWeight,
+        connectorLineType: type === 'PRIMARY_FLOW_LINE' ? 'STRAIGHT' : 'ELBOWED',
+      }
+    );
+    
+    if (nativeConnector) {
+      // Store metadata for identification
+      nativeConnector.setPluginData('connectorMeta', JSON.stringify({
+        type,
+        fromNodeId: fromNode.id,
+        toNodeId: toNode.id,
+        isNative: true,
+        label: options?.label,
+      }));
+      nativeConnector.name = `${type} (Dynamic): ${fromNode.name} → ${toNode.name}`;
+      return nativeConnector;
+    }
+  }
+  
+  // Fallback to VectorNode (static, but can be refreshed)
+  const vectorConnector = createConnectorV2(fromNode, toNode, type, undefined, options);
+  if (vectorConnector) {
+    // Store metadata including node IDs for refresh capability
+    vectorConnector.setPluginData('connectorMeta', JSON.stringify({
+      type,
+      fromNodeId: fromNode.id,
+      toNodeId: toNode.id,
+      isNative: false,
+      label: options?.label,
+    }));
+    vectorConnector.name = `${type} (Static): ${fromNode.name} → ${toNode.name}`;
+  }
+  return vectorConnector;
+}
+
+/**
+ * Refreshes all VectorNode-based connectors on the current page.
+ * This updates their positions based on current node positions.
+ * Native ConnectorNodes don't need refreshing - they update automatically!
+ * 
+ * Usage:
+ * - Call directly: await refreshConnectors()
+ * - Or send message from UI: figma.ui.postMessage({ type: 'refresh-connectors' })
+ * - Or add to menu/command handler
+ */
+let refreshDebounceTimer: number | null = null;
+let isRefreshing = false;
+
+async function refreshConnectors(): Promise<void> {
+  // Prevent concurrent refreshes
+  if (isRefreshing) {
+    console.log('Refresh already in progress, skipping...');
+    return;
+  }
+  
+  console.log('Starting connector refresh...');
+  isRefreshing = true;
+  const connectors: VectorNode[] = [];
+  
+  // Find all connector nodes with metadata
+  function findConnectors(node: SceneNode): void {
+    // Skip if node is removed
+    if ('removed' in node && node.removed) {
+      return;
+    }
+    
+    if (node.type === 'VECTOR') {
+      try {
+        // Check if node still exists before accessing plugin data
+        const meta = node.getPluginData('connectorMeta');
+        if (meta) {
+          try {
+            const parsed = JSON.parse(meta);
+            // Track connectors that need refreshing:
+            // 1. Non-native connectors with fromNodeId and toNodeId
+            // 2. Branch trunks (BRANCH_TRUNK) that need to update when variants move
+            if (parsed.type === 'BRANCH_TRUNK' || 
+                (parsed.isNative === false || (parsed.isNative === undefined && parsed.fromNodeId && parsed.toNodeId))) {
+              connectors.push(node as VectorNode);
+            }
+          } catch (e) {
+            // Invalid metadata, skip
+            console.warn('Invalid connector metadata:', e);
+          }
+        }
+      } catch (metaError) {
+        // Node might have been deleted or doesn't have metadata
+        // Skip silently - this is expected for orphaned connectors
+        // Don't log to avoid console spam
+      }
+    }
+    
+    if ('children' in node) {
+      for (const child of node.children) {
+        findConnectors(child);
+      }
+    }
+  }
+  
+  findConnectors(figma.currentPage as unknown as SceneNode);
+  
+  console.log(`Found ${connectors.length} connectors to refresh`);
+  
+  if (connectors.length === 0) {
+    figma.notify('No connectors found to refresh.');
+    isRefreshing = false;
+    return;
+  }
+  
+  let refreshed = 0;
+  let errors = 0;
+  
+  // Use Promise.all to fetch all nodes asynchronously
+  const refreshPromises = connectors.map(async (connector) => {
+    try {
+      // First check if the connector node itself still exists
+      if (!connector || connector.removed) {
+        return { success: false, error: 'connector_removed' };
+      }
+      
+      // Try to get metadata - if connector was deleted, this will fail
+      let meta;
+      try {
+        const metaString = connector.getPluginData('connectorMeta');
+        if (!metaString) {
+          return { success: false, error: 'no_metadata' };
+        }
+        meta = JSON.parse(metaString);
+      } catch (metaError) {
+        console.warn('Could not read connector metadata, connector may have been deleted:', metaError);
+        return { success: false, error: 'metadata_error' };
+      }
+      
+      if (!meta.fromNodeId || !meta.toNodeId) {
+        return { success: false, error: 'invalid_metadata' };
+      }
+      
+      // Try to fetch nodes - handle cases where nodes don't exist
+      let fromNode: SceneNode & { width: number; height: number } | null = null;
+      let toNode: SceneNode & { width: number; height: number } | null = null;
+      
+      try {
+        fromNode = await figma.getNodeByIdAsync(meta.fromNodeId) as SceneNode & { width: number; height: number } | null;
+      } catch (err) {
+        console.warn(`From node ${meta.fromNodeId} does not exist:`, err);
+      }
+      
+      try {
+        toNode = await figma.getNodeByIdAsync(meta.toNodeId) as SceneNode & { width: number; height: number } | null;
+      } catch (err) {
+        console.warn(`To node ${meta.toNodeId} does not exist:`, err);
+      }
+      
+      if (!fromNode || !toNode) {
+        // If nodes don't exist, remove the orphaned connector
+        try {
+          if (connector && !connector.removed) {
+            connector.remove();
+          }
+        } catch (removeErr) {
+          // Connector already removed, ignore
+        }
+        return { success: false, error: 'missing_nodes' };
+      }
+      
+      // Remove old connector and its arrowhead (if any)
+      const parent = connector.parent;
+      
+      // Find and remove arrowhead sibling (arrowheads are created as separate VectorNodes)
+      if (parent && 'children' in parent && !parent.removed) {
+        try {
+          const siblings = parent.children;
+          const arrowhead = siblings.find(
+            child => child.type === 'VECTOR' && 
+            (child.name === 'Arrowhead' || child.name.includes('Arrowhead')) &&
+            child !== connector &&
+            !child.removed
+          );
+          if (arrowhead) {
+            arrowhead.remove();
+          }
+        } catch (arrowErr) {
+          // Arrowhead already removed or parent changed, continue
+        }
+      }
+      
+      // Remove the old connector
+      try {
+        if (connector && !connector.removed) {
+          connector.remove();
+        }
+      } catch (removeErr) {
+        // Connector already removed, continue
+      }
+      
+      // Handle BRANCH_TRUNK specially - recreate the entire branching tree
+      if (meta.type === 'BRANCH_TRUNK') {
+        // Find the event node and all variant nodes
+        try {
+          const eventNode = await figma.getNodeByIdAsync(meta.fromNodeId) as SceneNode & { width: number; height: number } | null;
+          if (!eventNode) {
+            connector.remove();
+            return { success: false, error: 'event_node_missing' };
+          }
+          
+          // Get all variant nodes
+          const variantNodeIds = meta.variantNodeIds || [];
+          const variantNodes: Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }> = [];
+          for (const variantId of variantNodeIds) {
+            try {
+              const variantNode = await figma.getNodeByIdAsync(variantId) as SceneNode & { width: number; height: number } | null;
+              if (variantNode) {
+                variantNodes.push({
+                  connector: { 
+                    id: `branch-${variantId}`, 
+                    type: 'BRANCH_LINE' as ConnectorTypeV2,
+                    from: { nodeType: 'EVENT_NODE', id: meta.fromNodeId },
+                    to: { nodeType: 'VARIANT_NODE', id: variantId }
+                  },
+                  node: variantNode
+                });
+              }
+            } catch (err) {
+              // Variant node doesn't exist, skip
+            }
+          }
+          
+          if (variantNodes.length > 0) {
+            // Remove old trunk and all its branches
+            const parent = connector.parent;
+            if (parent && 'children' in parent) {
+              // Find and remove all related branch connectors
+              const siblings = parent.children;
+              for (const sibling of siblings) {
+                if (sibling.type === 'VECTOR' && sibling !== connector) {
+                  try {
+                    const siblingMeta = sibling.getPluginData('connectorMeta');
+                    if (siblingMeta) {
+                      const parsedSibling = JSON.parse(siblingMeta);
+                      if (parsedSibling.type === 'BRANCH_LINE' && parsedSibling.fromNodeId === meta.fromNodeId) {
+                        sibling.remove();
+                      }
+                    }
+                  } catch {
+                    // Ignore errors
+                  }
+                }
+              }
+            }
+            connector.remove();
+            
+            // Recreate the branching tree
+            const newTree = createBranchingTree(eventNode, variantNodes, meta.experimentId);
+            return { success: true };
+          } else {
+            // No variants left, remove trunk
+            connector.remove();
+            return { success: false, error: 'no_variants' };
+          }
+        } catch (err) {
+          console.error('Error refreshing branch trunk:', err);
+          return { success: false, error: 'trunk_refresh_failed' };
+        }
+      }
+      
+      // Create new connector at updated positions
+      const newConnector = createConnectorV2(
+        fromNode,
+        toNode,
+        meta.type as ConnectorTypeV2,
+        undefined,
+        {
+          label: meta.label,
+        }
+      );
+      
+      // Restore metadata
+      if (newConnector) {
+        try {
+          // Get original metadata if connector still exists
+          const originalMeta = connector && !connector.removed 
+            ? connector.getPluginData('connectorMeta') 
+            : JSON.stringify(meta);
+          newConnector.setPluginData('connectorMeta', originalMeta);
+          newConnector.name = connector && !connector.removed ? connector.name : `${meta.type} Line`;
+          
+          // Append to parent or page
+          if (parent && !parent.removed) {
+            parent.appendChild(newConnector);
+          } else {
+            figma.currentPage.appendChild(newConnector);
+          }
+          return { success: true };
+        } catch (appendErr) {
+          console.error('Error appending refreshed connector:', appendErr);
+          // Clean up the new connector if append failed
+          try {
+            newConnector.remove();
+          } catch {
+            // Ignore cleanup errors
+          }
+          return { success: false, error: 'append_failed' };
+        }
+      }
+      return { success: false, error: 'creation_failed' };
+    } catch (error) {
+      console.error('Error refreshing connector:', error);
+      // If connector exists but has an error, try to remove it to clean up
+      try {
+        if (connector && !connector.removed) {
+          connector.remove();
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  });
+  
+  // Wait for all refresh operations to complete
+  const results = await Promise.all(refreshPromises);
+  
+  for (const result of results) {
+    if (result.success) {
+      refreshed++;
+    } else {
+      errors++;
+    }
+  }
+  
+  isRefreshing = false;
+  
+  if (refreshed > 0) {
+    figma.notify(`Refreshed ${refreshed} connector${refreshed !== 1 ? 's' : ''}${errors > 0 ? ` (${errors} errors)` : ''}`);
+  } else if (errors > 0) {
+    figma.notify(`Failed to refresh connectors (${errors} errors)`);
+  }
+}
+
+/**
+ * Sets up automatic connector refresh when nodes are moved.
+ * Only needed in regular Figma (not FigJam, where native connectors auto-update).
+ * Uses event listeners since setInterval doesn't work reliably in Figma plugins.
+ */
+let lastNodePositions: Map<string, { x: number; y: number }> = new Map();
+let refreshTimeout: number | null = null;
+
+async function setupAutoRefreshConnectors(): Promise<void> {
+  // Only set up auto-refresh in regular Figma (not FigJam)
+  if (isFigJam()) {
+    console.log('In FigJam - native connectors auto-update, no refresh needed');
+    return;
+  }
+  
+  console.log('Setting up auto-refresh for connectors in regular Figma');
+  
+  // Store initial positions of all nodes with connectors
+  function storeNodePositions(): void {
+    lastNodePositions.clear();
+    
+    function findConnectors(node: SceneNode): void {
+      if (node.type === 'VECTOR') {
+        const meta = node.getPluginData('connectorMeta');
+        if (meta) {
+          try {
+            const parsed = JSON.parse(meta);
+            // Track connectors that are not native (or don't have isNative flag for backward compatibility)
+            // Also track if it has fromNodeId and toNodeId (means it's a connector we can refresh)
+            if ((parsed.isNative === false || parsed.isNative === undefined) && parsed.fromNodeId && parsed.toNodeId) {
+              // Store node IDs for async tracking (we'll fetch positions when needed)
+              // Just store the IDs for now - we'll fetch positions async in checkAndRefresh
+              lastNodePositions.set(parsed.fromNodeId, { x: 0, y: 0 }); // Placeholder, will be updated
+              lastNodePositions.set(parsed.toNodeId, { x: 0, y: 0 }); // Placeholder, will be updated
+            }
+          } catch (e) {
+            // Invalid metadata
+            console.warn('Invalid connector metadata:', e);
+          }
+        }
+      }
+      if ('children' in node) {
+        for (const child of node.children) {
+          findConnectors(child);
+        }
+      }
+    }
+    
+    findConnectors(figma.currentPage as unknown as SceneNode);
+    console.log(`Tracking ${lastNodePositions.size} nodes for connector refresh`);
+  }
+  
+  // Initial position storage
+  storeNodePositions();
+  
+  // Check for position changes and refresh if needed
+  async function checkAndRefresh(): Promise<void> {
+    if (isRefreshing) {
+      return;
+    }
+    
+    let needsRefresh = false;
+    
+    // Fetch all node positions asynchronously
+    const nodeIds = Array.from(lastNodePositions.keys());
+    const nodePromises = nodeIds.map(id => figma.getNodeByIdAsync(id));
+    const nodes = await Promise.all(nodePromises);
+    
+    for (let i = 0; i < nodeIds.length; i++) {
+      const nodeId = nodeIds[i];
+      const node = nodes[i];
+      const lastPos = lastNodePositions.get(nodeId) || { x: 0, y: 0 };
+      
+      if (node && 'x' in node && 'y' in node) {
+        const currentPos = { x: node.x, y: node.y };
+        // Check if position changed (with small threshold to avoid floating point issues)
+        // Also check if this is the first time we're tracking (lastPos is 0,0 placeholder)
+        if (lastPos.x === 0 && lastPos.y === 0) {
+          // First time tracking, just store the position
+          lastNodePositions.set(nodeId, currentPos);
+        } else if (Math.abs(currentPos.x - lastPos.x) > 0.1 || Math.abs(currentPos.y - lastPos.y) > 0.1) {
+          needsRefresh = true;
+          lastNodePositions.set(nodeId, currentPos);
+        }
+      }
+    }
+    
+    if (needsRefresh) {
+      console.log('Node positions changed, refreshing connectors...');
+      refreshConnectors().then(() => {
+        // Update positions after refresh
+        storeNodePositions();
+      }).catch(err => {
+        console.error('Error in auto-refresh:', err);
+      });
+    }
+  }
+  
+  // Use selection change event - triggers when user selects/moves nodes
+  figma.on('selectionchange', () => {
+    console.log('Selection changed - checking for connector refresh...');
+    // Check immediately (no debounce needed for selection)
+    checkAndRefresh().catch(err => {
+      console.error('Error in checkAndRefresh:', err);
+    });
+  });
+  
+  // Try to set up documentchange listener (requires loadAllPagesAsync in some cases)
+  try {
+    // Try to load all pages first (required for documentchange in some modes)
+    // This will fail gracefully if not needed or not available
+    if (typeof figma.loadAllPagesAsync === 'function') {
+      try {
+        await figma.loadAllPagesAsync();
+        console.log('All pages loaded for documentchange listener');
+      } catch (loadError) {
+        // Not in a mode that requires this, or already loaded
+        console.log('loadAllPagesAsync not needed or already loaded');
+      }
+    }
+    
+    // Also listen to document changes (when nodes are transformed)
+    figma.on('documentchange', (event) => {
+      // Check if any nodes were moved
+      const hasTransform = event.documentChanges.some(change => {
+        return change.type === 'PROPERTY_CHANGE' && 
+               (change.properties.includes('x') || 
+                change.properties.includes('y'));
+      });
+      
+      if (hasTransform) {
+        console.log('Document changed (node moved) - checking for connector refresh...');
+        checkAndRefresh();
+      }
+    });
+    
+    console.log('Document change listener registered successfully');
+  } catch (error) {
+    console.warn('Could not register documentchange listener (this is OK, selectionchange will still work):', error);
+    // Continue without documentchange - selectionchange will still work
+  }
+  
+  console.log('Auto-refresh listeners set up. Connectors will refresh when nodes move.');
+  console.log('You can also manually refresh by clicking "Refresh Connectors" button or sending: { type: "refresh-connectors" }');
 }
 
 /**
@@ -89,9 +679,17 @@ function createBranchingTree(
     return { ...v, pos: variantTop, absPos: vAbs };
   });
   
-  // Calculate trunk length (vertical drop from event)
-  const trunkLength = 40; // Fixed trunk length for consistency
-  const trunkEnd = { x: eventBottom.x, y: eventBottom.y + trunkLength };
+  // Calculate trunk length dynamically based on variant positions
+  // Trunk should extend to a point that allows smooth, flexible branching to all variants
+  const trunkLength = 50; // Base trunk length (increased for smoother appearance)
+  // Calculate the minimum Y position needed for all variants
+  const minVariantY = Math.min(...variantPositions.map(v => v.pos.y));
+  // Trunk should extend to allow smooth curves - extend further for better flexibility
+  const distanceToVariants = minVariantY - eventBottom.y;
+  // Trunk extends to about 35% of distance to closest variant, with minimum of base length
+  // This gives more room for smooth elbow curves
+  const dynamicTrunkLength = Math.max(trunkLength, distanceToVariants * 0.35);
+  const trunkEnd = { x: eventBottom.x, y: eventBottom.y + dynamicTrunkLength };
   
   // Create trunk (vertical line from event bottom)
   const trunkPath = `M ${eventBottom.x} ${eventBottom.y} L ${trunkEnd.x} ${trunkEnd.y}`;
@@ -104,6 +702,18 @@ function createBranchingTree(
   trunk.strokeJoin = "ROUND";
   if (style.dashPattern) trunk.dashPattern = style.dashPattern;
   trunk.name = "Branch Trunk";
+  
+  // Store metadata for trunk so it can be refreshed when variants move
+  trunk.setPluginData('connectorMeta', JSON.stringify({
+    connectorId: `trunk-${eventNode.id}`,
+    type: 'BRANCH_TRUNK',
+    fromNodeId: eventNode.id,
+    toNodeId: null, // Trunk doesn't connect to a specific node
+    experimentId: experimentId,
+    variantNodeIds: variantNodes.map(v => v.node.id), // Track all variant IDs for refresh
+    isNative: false
+  }));
+  
   figma.currentPage.appendChild(trunk);
   result.push(trunk);
   
@@ -116,26 +726,13 @@ function createBranchingTree(
     // Create branch path with elbow from trunk end to variant
     let branchPath: string;
     
-    // Calculate elbow path: vertical from trunk end, then horizontal to variant, then vertical to variant top
+    // Simple straight line from trunk end directly to variant top (no elbow)
+    // This was the "almost perfect" version the user mentioned
     const dx = endPoint.x - trunkEnd.x;
     const dy = endPoint.y - trunkEnd.y;
     
-    if (Math.abs(dx) < 1) {
-      // Straight vertical line
-      branchPath = `M ${trunkEnd.x} ${trunkEnd.y} L ${endPoint.x} ${endPoint.y}`;
-    } else {
-      // Elbow path with rounded corner
-      const cornerRadius = 16;
-      const midY = trunkEnd.y + dy * 0.5;
-      
-      // Path: vertical down → curve → horizontal → curve → vertical to variant
-      branchPath = `M ${trunkEnd.x} ${trunkEnd.y}`;
-      branchPath += ` L ${trunkEnd.x} ${midY - cornerRadius}`;
-      branchPath += ` Q ${trunkEnd.x} ${midY} ${trunkEnd.x + cornerRadius * Math.sign(dx)} ${midY}`;
-      branchPath += ` L ${endPoint.x - cornerRadius * Math.sign(dx)} ${midY}`;
-      branchPath += ` Q ${endPoint.x} ${midY} ${endPoint.x} ${midY + cornerRadius}`;
-      branchPath += ` L ${endPoint.x} ${endPoint.y}`;
-    }
+    // Just draw a straight line from trunk end to variant
+    branchPath = `M ${trunkEnd.x} ${trunkEnd.y} L ${endPoint.x} ${endPoint.y}`;
     
     const branch = figma.createVector();
     branch.vectorPaths = [{ windingRule: "NONZERO", data: branchPath }];
@@ -148,37 +745,20 @@ function createBranchingTree(
     branch.name = `Branch to Variant`;
     figma.currentPage.appendChild(branch);
     
-    // Store metadata
+    // Store metadata (important: mark as not native so refresh system can find it)
     branch.setPluginData('connectorMeta', JSON.stringify({
       connectorId: variant.connector.id,
       type: 'BRANCH_LINE',
       fromNodeId: eventNode.id,
       toNodeId: variant.node.id,
       experimentId: experimentId,
-      label: variant.connector.label
+      label: variant.connector.label,
+      isNative: false  // Critical: mark as non-native so refresh system tracks it
     }));
     
     result.push(branch);
     
-    // Create arrowhead for this branch
-    if (style.arrowhead) {
-      const arrowSize = 10;
-      const arrow = figma.createVector();
-      // Arrowhead pointing down (toward variant)
-      const arrowY = endPoint.y - arrowSize;
-      arrow.vectorPaths = [{
-        windingRule: "NONZERO",
-        data: `M ${endPoint.x} ${endPoint.y} L ${endPoint.x - arrowSize / 2} ${arrowY} M ${endPoint.x} ${endPoint.y} L ${endPoint.x + arrowSize / 2} ${arrowY}`,
-      }];
-      arrow.fills = [];
-      arrow.strokes = [{ type: "SOLID", color }];
-      arrow.strokeWeight = strokeWeight;
-      arrow.strokeCap = "ROUND";
-      arrow.strokeJoin = "ROUND";
-      arrow.name = "Branch Arrowhead";
-      figma.currentPage.appendChild(arrow);
-      result.push(arrow);
-    }
+    // No arrowhead for branch lines - they connect directly to variant cards
   }
   
   return result;
@@ -243,25 +823,7 @@ function createMergingTree(
   figma.currentPage.appendChild(trunk);
   result.push(trunk);
   
-  // Create arrowhead at target end
-  if (style.arrowhead) {
-    const arrowSize = 10;
-    const arrow = figma.createVector();
-    // Arrowhead pointing right (toward target)
-    const arrowX = targetLeft.x - arrowSize;
-    arrow.vectorPaths = [{
-      windingRule: "NONZERO",
-      data: `M ${targetLeft.x} ${targetLeft.y} L ${arrowX} ${targetLeft.y - arrowSize / 2} M ${targetLeft.x} ${targetLeft.y} L ${arrowX} ${targetLeft.y + arrowSize / 2}`,
-    }];
-    arrow.fills = [];
-    arrow.strokes = [{ type: "SOLID", color }];
-    arrow.strokeWeight = strokeWeight;
-    arrow.strokeCap = "ROUND";
-    arrow.strokeJoin = "ROUND";
-    arrow.name = "Merge Trunk Arrowhead";
-    figma.currentPage.appendChild(arrow);
-    result.push(arrow);
-  }
+  // No arrowhead for merge trunk - only PRIMARY_FLOW_LINE gets arrowheads
   
   // Create branches from each variant to trunk start
   for (const variant of variantNodes) {
@@ -277,22 +839,10 @@ function createMergingTree(
     const dx = trunkStart.x - variantRight.x;
     const dy = trunkStart.y - variantRight.y;
     
-    if (Math.abs(dy) < 1) {
-      // Straight horizontal line
-      branchPath = `M ${variantRight.x} ${variantRight.y} L ${trunkStart.x} ${trunkStart.y}`;
-    } else {
-      // Elbow path with rounded corner
-      const cornerRadius = 16;
-      const midX = variantRight.x + dx * 0.5;
-      
-      // Path: horizontal right → curve → vertical → curve → horizontal to trunk
-      branchPath = `M ${variantRight.x} ${variantRight.y}`;
-      branchPath += ` L ${midX - cornerRadius} ${variantRight.y}`;
-      branchPath += ` Q ${midX} ${variantRight.y} ${midX} ${variantRight.y + cornerRadius * Math.sign(dy)}`;
-      branchPath += ` L ${midX} ${trunkStart.y - cornerRadius * Math.sign(dy)}`;
-      branchPath += ` Q ${midX} ${trunkStart.y} ${midX + cornerRadius} ${trunkStart.y}`;
-      branchPath += ` L ${trunkStart.x} ${trunkStart.y}`;
-    }
+    // Simple straight line from variant right directly to trunk start (no elbow)
+    // This was the "almost perfect" version the user mentioned
+    // Just draw a straight line from variant to trunk
+    branchPath = `M ${variantRight.x} ${variantRight.y} L ${trunkStart.x} ${trunkStart.y}`;
     
     const branch = figma.createVector();
     branch.vectorPaths = [{ windingRule: "NONZERO", data: branchPath }];
@@ -305,14 +855,15 @@ function createMergingTree(
     branch.name = `Merge from Variant`;
     figma.currentPage.appendChild(branch);
     
-    // Store metadata
+    // Store metadata (important: mark as not native so refresh system can find it)
     branch.setPluginData('connectorMeta', JSON.stringify({
       connectorId: variant.connector.id,
       type: 'MERGE_LINE',
       fromNodeId: variant.node.id,
       toNodeId: targetNode.id,
       experimentId: experimentId,
-      label: variant.connector.label
+      label: variant.connector.label,
+      isNative: false  // Critical: mark as non-native so refresh system tracks it
     }));
     
     result.push(branch);
@@ -409,9 +960,12 @@ function createConnectorV2(
   }
   
   const { from: startAbs, to: endAbs } = getEdgePoints(fromNode, toNode);
+  // Always work in absolute coordinates for accurate edge positioning
+  // endAbs is the EXACT card edge position - use this directly for arrowhead
   let start = { ...startAbs }, end = { ...endAbs };
   
-  // Convert to flowFrame-local if provided
+  // Convert to flowFrame-local if provided (only for line path coordinates)
+  // Arrowhead will always use endAbs (absolute) for precise positioning
   if (flowFrame) {
     const frameAbs = getAbsolutePos(flowFrame);
     start.x = startAbs.x - frameAbs.x;
@@ -419,6 +973,7 @@ function createConnectorV2(
     end.x = endAbs.x - frameAbs.x;
     end.y = endAbs.y - frameAbs.y;
   }
+  // When flowFrame is undefined, start/end are already absolute (same as startAbs/endAbs)
   
   const index = options?.index ?? 0;
   let midX, midY;
@@ -432,39 +987,98 @@ function createConnectorV2(
     
     let pathData: string;
     
+    // Track the actual end point of the path for arrowhead positioning
+    let actualPathEnd = { x: end.x, y: end.y };
+    let pathEndDirection = { x: 1, y: 0 }; // Default direction (right)
+    
     // PRIMARY_FLOW_LINE should ALWAYS be straight horizontal
     if (type === 'PRIMARY_FLOW_LINE') {
       // Force straight horizontal line for primary flows
-      pathData = `M ${start.x} ${start.y} L ${end.x} ${start.y}`;
-      // Adjust end point to match start Y for arrowhead placement
-      end.y = start.y;
+      // CRITICAL: Path must start and end at EXACT card edge coordinates
+      // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
+      const pathStartX = flowFrame ? start.x : startAbs.x;
+      const pathStartY = flowFrame ? start.y : startAbs.y;
+      const pathEndX = flowFrame ? end.x : endAbs.x;
+      
+      pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathStartY}`;
+      // Actual path end is at the card edge (horizontal line, so Y matches start, X matches end)
+      // Use endAbs.x for horizontal position, startAbs.y for vertical (since it's a horizontal line)
+      actualPathEnd = { x: endAbs.x, y: startAbs.y };
+      // Direction is horizontal, pointing toward the card
+      pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
     } else if (Math.abs(dy) < 1) {
       // Simple straight horizontal line (no vertical displacement)
-      pathData = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+      // CRITICAL: Path must start and end at EXACT card edge coordinates
+      // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
+      const pathStartX = flowFrame ? start.x : startAbs.x;
+      const pathStartY = flowFrame ? start.y : startAbs.y;
+      const pathEndX = flowFrame ? end.x : endAbs.x;
+      const pathEndY = flowFrame ? end.y : endAbs.y;
+      
+      pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+      // Actual path end is at the card edge
+      // Use endAbs (absolute coordinates) for arrowhead positioning to ensure it's at the exact card edge
+      actualPathEnd = { x: endAbs.x, y: endAbs.y };
+      // Direction is horizontal, pointing toward the card
+      pathEndDirection = { x: Math.sign(pathEndX - pathStartX), y: 0 };
     } else {
-      // Complex path with vertical segment and rounded corners
-      const radius = Math.min(Math.abs(dy) / 2, cornerRadius);
-      
-      // Calculate midpoint X for the vertical segment
-      midX = start.x + dx * 0.5 + index * 12;
-      
-      // Build path: horizontal right → curve → vertical → curve → horizontal right
-      pathData = `M ${start.x} ${start.y}`;
-      
-      // Initial horizontal segment
-      pathData += ` L ${midX - radius} ${start.y}`;
-      
-      // First corner: horizontal to vertical (going up or down)
-      pathData += ` Q ${midX} ${start.y} ${midX} ${start.y + radius * Math.sign(dy)}`;
-      
-      // Vertical segment
-      pathData += ` L ${midX} ${end.y - radius * Math.sign(dy)}`;
-      
-      // Second corner: vertical to horizontal (going right)
-      pathData += ` Q ${midX} ${end.y} ${midX + radius} ${end.y}`;
-      
-      // Final horizontal segment
-      pathData += ` L ${end.x} ${end.y}`;
+      // For variant connectors (BRANCH_LINE, MERGE_LINE), use straight direct lines
+      // For PRIMARY_FLOW_LINE with vertical displacement, use curved path
+      if (type === 'BRANCH_LINE' || type === 'MERGE_LINE') {
+        // Straight direct line from card edge to card edge (no curves, no angles)
+        // CRITICAL: Path must start and end at EXACT card edge coordinates
+        const pathStartX = flowFrame ? start.x : startAbs.x;
+        const pathStartY = flowFrame ? start.y : startAbs.y;
+        const pathEndX = flowFrame ? end.x : endAbs.x;
+        const pathEndY = flowFrame ? end.y : endAbs.y;
+        
+        // Simple straight line directly connecting the edges
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+        
+        // actualPathEnd is the exact card edge position
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        // Direction points directly toward the card
+        const dx = pathEndX - pathStartX;
+        const dy = pathEndY - pathStartY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        pathEndDirection = length > 0 ? { x: dx / length, y: dy / length } : { x: 1, y: 0 };
+      } else {
+        // Complex path with vertical segment and rounded corners (for PRIMARY_FLOW_LINE with vertical displacement)
+        const radius = Math.min(Math.abs(dy) / 2, cornerRadius);
+        
+        // Calculate midpoint X for the vertical segment
+        midX = start.x + dx * 0.5 + index * 12;
+        
+        // Build path: horizontal right → curve → vertical → curve → horizontal right
+        // CRITICAL: Path must start and end at EXACT card edge coordinates
+        const pathStartX = flowFrame ? start.x : startAbs.x;
+        const pathStartY = flowFrame ? start.y : startAbs.y;
+        const pathEndX = flowFrame ? end.x : endAbs.x;
+        const pathEndY = flowFrame ? end.y : endAbs.y;
+        
+        pathData = `M ${pathStartX} ${pathStartY}`;
+        
+        // Initial horizontal segment - starts from card edge
+        pathData += ` L ${midX - radius} ${pathStartY}`;
+        
+        // First corner: horizontal to vertical (going up or down)
+        pathData += ` Q ${midX} ${pathStartY} ${midX} ${pathStartY + radius * Math.sign(dy)}`;
+        
+        // Vertical segment
+        pathData += ` L ${midX} ${pathEndY - radius * Math.sign(dy)}`;
+        
+        // Second corner: vertical to horizontal (going right)
+        pathData += ` Q ${midX} ${pathEndY} ${midX + radius} ${pathEndY}`;
+        
+        // Final horizontal segment - ends exactly at the card edge
+        const finalSegmentStart = { x: midX + radius, y: pathEndY };
+        pathData += ` L ${pathEndX} ${pathEndY}`;
+        
+        // actualPathEnd MUST be the exact card edge position (endAbs) for arrowhead positioning
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        // Direction is horizontal, pointing toward the card (from final segment start to end)
+        pathEndDirection = { x: Math.sign(pathEndX - finalSegmentStart.x), y: 0 };
+      }
     }
     
     line = figma.createVector();
@@ -479,17 +1093,56 @@ function createConnectorV2(
     // Append to the same parent as the coordinate system
     if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
     
-    // Arrowhead - chevron (open caret)
-    if (style.arrowhead) {
-      const size = 10;
+    // Arrowhead - only create for PRIMARY_FLOW_LINE (not for variant connectors)
+    // Variant connectors (BRANCH_LINE, MERGE_LINE) connect directly without arrowheads
+    if (type === 'PRIMARY_FLOW_LINE') {
+      const arrowSize = 12; // Larger arrowhead for better visibility
       arrow = figma.createVector();
-      // Create chevron: two lines forming a V (no fill, just stroke)
-      const arrowX = end.x - size * Math.sign(end.x - start.x);
+      
+      // Calculate angle from the path end direction (points toward the card)
+      const angle = Math.atan2(pathEndDirection.y, pathEndDirection.x);
+      
+      // The arrowhead tip should be exactly at the card edge
+      // For PRIMARY_FLOW_LINE horizontal lines, use endAbs.x and startAbs.y (horizontal line Y)
+      // For other cases, use endAbs (the card edge)
+      // Convert to correct coordinate system based on where arrowhead is appended
+      let tipX: number, tipY: number;
+      if (flowFrame) {
+        // Arrowhead is in flowFrame - convert absolute to relative coordinates
+        const frameAbs = getAbsolutePos(flowFrame);
+        // For horizontal PRIMARY_FLOW_LINE, Y should match the line's Y (startAbs.y)
+        const arrowY = (type === 'PRIMARY_FLOW_LINE' && Math.abs(endAbs.y - startAbs.y) < 1) ? startAbs.y : endAbs.y;
+        tipX = endAbs.x - frameAbs.x;
+        tipY = arrowY - frameAbs.y;
+      } else {
+        // Arrowhead is on page - use absolute coordinates
+        // For horizontal PRIMARY_FLOW_LINE, Y should match the line's Y (startAbs.y)
+        const arrowY = (type === 'PRIMARY_FLOW_LINE' && Math.abs(endAbs.y - startAbs.y) < 1) ? startAbs.y : endAbs.y;
+        tipX = endAbs.x;
+        tipY = arrowY;
+      }
+      
+      // Base of arrowhead is offset inward from the tip along the direction vector
+      // This ensures the arrowhead points toward the card center
+      const baseX1 = tipX - arrowSize * Math.cos(angle);
+      const baseY1 = tipY - arrowSize * Math.sin(angle);
+      
+      // Calculate perpendicular angle for base width
+      const perpAngle = angle + Math.PI / 2;
+      const halfWidth = arrowSize * 0.4;
+      
+      // Base points form a line perpendicular to the arrow direction
+      const baseX2 = baseX1 - halfWidth * Math.cos(perpAngle);
+      const baseY2 = baseY1 - halfWidth * Math.sin(perpAngle);
+      const baseX3 = baseX1 + halfWidth * Math.cos(perpAngle);
+      const baseY3 = baseY1 + halfWidth * Math.sin(perpAngle);
+      
+      // Create filled triangle path
       arrow.vectorPaths = [{
         windingRule: "NONZERO",
-        data: `M ${end.x} ${end.y} L ${arrowX} ${end.y - size / 2} M ${end.x} ${end.y} L ${arrowX} ${end.y + size / 2}`,
+        data: `M ${tipX} ${tipY} L ${baseX2} ${baseY2} L ${baseX3} ${baseY3} Z`,
       }];
-      arrow.fills = [];
+      arrow.fills = [{ type: "SOLID", color }]; // Filled arrowhead
       arrow.strokes = [{ type: "SOLID", color }];
       arrow.strokeWeight = strokeWeight;
       arrow.strokeCap = "ROUND";
@@ -505,34 +1158,84 @@ function createConnectorV2(
     
     let pathData: string;
     
+    // Track the actual end point of the path for arrowhead positioning
+    let actualPathEnd = { x: end.x, y: end.y };
+    let pathEndDirection = { x: 0, y: 1 }; // Default direction (down)
+    
     // Check if it's a straight vertical line (no horizontal displacement)
     if (Math.abs(dx) < 1) {
       // Simple straight vertical line
-      pathData = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+      // CRITICAL: Path must start and end at EXACT card edge coordinates
+      // Use startAbs/endAbs directly to ensure precision (when flowFrame is undefined, start/end == startAbs/endAbs)
+      const pathStartX = flowFrame ? start.x : startAbs.x;
+      const pathStartY = flowFrame ? start.y : startAbs.y;
+      const pathEndX = flowFrame ? end.x : endAbs.x;
+      const pathEndY = flowFrame ? end.y : endAbs.y;
+      
+      pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+      // Actual path end is at the card edge
+      // Use endAbs (absolute coordinates) for arrowhead positioning to ensure it's at the exact card edge
+      actualPathEnd = { x: endAbs.x, y: endAbs.y };
+      // Direction is vertical, pointing toward the card
+      pathEndDirection = { x: 0, y: Math.sign(pathEndY - pathStartY) };
     } else {
-      // Complex path with horizontal segment and rounded corners
-      const radius = Math.min(Math.abs(dx) / 2, cornerRadius);
-      
-      // Calculate midpoint Y for the horizontal segment
-      midY = start.y + dy * 0.5 + index * 12;
-      
-      // Build path: vertical down → curve → horizontal → curve → vertical down
-      pathData = `M ${start.x} ${start.y}`;
-      
-      // Initial vertical segment
-      pathData += ` L ${start.x} ${midY - radius}`;
-      
-      // First corner: vertical to horizontal (going right or left)
-      pathData += ` Q ${start.x} ${midY} ${start.x + radius * Math.sign(dx)} ${midY}`;
-      
-      // Horizontal segment
-      pathData += ` L ${end.x - radius * Math.sign(dx)} ${midY}`;
-      
-      // Second corner: horizontal to vertical (going down)
-      pathData += ` Q ${end.x} ${midY} ${end.x} ${midY + radius}`;
-      
-      // Final vertical segment
-      pathData += ` L ${end.x} ${end.y}`;
+      // For variant connectors (BRANCH_LINE, MERGE_LINE), use straight direct lines
+      // For PRIMARY_FLOW_LINE with horizontal displacement, use curved path
+      if (type === 'BRANCH_LINE' || type === 'MERGE_LINE') {
+        // Straight direct line from card edge to card edge (no curves, no angles)
+        // CRITICAL: Path must start and end at EXACT card edge coordinates
+        const pathStartX = flowFrame ? start.x : startAbs.x;
+        const pathStartY = flowFrame ? start.y : startAbs.y;
+        const pathEndX = flowFrame ? end.x : endAbs.x;
+        const pathEndY = flowFrame ? end.y : endAbs.y;
+        
+        // Simple straight line directly connecting the edges
+        pathData = `M ${pathStartX} ${pathStartY} L ${pathEndX} ${pathEndY}`;
+        
+        // actualPathEnd is the exact card edge position
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        // Direction points directly toward the card
+        const dx = pathEndX - pathStartX;
+        const dy = pathEndY - pathStartY;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        pathEndDirection = length > 0 ? { x: dx / length, y: dy / length } : { x: 0, y: 1 };
+      } else {
+        // Complex path with horizontal segment and rounded corners (for PRIMARY_FLOW_LINE with horizontal displacement)
+        const radius = Math.min(Math.abs(dx) / 2, cornerRadius);
+        
+        // Calculate midpoint Y for the horizontal segment
+        midY = start.y + dy * 0.5 + index * 12;
+        
+        // Build path: vertical down → curve → horizontal → curve → vertical down
+        // CRITICAL: Path must start and end at EXACT card edge coordinates
+        const pathStartX = flowFrame ? start.x : startAbs.x;
+        const pathStartY = flowFrame ? start.y : startAbs.y;
+        const pathEndX = flowFrame ? end.x : endAbs.x;
+        const pathEndY = flowFrame ? end.y : endAbs.y;
+        
+        pathData = `M ${pathStartX} ${pathStartY}`;
+        
+        // Initial vertical segment - starts from card edge
+        pathData += ` L ${pathStartX} ${midY - radius}`;
+        
+        // First corner: vertical to horizontal (going right or left)
+        pathData += ` Q ${pathStartX} ${midY} ${pathStartX + radius * Math.sign(dx)} ${midY}`;
+        
+        // Horizontal segment
+        pathData += ` L ${pathEndX - radius * Math.sign(dx)} ${midY}`;
+        
+        // Second corner: horizontal to vertical (going down)
+        pathData += ` Q ${pathEndX} ${midY} ${pathEndX} ${midY + radius}`;
+        
+        // Final vertical segment - ends exactly at the card edge
+        const finalSegmentStart = { x: pathEndX, y: midY + radius };
+        pathData += ` L ${pathEndX} ${pathEndY}`;
+        
+        // actualPathEnd MUST be the exact card edge position (endAbs) for arrowhead positioning
+        actualPathEnd = { x: endAbs.x, y: endAbs.y };
+        // Direction is vertical, pointing toward the card (from final segment start to end)
+        pathEndDirection = { x: 0, y: Math.sign(pathEndY - finalSegmentStart.y) };
+      }
     }
     
     line = figma.createVector();
@@ -547,17 +1250,58 @@ function createConnectorV2(
     // Append to the same parent as the coordinate system
     if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
     
-    // Arrowhead - chevron (open caret)
-    if (style.arrowhead) {
-      const size = 10;
+    // Arrowhead - only create for PRIMARY_FLOW_LINE (not for variant connectors)
+    // Variant connectors (BRANCH_LINE, MERGE_LINE) connect directly without arrowheads
+    if (type === 'PRIMARY_FLOW_LINE') {
+      const arrowSize = 12; // Larger arrowhead for better visibility
       arrow = figma.createVector();
-      // Create chevron: two lines forming a V (no fill, just stroke)
-      const arrowY = end.y - size * Math.sign(end.y - start.y);
+      
+      // Calculate angle from the path end direction (points toward the card)
+      const angle = Math.atan2(pathEndDirection.y, pathEndDirection.x);
+      
+      // The arrowhead tip should be exactly at the card edge (actualPathEnd)
+      // actualPathEnd is already in absolute coordinates (from endAbs)
+      // Vector paths in Figma use absolute coordinates when appended to page
+      // Convert to relative only if appended to a flowFrame
+      let tipX: number, tipY: number;
+      let baseX1: number, baseY1: number;
+      let baseX2: number, baseY2: number;
+      let baseX3: number, baseY3: number;
+      
+      // Use endAbs directly (absolute card edge position) for arrowhead
+      // This ensures the arrowhead tip is exactly at the card boundary
+      if (flowFrame) {
+        // Arrowhead is in flowFrame - convert absolute to relative coordinates
+        const frameAbs = getAbsolutePos(flowFrame);
+        tipX = endAbs.x - frameAbs.x;
+        tipY = endAbs.y - frameAbs.y;
+      } else {
+        // Arrowhead is on page - use absolute coordinates directly from endAbs
+        tipX = endAbs.x;
+        tipY = endAbs.y;
+      }
+      
+      // Base of arrowhead is offset inward from the tip along the direction vector
+      // This ensures the arrowhead points toward the card center
+      baseX1 = tipX - arrowSize * Math.cos(angle);
+      baseY1 = tipY - arrowSize * Math.sin(angle);
+      
+      // Calculate perpendicular angle for base width
+      const perpAngle = angle + Math.PI / 2;
+      const halfWidth = arrowSize * 0.4;
+      
+      // Base points form a line perpendicular to the arrow direction
+      baseX2 = baseX1 - halfWidth * Math.cos(perpAngle);
+      baseY2 = baseY1 - halfWidth * Math.sin(perpAngle);
+      baseX3 = baseX1 + halfWidth * Math.cos(perpAngle);
+      baseY3 = baseY1 + halfWidth * Math.sin(perpAngle);
+      
+      // Create filled triangle path
       arrow.vectorPaths = [{
         windingRule: "NONZERO",
-        data: `M ${end.x} ${end.y} L ${end.x - size / 2} ${arrowY} M ${end.x} ${end.y} L ${end.x + size / 2} ${arrowY}`,
+        data: `M ${tipX} ${tipY} L ${baseX2} ${baseY2} L ${baseX3} ${baseY3} Z`,
       }];
-      arrow.fills = [];
+      arrow.fills = [{ type: "SOLID", color }]; // Filled arrowhead
       arrow.strokes = [{ type: "SOLID", color }];
       arrow.strokeWeight = strokeWeight;
       arrow.strokeCap = "ROUND";
@@ -1034,7 +1778,7 @@ if (figma.editorType === 'figma') {
 
     const flow: FlowV2 = {
       id: `flow-${experimentId}`,
-      layout: { direction: 'HORIZONTAL', eventSpacing: 160, variantSpacing: 24 },
+      layout: { direction: 'HORIZONTAL', eventSpacing: 80, variantSpacing: 40 },
       entry,
       events,
       exit,
@@ -1177,8 +1921,9 @@ if (figma.editorType === 'figma') {
     // All nodes will be placed directly on the page (not in a container frame)
     // This allows ConnectorNodes to work with magnetized anchors
     const center = figma.viewport.center;
-    const eventSpacing = flow.layout?.eventSpacing ?? 200;
-    const variantSpacing = flow.layout?.variantSpacing ?? 100;
+    const eventSpacing = flow.layout?.eventSpacing ?? 80;
+    const variantSpacing = flow.layout?.variantSpacing ?? 40; // Horizontal spacing between variants
+    const eventToVariantSpacing = 100; // Vertical spacing between event and variant row
     const baseX = infoCard ? infoCard.x + infoCard.width + 200 : 600; // Start after info card
     const baseY = infoCard ? infoCard.y : center.y;
     
@@ -1205,6 +1950,67 @@ if (figma.editorType === 'figma') {
     entryCard.y = baseY;
     figma.currentPage.appendChild(entryCard);
     allNodes.push({node: entryCard as SceneNode & {width: number; height: number}, id: entry.id, type: 'ENTRY_NODE'});
+
+    // --- Pre-calculate variant widths ---
+    // First, create all variant cards off-screen to measure their widths
+    // This allows us to calculate proper spacing between events with variants
+    const variantWidthsByEvent: Map<string, number> = new Map();
+    const variantCardsByEvent: Map<string, FrameNode[]> = new Map();
+    
+    for (const event of flow.events) {
+      if (event.variants && event.variants.length > 0) {
+        let totalVariantWidth = 0;
+        const variantCards: FrameNode[] = [];
+        
+        for (const [vIdx, variant] of event.variants.entries()) {
+          const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
+            ? variant.name
+            : `Variant ${vIdx + 1}`;
+          
+          const variantColor = (variant as any).color || variant.style?.variantColor;
+          
+          // Normalize metrics
+          const normalizeMetrics = (metrics: any) => {
+            if (!metrics) return { ctr: 0, cr: 0, su: 0 };
+            return {
+              ctr: metrics.ctr !== undefined && metrics.ctr !== '' && metrics.ctr !== null 
+                ? (typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0)
+                : 0,
+              cr: metrics.cr !== undefined && metrics.cr !== '' && metrics.cr !== null
+                ? (typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0)
+                : 0,
+              su: metrics.su !== undefined && metrics.su !== '' && metrics.su !== null
+                ? (typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0)
+                : 0,
+            };
+          };
+          
+          const variantForCard = {
+            ...variant,
+            name: safeVariantName,
+            status: (variant as any).status || 'none',
+            metrics: normalizeMetrics(variant.metrics),
+            color: variantColor,
+          };
+          
+          const variantCard = await createVariantCard(variantForCard, vIdx);
+          // Position off-screen temporarily to measure width
+          variantCard.x = -10000;
+          variantCard.y = -10000;
+          figma.currentPage.appendChild(variantCard);
+          
+          // Calculate total width including spacing between variants
+          if (vIdx > 0) {
+            totalVariantWidth += variantSpacing;
+          }
+          totalVariantWidth += variantCard.width;
+          variantCards.push(variantCard);
+        }
+        
+        variantWidthsByEvent.set(event.id, totalVariantWidth);
+        variantCardsByEvent.set(event.id, variantCards);
+      }
+    }
 
     // --- Event Nodes ---
     // Place event nodes directly on page with manual positioning for magnetized connectors
@@ -1248,49 +2054,32 @@ if (figma.editorType === 'figma') {
       // Track max height for variant row positioning
       maxEventHeight = Math.max(maxEventHeight, eventCard.height);
       
-      // Move to next event position
-      currentX += eventCard.width + eventSpacing;
+      // Calculate spacing: use the maximum of event width and variant row width
+      // Add extra spacing when event has variants to prevent overlap
+      const eventWidth = eventCard.width;
+      const variantRowWidth = variantWidthsByEvent.get(event.id) || 0;
+      const effectiveWidth = Math.max(eventWidth, variantRowWidth);
+      const extraSpacingForVariants = event.variants && event.variants.length > 0 ? eventSpacing * 0.5 : 0; // Add 50% more spacing when variants exist
+      
+      // Move to next event position with spacing that accounts for variants
+      currentX += effectiveWidth + eventSpacing + extraSpacingForVariants;
     }
 
     // --- Variants ---
-    // Create variants for each event, horizontally aligned below that event
+    // Position pre-created variant cards below their events
     for (const {event, eventCard, x: eventX, y: eventY} of eventPositions) {
-      if (event.variants && event.variants.length > 0) {
+      const variantCards = variantCardsByEvent.get(event.id);
+      if (variantCards && variantCards.length > 0) {
         let variantX = eventX;
-        const variantY = eventY + eventCard.height + variantSpacing;
+        const variantY = eventY + eventCard.height + eventToVariantSpacing;
         
-        for (const [vIdx, variant] of event.variants.entries()) {
+        for (const [vIdx, variantCard] of variantCards.entries()) {
+          const variant = event.variants[vIdx];
           const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
             ? variant.name
             : `Variant ${vIdx + 1}`;
           
-          const variantColor = (variant as any).color || variant.style?.variantColor;
-          
-          // Normalize metrics
-          const normalizeMetrics = (metrics: any) => {
-            if (!metrics) return { ctr: 0, cr: 0, su: 0 };
-            return {
-              ctr: metrics.ctr !== undefined && metrics.ctr !== '' && metrics.ctr !== null 
-                ? (typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0)
-                : 0,
-              cr: metrics.cr !== undefined && metrics.cr !== '' && metrics.cr !== null
-                ? (typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0)
-                : 0,
-              su: metrics.su !== undefined && metrics.su !== '' && metrics.su !== null
-                ? (typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0)
-                : 0,
-            };
-          };
-          
-          const variantForCard = {
-            ...variant,
-            name: safeVariantName,
-            status: (variant as any).status || 'none',
-            metrics: normalizeMetrics(variant.metrics),
-            color: variantColor,
-          };
-          
-          const variantCard = await createVariantCard(variantForCard, vIdx);
+          // Set variant card metadata (if not already set)
           variantCard.name = `Variant: ${safeVariantName}`;
           attachNodeMeta(variantCard, {
             name: safeVariantName,
@@ -1311,7 +2100,6 @@ if (figma.editorType === 'figma') {
           // Position variant in horizontal row below event
           variantCard.x = variantX;
           variantCard.y = variantY;
-          figma.currentPage.appendChild(variantCard);
           allNodes.push({node: variantCard as SceneNode & {width: number; height: number}, id: variant.id, type: 'VARIANT_NODE'});
           
           variantX += variantCard.width + variantSpacing;
@@ -1389,9 +2177,11 @@ if (figma.editorType === 'figma') {
     // Wait for layout to settle before drawing connectors
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // --- Render Vector-Based Connectors ---
-    // Note: figma.createConnector is only available in FigJam, not regular Figma
-    // Using vector-based connectors instead (they won't auto-update on node drag)
+    // --- Render Dynamic Connectors ---
+    // Uses createDynamicConnector() which:
+    // 1. Tries native ConnectorNode first (automatically updates when nodes move!)
+    // 2. Falls back to VectorNode if native connectors aren't available
+    // For VectorNode connectors, use refreshConnectors() or send 'refresh-connectors' message to update positions
     const createdConnectors: SceneNode[] = [];
     
     console.log('=== CONNECTOR RENDERING ===');
@@ -1435,36 +2225,39 @@ if (figma.editorType === 'figma') {
         
         if (fromNode && toNode) {
           try {
-            const connectorNode = createConnectorV2(
+            // Use dynamic connector (tries native ConnectorNode first, falls back to VectorNode)
+            const connectorNode = createDynamicConnector(
               fromNode,
               toNode,
               connector.type,
-              undefined, // No parent frame - render on page
               {
                 label: connector.label,
                 winner: false,
                 variantColor: undefined,
                 index: 0,
+                useNativeConnector: true, // Try native connectors for automatic updates
               }
             );
             
             if (connectorNode) {
-              // Store metadata on the connector
-              connectorNode.setPluginData('connectorMeta', JSON.stringify({
+              // Store additional metadata on the connector
+              const existingMeta = connectorNode.getPluginData('connectorMeta');
+              let meta = existingMeta ? JSON.parse(existingMeta) : {};
+              meta = {
+                ...meta,
                 connectorId: connector.id,
-                type: connector.type,
-                fromNodeId: connector.from.id,
-                toNodeId: connector.to.id,
                 fromNodeType: connector.from.nodeType,
                 toNodeType: connector.to.nodeType,
                 experimentId: experiment.id,
-                label: connector.label
-              }));
+              };
+              connectorNode.setPluginData('connectorMeta', JSON.stringify(meta));
               
               // Name the connector for easy identification
-              connectorNode.name = `${connector.type}: ${connector.from.nodeType} → ${connector.to.nodeType}`;
+              if (!connectorNode.name.includes('Dynamic') && !connectorNode.name.includes('Static')) {
+                connectorNode.name = `${connector.type}: ${connector.from.nodeType} → ${connector.to.nodeType}`;
+              }
               
-              console.log('✓ Connector created:', connectorNode.name);
+              console.log('✓ Connector created:', connectorNode.name, connectorNode.type === 'CONNECTOR' ? '(Native - Auto-updates!)' : '(Vector - Use refresh to update)');
               
               createdConnectors.push(connectorNode);
             }
@@ -1559,7 +2352,20 @@ if (figma.editorType === 'figma') {
     console.log('Total connectors created:', createdConnectors.length);
     
     if (createdConnectors.length > 0) {
-      figma.notify(`Created ${createdConnectors.length} connectors`);
+      const nativeCount = createdConnectors.filter(c => c.type === 'CONNECTOR').length;
+      const vectorCount = createdConnectors.length - nativeCount;
+      let message = `Created ${createdConnectors.length} connector${createdConnectors.length !== 1 ? 's' : ''}`;
+      if (nativeCount > 0) {
+        message += ` (${nativeCount} dynamic${nativeCount !== 1 ? 's' : ''} - auto-update when cards move)`;
+      }
+      if (vectorCount > 0) {
+        if (isFigJam()) {
+          message += `. ${vectorCount} static connector${vectorCount !== 1 ? 's' : ''} - use "Refresh Connectors" to update`;
+        } else {
+          message += `. ${vectorCount} connector${vectorCount !== 1 ? 's' : ''} - auto-refreshing when cards move`;
+        }
+      }
+      figma.notify(message);
     } else {
       figma.notify('⚠️ No connectors were created - check console');
     }
@@ -1687,15 +2493,26 @@ if (figma.editorType === 'figma') {
     }
 
     figma.notify('Experiment flow v2: nodes, connectors, entry notes, and outcomes created.');
+    
+    // Set up auto-refresh for connectors in regular Figma
+    // (In FigJam, native connectors auto-update, so this isn't needed)
+    setupAutoRefreshConnectors().catch(err => {
+      console.error('Error setting up auto-refresh:', err);
+    });
   }
 
-  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2) => {
-    if (msg.type === 'create-flow-v2' && msg.payload) {
+  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string }) => {
+    if (msg.type === 'create-flow-v2' && 'payload' in msg && msg.payload) {
       figma.notify('Handler: create-flow-v2 (NEW SCHEMA)');
       console.log('Handler: create-flow-v2 (NEW SCHEMA)');
       // --- NEW V2 FLOW HANDLER ---
       const { experiment, flow } = msg.payload as CreateFlowV2Payload;
       await createFlowV2FromData(experiment, flow);
+    }
+    
+    if (msg.type === 'refresh-connectors') {
+      console.log('Manual refresh requested');
+      await refreshConnectors();
     }
 
     // --- OLD HANDLERS BELOW ---
@@ -1706,7 +2523,7 @@ if (figma.editorType === 'figma') {
     }
 
 
-    if (msg.type === 'create-flow' && msg.payload) {
+    if (msg.type === 'create-flow' && 'payload' in msg && msg.payload) {
       figma.notify('Handler: create-flow (OLD SCHEMA)');
       console.log('Handler: create-flow (OLD SCHEMA)');
       const {
@@ -1733,11 +2550,13 @@ if (figma.editorType === 'figma') {
         figma.notify('Select up to 3 frames to use as variant thumbnails.');
         return;
       }
-      if (!msg.payload) {
+      if (!('payload' in msg) || !msg.payload) {
         figma.notify('Please fill the experiment form and click \"Create from selection\" again.');
         return;
       }
-      const { experimentName, roundNumber, entryLabel, exitLabel, variants } = msg.payload as any;
+      const payload = (msg as PluginMessage).payload;
+      if (!payload) return;
+      const { experimentName, roundNumber, entryLabel, exitLabel, variants } = payload as any;
 
       await loadFonts();
       const flowFrame = figma.createFrame();
