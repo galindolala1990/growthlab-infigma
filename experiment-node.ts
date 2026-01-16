@@ -120,7 +120,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
 
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
-  eventLabel.fontSize = TOKENS.fontSizeLabel;
+  eventLabel.fontSize = TOKENS.fontSizeBodySm;
   eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventLabel.characters = 'Event';
@@ -235,7 +235,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   const subtitleText = figma.createText();
   subtitleText.fontName = getFontStyle("Regular");
   subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
   subtitleText.textAlignHorizontal = 'LEFT';
   const count = variantCount ?? 0;
@@ -250,7 +250,20 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
 
 import type { Variant } from './code';
 
-export async function createVariantCard(variant: Variant, variantIndex?: number): Promise<FrameNode> {
+export async function createVariantCard(
+  variant: Variant, 
+  variantIndex?: number, 
+  options?: { 
+    rolledout?: boolean;
+    winningMetrics?: {
+      ctr?: string; // Variant ID that wins CTR
+      cr?: string;  // Variant ID that wins CR
+      su?: string;  // Variant ID that wins SU
+    };
+    variantId?: string; // Current variant ID for comparison
+    isRecommendedWinner?: boolean; // Whether this variant is the recommended winner based on metrics
+  }
+): Promise<FrameNode> {
   const card = figma.createFrame();
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';
@@ -311,7 +324,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   // Variant type label (moved here)
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
-  variantTypeLabel.fontSize = TOKENS.fontSizeLabel;
+  variantTypeLabel.fontSize = TOKENS.fontSizeBodySm;
   variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   variantTypeLabel.characters = `Variant`;
@@ -323,7 +336,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   nameRow.layoutMode = 'HORIZONTAL';
   nameRow.counterAxisSizingMode = 'AUTO';
   nameRow.primaryAxisSizingMode = 'AUTO';
-  nameRow.itemSpacing = TOKENS.space8;
+  nameRow.itemSpacing = 6;
   nameRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
   nameRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
   // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
@@ -357,26 +370,141 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
 
   variantDetailsContainer.appendChild(nameRow);
 
+  // Add status badges row (Winner/Running/Rolled-out)
+  const badgesRow = figma.createFrame();
+  badgesRow.layoutMode = 'HORIZONTAL';
+  badgesRow.counterAxisSizingMode = 'AUTO';
+  badgesRow.primaryAxisSizingMode = 'AUTO';
+  badgesRow.itemSpacing = TOKENS.space8;
+  badgesRow.fills = [];
+  badgesRow.strokes = [];
+  badgesRow.name = 'Status Badges Row';
+  badgesRow.layoutAlign = 'MIN';
+  badgesRow.layoutGrow = 0;
+
+  // Recommended winner badge (based on metrics outcomes)
+  if (options?.isRecommendedWinner) {
+    const winnerBadge = figma.createFrame();
+    winnerBadge.layoutMode = 'HORIZONTAL';
+    winnerBadge.counterAxisSizingMode = 'AUTO';
+    winnerBadge.primaryAxisSizingMode = 'AUTO';
+    winnerBadge.paddingLeft = 6;
+    winnerBadge.paddingRight = 6;
+    winnerBadge.paddingTop = 2;
+    winnerBadge.paddingBottom = 3;
+    winnerBadge.cornerRadius = 4;
+    winnerBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite50) }];
+    winnerBadge.strokes = [];
+    winnerBadge.name = 'Recommended Winner Badge';
+    
+    const winnerText = figma.createText();
+    winnerText.fontName = getFontStyle("Bold");
+    winnerText.fontSize = TOKENS.fontSizeBodySm;
+    winnerText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
+    winnerText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    winnerText.characters = 'Recommended winner';
+    winnerText.name = 'Recommended Winner Text';
+    winnerBadge.appendChild(winnerText);
+    badgesRow.appendChild(winnerBadge);
+  }
+
+  // Running badge
+  if (variant.status === 'running') {
+    const runningBadge = figma.createFrame();
+    runningBadge.layoutMode = 'HORIZONTAL';
+    runningBadge.counterAxisSizingMode = 'AUTO';
+    runningBadge.primaryAxisSizingMode = 'AUTO';
+    runningBadge.paddingLeft = 6;
+    runningBadge.paddingRight = 6;
+    runningBadge.paddingTop = 2;
+    runningBadge.paddingBottom = 2;
+    runningBadge.cornerRadius = 4;
+    runningBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue50) }];
+    runningBadge.strokes = [];
+    runningBadge.name = 'Running Badge';
+    
+    const runningText = figma.createText();
+    runningText.fontName = getFontStyle("Bold");
+    runningText.fontSize = TOKENS.fontSizeBodySm;
+    runningText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+    runningText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    runningText.characters = 'Running';
+    runningText.name = 'Running Text';
+    runningBadge.appendChild(runningText);
+    badgesRow.appendChild(runningBadge);
+  }
+
+  // Rolled-out badge (NEW)
+  if (options?.rolledout) {
+    const rolledoutBadge = figma.createFrame();
+    rolledoutBadge.layoutMode = 'HORIZONTAL';
+    rolledoutBadge.counterAxisSizingMode = 'AUTO';
+    rolledoutBadge.primaryAxisSizingMode = 'AUTO';
+    rolledoutBadge.paddingLeft = 6;
+    rolledoutBadge.paddingRight = 6;
+    rolledoutBadge.paddingTop = 2;
+    rolledoutBadge.paddingBottom = 3;
+    rolledoutBadge.cornerRadius = 4;
+    rolledoutBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet50) }];
+    rolledoutBadge.strokes = [];
+    rolledoutBadge.name = 'Rolled-out Badge';
+    
+    const rolledoutText = figma.createText();
+    rolledoutText.fontName = getFontStyle("Bold");
+    rolledoutText.fontSize = TOKENS.fontSizeBodySm;
+    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet700) }];
+    rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    rolledoutText.characters = 'Rolled-out';
+    rolledoutText.name = 'Rolled-out Text';
+    rolledoutBadge.appendChild(rolledoutText);
+    badgesRow.appendChild(rolledoutBadge);
+  }
+
+  // Only append badges row if there are badges to show
+  if (badgesRow.children.length > 0) {
+    variantDetailsContainer.appendChild(badgesRow);
+  }
+
   // Variant label (shows variant description for all variants)
   const variantLabel = figma.createText();
   variantLabel.fontName = getFontStyle("Regular");
   variantLabel.fontSize = TOKENS.fontSizeBodyMd;
-  variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   variantLabel.characters = (variant as any).description || 'Variant description goes here.';
   variantLabel.name = 'Variant Label';
   variantDetailsContainer.appendChild(variantLabel);
 
-  // Traffic percentage text (now below variant label)
+  // Traffic percentage wrapper - moved below variant label
   const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
+  
+  // Create wrapper frame for traffic percentage with background color
+  const trafficWrapper = figma.createFrame();
+  trafficWrapper.layoutMode = 'HORIZONTAL';
+  trafficWrapper.counterAxisSizingMode = 'AUTO';
+  trafficWrapper.primaryAxisSizingMode = 'AUTO';
+  trafficWrapper.paddingLeft = 6;
+  trafficWrapper.paddingRight = 6;
+  trafficWrapper.paddingTop = 2;
+  trafficWrapper.paddingBottom = 3;
+  trafficWrapper.cornerRadius = 4;
+  // Light background color for traffic percentage
+  trafficWrapper.fills = [{ type: 'SOLID', color: hexToRgb('#F5F6F8') }]; // Light gray background
+  trafficWrapper.strokes = [];
+  trafficWrapper.name = 'Traffic Percentage Wrapper';
+  trafficWrapper.layoutAlign = 'MIN';
+  
+  // Traffic text inside wrapper
   const trafficText = figma.createText();
-  trafficText.fontName = getFontStyle("Regular");
-  trafficText.fontSize = TOKENS.fontSizeBodyMd;
-  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  trafficText.fontName = getFontStyle("Bold");
+  trafficText.fontSize = TOKENS.fontSizeBodySm;
+  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textTertiary) }];
   trafficText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  trafficText.characters = `Traffic: ${trafficValue}%`;
+  trafficText.characters = `${trafficValue}%`;
   trafficText.name = 'Traffic Percentage';
-  variantDetailsContainer.appendChild(trafficText);
+  trafficWrapper.appendChild(trafficText);
+  
+  variantDetailsContainer.appendChild(trafficWrapper);
 
   card.appendChild(variantDetailsContainer);
 
@@ -405,7 +533,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   // Metrics header
   const metricsHeader = figma.createText();
   metricsHeader.fontName = getFontStyle("Bold");
-  metricsHeader.fontSize = TOKENS.fontSizeLabel;
+  metricsHeader.fontSize = TOKENS.fontSizeBodySm;
   metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   metricsHeader.textAutoResize = 'WIDTH_AND_HEIGHT';
   metricsHeader.characters = 'Metrics';
@@ -432,15 +560,19 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   };
 
   // Create metric text items: **CTR** 0.00 format (bold label + regular value)
-  const createMetricItem = (label: string, value: string): FrameNode => {
+  // If this variant wins the metric, style the value like winner badge
+  const createMetricItem = (label: string, value: string, isWinner: boolean = false): FrameNode => {
     const metricItem = figma.createFrame();
     metricItem.layoutMode = 'HORIZONTAL';
     metricItem.counterAxisSizingMode = 'AUTO';
     metricItem.primaryAxisSizingMode = 'AUTO';
-    metricItem.itemSpacing = 4;
+    metricItem.itemSpacing = 8;
     metricItem.fills = [];
     metricItem.strokes = [];
     metricItem.name = `${label} Metric Item`;
+    metricItem.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
+    metricItem.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
+    // metricItem.height = 24; // Removed because .height is read-only for auto layout frames
     
     // Bold label
     // Map metric short label to full name
@@ -453,35 +585,69 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
     const labelText = figma.createText();
     labelText.fontName = getFontStyle("Regular");
     labelText.fontSize = TOKENS.fontSizeBodyMd;
-    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
     labelText.characters = `${fullLabel} (${label}):`;
     labelText.name = `${label} Label`;
     metricItem.appendChild(labelText);
     
-    // Regular value
+    // Value - always displayed as badge, with winner styling if this variant wins
+    const valueBadge = figma.createFrame();
+    valueBadge.layoutMode = 'HORIZONTAL';
+    valueBadge.counterAxisSizingMode = 'AUTO';
+    valueBadge.primaryAxisSizingMode = 'AUTO';
+    valueBadge.paddingLeft = 6;
+    valueBadge.paddingRight = 6;
+    valueBadge.paddingTop = 2;
+    valueBadge.paddingBottom = 3;
+    valueBadge.cornerRadius = 4;
+    
+    if (isWinner) {
+      // Winner value: green background
+      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite50) }];
+    } else {
+      // Regular value: light gray background
+      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb('#F5F6F8') }];
+    }
+    
+    valueBadge.strokes = [];
+    valueBadge.name = `${label} Value Badge`;
+    
     const valueText = figma.createText();
-    valueText.fontName = getFontStyle("Regular");
-    valueText.fontSize = TOKENS.fontSizeBodyMd;
-    valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    if (isWinner) {
+      valueText.fontName = getFontStyle("Bold");
+      valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
+    } else {
+      valueText.fontName = getFontStyle("Medium");
+      valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    }
+    valueText.fontSize = TOKENS.fontSizeBodySm;
     valueText.textAutoResize = 'WIDTH_AND_HEIGHT';
     valueText.characters = value;
     valueText.name = `${label} Value`;
-    metricItem.appendChild(valueText);
+    valueBadge.appendChild(valueText);
+    metricItem.appendChild(valueBadge);
     
     return metricItem;
   };
 
+  // Check if this variant wins each metric
+  const variantId = options?.variantId || (variant as any).id;
+  const winningMetrics = options?.winningMetrics || {};
+  const winsCTR = winningMetrics.ctr === variantId;
+  const winsCR = winningMetrics.cr === variantId;
+  const winsSU = winningMetrics.su === variantId;
+
   if (variant.metrics?.ctr !== undefined) {
-    const ctrItem = createMetricItem('CTR', formatMetric(variant.metrics.ctr));
+    const ctrItem = createMetricItem('CTR', formatMetric(variant.metrics.ctr), winsCTR);
     metricsRow.appendChild(ctrItem);
   }
   if (variant.metrics?.cr !== undefined) {
-    const crItem = createMetricItem('CR', formatMetric(variant.metrics.cr));
+    const crItem = createMetricItem('CR', formatMetric(variant.metrics.cr), winsCR);
     metricsRow.appendChild(crItem);
   }
   if (variant.metrics?.su !== undefined) {
-    const suItem = createMetricItem('SU', formatMetric(variant.metrics.su));
+    const suItem = createMetricItem('SU', formatMetric(variant.metrics.su), winsSU);
     metricsRow.appendChild(suItem);
   }
 

@@ -4316,7 +4316,8 @@
         },
         outcomes: experimentStatus === 'completed' && rolledoutVariant ? {
           winningPaths: [], // Could be filled if you want
-          notes: '' // Could be filled if you want
+          notes: '', // Could be filled if you want
+          rolledoutVariantId: rolledoutVariant // Save the rolled-out variant ID
         } : undefined
       };
 

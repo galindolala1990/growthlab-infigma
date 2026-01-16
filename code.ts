@@ -133,6 +133,7 @@ function createDynamicConnector(
     winner?: boolean;
     variantColor?: string;
     index?: number;
+    rolledout?: boolean;  // NEW
     useNativeConnector?: boolean; // Force native connector if available
   }
 ): SceneNode {
@@ -141,7 +142,11 @@ function createDynamicConnector(
   if (useNative) {
     // Try native ConnectorNode first (automatically updates when nodes move!)
     const { fromMagnet, toMagnet } = getMagnetPositions(fromNode, toNode, type);
-    const style = getConnectorStyle(type, { winner: options?.winner, variantColor: options?.variantColor });
+    const style = getConnectorStyle(type, { 
+      winner: options?.winner, 
+      variantColor: options?.variantColor,
+      rolledout: options?.rolledout  // NEW
+    });
     
     const nativeConnector = createMagnetizedConnector(
       fromNode,
@@ -935,9 +940,14 @@ function createConnectorV2(
     winner?: boolean;
     variantColor?: string;
     index?: number;
+    rolledout?: boolean;  // NEW
   }
 ): SceneNode {
-  const style = getConnectorStyle(type, { winner: options?.winner, variantColor: options?.variantColor });
+  const style = getConnectorStyle(type, { 
+    winner: options?.winner, 
+    variantColor: options?.variantColor,
+    rolledout: options?.rolledout  // NEW
+  });
   const color = style.color;
   const strokeWeight = style.strokeWeight;
   
@@ -1544,6 +1554,7 @@ export interface ExperimentV2 {
   outcomes?: {
     winningPaths?: Array<{ eventId: string; variantId: string }>;
     notes?: string;
+    rolledoutVariantId?: string;  // ID of the rolled-out variant
   };
 }
 
@@ -1618,7 +1629,71 @@ interface ConnectorStyleConfig {
 /**
  * Get connector style configuration based on type
  */
-function getConnectorStyle(type: ConnectorTypeV2, options?: { winner?: boolean; variantColor?: string }): ConnectorStyleConfig {
+function getConnectorStyle(
+  type: ConnectorTypeV2, 
+  options?: { 
+    winner?: boolean; 
+    variantColor?: string;
+    rolledout?: boolean;  // NEW
+  }
+): ConnectorStyleConfig {
+  // Prioritize rollout over winner for visual distinction
+  if (options?.rolledout) {
+    switch (type) {
+      case 'PRIMARY_FLOW_LINE':
+      case 'BRANCH_LINE':
+      case 'MERGE_LINE':
+        return {
+          strokeWeight: 2,  // Medium thickness (between normal and winner)
+          color: hexToRgb(TOKENS.electricViolet600), // Purple for rollout
+          dashPattern: [6, 3], // Different dash pattern than winner (solid) and normal (dashed)
+          arrowhead: true,
+        };
+      default:
+        return {
+          strokeWeight: 2,
+          color: hexToRgb(TOKENS.electricViolet600),
+          dashPattern: [6, 3],
+          arrowhead: true,
+        };
+    }
+  }
+  
+  // Winner styling (only if not rolled out)
+  if (options?.winner) {
+    switch (type) {
+      case 'PRIMARY_FLOW_LINE':
+        return {
+          strokeWeight: 5,  // Thicker for winner
+          color: hexToRgb(TOKENS.malachite600), // Green for winner
+          dashPattern: undefined, // Solid line for winner
+          arrowhead: true,
+        };
+      case 'BRANCH_LINE':
+        return {
+          strokeWeight: 4,
+          color: hexToRgb(TOKENS.malachite600),
+          dashPattern: undefined,
+          arrowhead: true,
+        };
+      case 'MERGE_LINE':
+        return {
+          strokeWeight: 3,
+          color: hexToRgb(TOKENS.malachite600),
+          dashPattern: undefined,
+          arrowhead: true,
+        };
+      default:
+        return {
+          strokeWeight: 4,
+          color: hexToRgb(TOKENS.malachite600),
+          dashPattern: undefined,
+          arrowhead: true,
+        };
+    }
+  }
+  
+  // Default styling
   switch (type) {
     case 'PRIMARY_FLOW_LINE':
       return {
@@ -1645,7 +1720,7 @@ function getConnectorStyle(type: ConnectorTypeV2, options?: { winner?: boolean; 
       return {
         strokeWeight: 4,
         color: hexToRgb(TOKENS.azure300),
-        dashPattern: [4, 4], // Dashed pattern
+        dashPattern: [4, 4],
         arrowhead: true,
       };
   }
@@ -2157,6 +2232,103 @@ if (figma.editorType === 'figma') {
     
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
+        // Calculate which variant wins each metric (data-driven winner)
+        const calculateMetricWinners = (variants: any[]) => {
+          const winners: { ctr?: string; cr?: string; su?: string } = {};
+          
+          // Find highest CTR
+          let maxCTR = -1;
+          let ctrWinner: string | undefined;
+          // Find highest CR
+          let maxCR = -1;
+          let crWinner: string | undefined;
+          // Find highest SU
+          let maxSU = -1;
+          let suWinner: string | undefined;
+          
+          for (const variant of variants) {
+            const metrics = variant.metrics || {};
+            const variantId = variant.id;
+            
+            // CTR winner
+            const ctr = typeof metrics.ctr === 'number' ? metrics.ctr : parseFloat(String(metrics.ctr)) || 0;
+            if (ctr > maxCTR) {
+              maxCTR = ctr;
+              ctrWinner = variantId;
+            }
+            
+            // CR winner
+            const cr = typeof metrics.cr === 'number' ? metrics.cr : parseFloat(String(metrics.cr)) || 0;
+            if (cr > maxCR) {
+              maxCR = cr;
+              crWinner = variantId;
+            }
+            
+            // SU winner
+            const su = typeof metrics.su === 'number' ? metrics.su : parseFloat(String(metrics.su)) || 0;
+            if (su > maxSU) {
+              maxSU = su;
+              suWinner = variantId;
+            }
+          }
+          
+          if (ctrWinner) winners.ctr = ctrWinner;
+          if (crWinner) winners.cr = crWinner;
+          if (suWinner) winners.su = suWinner;
+          
+          return winners;
+        };
+        
+        // Calculate which variant is the recommended winner (wins most metrics)
+        const calculateRecommendedWinner = (variants: any[], winningMetrics: { ctr?: string; cr?: string; su?: string }): string | undefined => {
+          // Count how many metrics each variant wins
+          const variantScores: Record<string, number> = {};
+          
+          // Initialize scores
+          for (const variant of variants) {
+            variantScores[variant.id] = 0;
+          }
+          
+          // Count wins for each variant
+          if (winningMetrics.ctr) variantScores[winningMetrics.ctr] = (variantScores[winningMetrics.ctr] || 0) + 1;
+          if (winningMetrics.cr) variantScores[winningMetrics.cr] = (variantScores[winningMetrics.cr] || 0) + 1;
+          if (winningMetrics.su) variantScores[winningMetrics.su] = (variantScores[winningMetrics.su] || 0) + 1;
+          
+          // Find variant with highest score
+          let maxScore = -1;
+          let recommendedWinner: string | undefined;
+          
+          for (const [variantId, score] of Object.entries(variantScores)) {
+            if (score > maxScore) {
+              maxScore = score;
+              recommendedWinner = variantId;
+            }
+          }
+          
+          // If there's a tie, prioritize CR winner, then CTR, then SU
+          if (maxScore > 0) {
+            const tiedVariants = Object.entries(variantScores)
+              .filter(([_, score]) => score === maxScore)
+              .map(([variantId]) => variantId);
+            
+            if (tiedVariants.length > 1) {
+              // Break tie: CR > CTR > SU
+              if (winningMetrics.cr && tiedVariants.includes(winningMetrics.cr)) {
+                recommendedWinner = winningMetrics.cr;
+              } else if (winningMetrics.ctr && tiedVariants.includes(winningMetrics.ctr)) {
+                recommendedWinner = winningMetrics.ctr;
+              } else if (winningMetrics.su && tiedVariants.includes(winningMetrics.su)) {
+                recommendedWinner = winningMetrics.su;
+              }
+            }
+          }
+          
+          return recommendedWinner;
+        };
+        
+        const winningMetrics = calculateMetricWinners(event.variants);
+        const recommendedWinnerId = calculateRecommendedWinner(event.variants, winningMetrics);
+        
         let totalVariantWidth = 0;
         const variantCards: FrameNode[] = [];
         
@@ -2183,15 +2355,27 @@ if (figma.editorType === 'figma') {
             };
           };
           
+          // Check if this variant is rolled out (rolled-out variant is the winner)
+          const isRolledout = experiment.outcomes?.rolledoutVariantId === variant.id;
+          
           const variantForCard = {
             ...variant,
             name: safeVariantName,
-            status: (variant as any).status || 'none',
+            // If this is the rolled-out variant, it's the winner
+            status: isRolledout ? 'winner' : ((variant as any).status || 'none'),
             metrics: normalizeMetrics(variant.metrics),
             color: variantColor,
           };
           
-          const variantCard = await createVariantCard(variantForCard, vIdx);
+          // Check if this variant is the recommended winner based on metrics
+          const isRecommendedWinner = recommendedWinnerId === variant.id;
+          
+          const variantCard = await createVariantCard(variantForCard, vIdx, { 
+            rolledout: isRolledout,
+            winningMetrics: winningMetrics,
+            variantId: variant.id,
+            isRecommendedWinner: isRecommendedWinner
+          });
           // Position off-screen temporarily to measure width
           variantCard.x = -10000;
           variantCard.y = -10000;
@@ -2416,6 +2600,14 @@ if (figma.editorType === 'figma') {
         
         if (fromNode && toNode) {
           try {
+            // Check if this connector involves a rolled-out variant (which is the winner)
+            const fromNodeId = connector.from.id;
+            const toNodeId = connector.to.id;
+            const rolledoutVariantId = experiment.outcomes?.rolledoutVariantId;
+            const isRolledout = rolledoutVariantId && (fromNodeId === rolledoutVariantId || toNodeId === rolledoutVariantId);
+            // Rolled-out variant is the winner, but rollout styling takes priority
+            const isWinner = isRolledout || false;
+            
             // Use dynamic connector (tries native ConnectorNode first, falls back to VectorNode)
             const connectorNode = createDynamicConnector(
               fromNode,
@@ -2423,9 +2615,10 @@ if (figma.editorType === 'figma') {
               connector.type,
               {
                 label: connector.label,
-                winner: false,
+                winner: isWinner, // Rolled-out variant is the winner
                 variantColor: undefined,
                 index: 0,
+                rolledout: isRolledout || false,  // Rollout styling takes priority over winner
                 useNativeConnector: true, // Try native connectors for automatic updates
               }
             );
