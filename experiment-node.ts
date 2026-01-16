@@ -99,7 +99,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.paddingLeft = 16;
   card.paddingRight = 16;
   card.paddingTop = 16; // 1rem
-  card.paddingBottom = 12; // 0.75rem
+  card.paddingBottom = 16; // 0.75rem
   card.cornerRadius = 16; // 1rem
   card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
   card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
@@ -113,34 +113,19 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     visible: true,
     blendMode: 'NORMAL',
   }];
-  card.itemSpacing = 12; // 0.75rem gap
+  card.itemSpacing = 16; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
   card.name = `Event: ${eventName}`;
 
-  const topRow = figma.createFrame();
-  topRow.layoutMode = 'HORIZONTAL';
-  topRow.counterAxisSizingMode = 'AUTO';
-  topRow.primaryAxisSizingMode = 'AUTO';
-  topRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
-  topRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
-  // topRow.height = 24; // Removed because .height is read-only for auto layout frames
-  topRow.itemSpacing = TOKENS.space4;
-  topRow.fills = [];
-  topRow.strokes = [];
-  topRow.name = 'Top Row';
-  topRow.layoutAlign = 'MIN'; // Left align to match card alignment
-
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
-  eventLabel.fontSize = TOKENS.fontSizeBodyMd;
-  eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  eventLabel.fontSize = TOKENS.fontSizeLabel;
+  eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventLabel.characters = 'Event';
   eventLabel.name = 'Event Label';
-  topRow.appendChild(eventLabel);
-
-  card.appendChild(topRow);
+  card.appendChild(eventLabel);
 
   let thumb: FrameNode;
   const selection = figma.currentPage.selection;
@@ -154,7 +139,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       thumb = selectedNode.clone() as FrameNode;
       thumb.resize(268, 160);
       thumb.cornerRadius = TOKENS.radiusSM;
-      thumb.name = 'Thumbnail';
+      thumb.name = 'Thumbnail - Replace with image';
       thumb.layoutAlign = 'MIN';
       thumb.clipsContent = true;
     }
@@ -165,7 +150,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       thumb.layoutMode = 'NONE';
       thumb.resize(268, 160);
       thumb.cornerRadius = TOKENS.radiusSM;
-      thumb.name = 'Thumbnail';
+      thumb.name = 'Thumbnail - Replace with image';
       thumb.layoutAlign = 'MIN';
       thumb.clipsContent = true;
       
@@ -183,7 +168,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       thumb.layoutMode = 'NONE';
       thumb.resize(268, 160);
       thumb.cornerRadius = TOKENS.radiusSM;
-      thumb.name = 'Thumbnail';
+      thumb.name = 'Thumbnail - Replace with image';
       thumb.layoutAlign = 'MIN';
       thumb.clipsContent = true;
       
@@ -204,7 +189,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     placeholder.layoutMode = 'NONE';
     placeholder.resize(268, 160);
     placeholder.cornerRadius = TOKENS.radiusSM;
-    placeholder.name = 'Thumbnail';
+    placeholder.name = 'Thumbnail - Replace with image';
     placeholder.layoutAlign = 'MIN';
     placeholder.clipsContent = true;
     placeholder.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
@@ -214,6 +199,19 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     thumb = placeholder;
   }
   card.appendChild(thumb);
+
+  // Group Event Name Text and Number of Variants
+  const eventDetailsContainer = figma.createFrame();
+  eventDetailsContainer.layoutMode = 'VERTICAL';
+  eventDetailsContainer.counterAxisSizingMode = 'AUTO';
+  eventDetailsContainer.primaryAxisSizingMode = 'AUTO';
+  eventDetailsContainer.itemSpacing = 8;
+  eventDetailsContainer.fills = [];
+  eventDetailsContainer.strokes = [];
+  eventDetailsContainer.name = 'Event Details Container';
+  eventDetailsContainer.layoutAlign = 'STRETCH';
+  eventDetailsContainer.paddingBottom = 0;
+  eventDetailsContainer.paddingTop = 0;
 
   const eventNameText = figma.createText();
   eventNameText.fontName = getFontStyle("Bold");
@@ -229,19 +227,23 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     fallbackEventNumber = parseInt(match[1], 10);
   }
   eventNameText.characters = eventName || `Event ${fallbackEventNumber}`;
+    eventDetailsContainer.appendChild(eventLabel);
+
   eventNameText.name = 'Event Name Text';
-  card.appendChild(eventNameText);
+  eventDetailsContainer.appendChild(eventNameText);
 
   const subtitleText = figma.createText();
   subtitleText.fontName = getFontStyle("Regular");
   subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
   subtitleText.textAlignHorizontal = 'LEFT';
   const count = variantCount ?? 0;
   subtitleText.characters = `${count} variant${count !== 1 ? 's' : ''}`;
   subtitleText.name = 'Number of Variants';
-  card.appendChild(subtitleText);
+  eventDetailsContainer.appendChild(subtitleText);
+
+  card.appendChild(eventDetailsContainer);
 
   return card;
 }
@@ -273,70 +275,18 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
     visible: true,
     blendMode: 'NORMAL',
   }];
-  card.itemSpacing = 12; // 0.75rem gap
+  card.itemSpacing = 16; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
 
-  // Header with icon, "Variant" text, and traffic percentage
-  const topRow = figma.createFrame();
-  topRow.layoutMode = 'HORIZONTAL';
-  topRow.counterAxisSizingMode = 'AUTO';
-  topRow.primaryAxisSizingMode = 'AUTO';
-  topRow.primaryAxisAlignItems = 'MIN';
-  topRow.counterAxisAlignItems = 'CENTER';
-  topRow.itemSpacing = TOKENS.space4;
-  topRow.fills = [];
-  topRow.strokes = [];
-  topRow.name = 'Top Row';
-  topRow.layoutAlign = 'MIN';
-
-  // Icon: split icon representation using simple rectangles (hidden)
-  const iconFrame = figma.createFrame();
-  iconFrame.resize(16, 16);
-  iconFrame.fills = [];
-  iconFrame.strokes = [];
-  iconFrame.name = 'Variant Icon';
-  iconFrame.visible = false;
-  // Left arrow
-  const leftArrow = figma.createRectangle();
-  leftArrow.resize(3, 1.5);
-  leftArrow.x = 2;
-  leftArrow.y = 7.25;
-  leftArrow.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
-  leftArrow.strokes = [];
-  leftArrow.cornerRadius = 0.75;
-  iconFrame.appendChild(leftArrow);
-  // Right arrow
-  const rightArrow = figma.createRectangle();
-  rightArrow.resize(3, 1.5);
-  rightArrow.x = 11;
-  rightArrow.y = 7.25;
-  rightArrow.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }];
-  rightArrow.strokes = [];
-  rightArrow.cornerRadius = 0.75;
-  iconFrame.appendChild(rightArrow);
-  topRow.appendChild(iconFrame);
-
-  // Variant label with traffic percentage
-  const variantTypeLabel = figma.createText();
-  variantTypeLabel.fontName = getFontStyle("Bold");
-  variantTypeLabel.fontSize = TOKENS.fontSizeBodyMd;
-  variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  // Get traffic value
-  const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
-  variantTypeLabel.characters = `Variant (${trafficValue}%)`;
-  variantTypeLabel.name = 'Variant Type Label';
-  topRow.appendChild(variantTypeLabel);
-
-  card.appendChild(topRow);
+  // ...top row removed...
 
   // Empty placeholder Frame ready for "Replace with"
   const thumb = figma.createFrame();
   thumb.layoutMode = 'NONE';
   thumb.resize(268, 160);
   thumb.cornerRadius = TOKENS.radiusSM;
-  thumb.name = 'Thumbnail';
+  thumb.name = 'Thumbnail - Replace with image';
   thumb.layoutAlign = 'MIN';
   thumb.clipsContent = true;
   thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
@@ -345,18 +295,28 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   // Empty Frame with background fill - ready for "Replace with"
   card.appendChild(thumb);
 
-  // Variant details section: radio button + name + control label + traffic
+  // Variant details section: type label + name row + control label + traffic
   const variantDetailsContainer = figma.createFrame();
   variantDetailsContainer.layoutMode = 'VERTICAL';
   variantDetailsContainer.counterAxisSizingMode = 'AUTO';
   variantDetailsContainer.primaryAxisSizingMode = 'AUTO';
-  variantDetailsContainer.itemSpacing = 12;
+  variantDetailsContainer.itemSpacing = 8;
   variantDetailsContainer.fills = [];
   variantDetailsContainer.strokes = [];
   variantDetailsContainer.name = 'Variant Details';
   variantDetailsContainer.layoutAlign = 'STRETCH';
-  variantDetailsContainer.paddingBottom = 12;
-  variantDetailsContainer.paddingTop = 12;
+  variantDetailsContainer.paddingBottom = 0;
+  variantDetailsContainer.paddingTop = 0;
+
+  // Variant type label (moved here)
+  const variantTypeLabel = figma.createText();
+  variantTypeLabel.fontName = getFontStyle("Bold");
+  variantTypeLabel.fontSize = TOKENS.fontSizeLabel;
+  variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+  variantTypeLabel.characters = `Variant`;
+  variantTypeLabel.name = 'Variant Type Label';
+  variantDetailsContainer.appendChild(variantTypeLabel);
 
   // Radio button + variant name row
   const nameRow = figma.createFrame();
@@ -407,7 +367,17 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   variantLabel.name = 'Variant Label';
   variantDetailsContainer.appendChild(variantLabel);
 
-  // ...traffic row removed, now shown in topRow...
+  // Traffic percentage text (now below variant label)
+  const trafficValue = variant.traffic !== undefined ? variant.traffic : 0;
+  const trafficText = figma.createText();
+  trafficText.fontName = getFontStyle("Regular");
+  trafficText.fontSize = TOKENS.fontSizeBodyMd;
+  trafficText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  trafficText.textAutoResize = 'WIDTH_AND_HEIGHT';
+  trafficText.characters = `Traffic: ${trafficValue}%`;
+  trafficText.name = 'Traffic Percentage';
+  variantDetailsContainer.appendChild(trafficText);
+
   card.appendChild(variantDetailsContainer);
 
   // Separator line
@@ -428,13 +398,13 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
   metricsSection.fills = [];
   metricsSection.strokes = [];
   metricsSection.name = 'Metrics Section';
-  metricsSection.paddingBottom = 12;
-  metricsSection.paddingTop = 12;
-  metricsSection.layoutAlign = 'MIN';
+  metricsSection.paddingBottom = 0;
+  metricsSection.paddingTop = 0;
+  metricsSection.layoutAlign = 'STRETCH';
 
   // Metrics header
   const metricsHeader = figma.createText();
-  metricsHeader.fontName = getFontStyle("Medium");
+  metricsHeader.fontName = getFontStyle("Bold");
   metricsHeader.fontSize = TOKENS.fontSizeLabel;
   metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
   metricsHeader.textAutoResize = 'WIDTH_AND_HEIGHT';
@@ -444,12 +414,11 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
 
   // Metrics values row
   const metricsRow = figma.createFrame();
-  metricsRow.layoutMode = 'HORIZONTAL';
+  metricsRow.layoutMode = 'VERTICAL';
   metricsRow.counterAxisSizingMode = 'AUTO';
   metricsRow.primaryAxisSizingMode = 'AUTO';
-  metricsRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
-  metricsRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
-  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
+  metricsRow.primaryAxisAlignItems = 'MIN'; // Top align items vertically
+  metricsRow.counterAxisAlignItems = 'MIN'; // Left align items horizontally
   metricsRow.itemSpacing = TOKENS.space8;
   metricsRow.fills = [];
   metricsRow.strokes = [];
@@ -474,12 +443,19 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
     metricItem.name = `${label} Metric Item`;
     
     // Bold label
+    // Map metric short label to full name
+    const metricNames: Record<string, string> = {
+      CTR: "Click through rate",
+      CR: "Conversion rate",
+      SU: "Sign-ups"
+    };
+    const fullLabel = metricNames[label] || label;
     const labelText = figma.createText();
-    labelText.fontName = getFontStyle("Bold");
-    labelText.fontSize = TOKENS.fontSizeBodySm;
+    labelText.fontName = getFontStyle("Regular");
+    labelText.fontSize = TOKENS.fontSizeBodyMd;
     labelText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
     labelText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    labelText.characters = label;
+    labelText.characters = `${fullLabel} (${label}):`;
     labelText.name = `${label} Label`;
     metricItem.appendChild(labelText);
     
@@ -487,7 +463,7 @@ export async function createVariantCard(variant: Variant, variantIndex?: number)
     const valueText = figma.createText();
     valueText.fontName = getFontStyle("Regular");
     valueText.fontSize = TOKENS.fontSizeBodyMd;
-    valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+    valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     valueText.textAutoResize = 'WIDTH_AND_HEIGHT';
     valueText.characters = value;
     valueText.name = `${label} Value`;
