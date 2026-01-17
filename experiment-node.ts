@@ -95,7 +95,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.primaryAxisSizingMode = 'AUTO';
   card.minWidth = 300; // 18.75rem
   card.maxWidth = 400; // 25rem
-  card.resize(300, 280); // Default width 300px (18.75rem)
+  card.resize(300, 270); // Default width 300px (18.75rem)
   card.paddingLeft = 16;
   card.paddingRight = 16;
   card.paddingTop = 16; // 1rem
@@ -113,15 +113,17 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     visible: true,
     blendMode: 'NORMAL',
   }];
-  card.itemSpacing = 16; // 1rem gap
+  card.itemSpacing = 8; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
   card.name = `Event: ${eventName}`;
 
+  // Event label (above thumbnail)
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
   eventLabel.fontSize = TOKENS.fontSizeBodySm;
-  eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  eventLabel.opacity = 0.5;
   eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventLabel.characters = 'Event';
   eventLabel.name = 'Event Label';
@@ -211,7 +213,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventDetailsContainer.name = 'Event Details Container';
   eventDetailsContainer.layoutAlign = 'STRETCH';
   eventDetailsContainer.paddingBottom = 0;
-  eventDetailsContainer.paddingTop = 0;
+  eventDetailsContainer.paddingTop = 8;
 
   const eventNameText = figma.createText();
   eventNameText.fontName = getFontStyle("Bold");
@@ -227,8 +229,6 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     fallbackEventNumber = parseInt(match[1], 10);
   }
   eventNameText.characters = eventName || `Event ${fallbackEventNumber}`;
-    eventDetailsContainer.appendChild(eventLabel);
-
   eventNameText.name = 'Event Name Text';
   eventDetailsContainer.appendChild(eventNameText);
 
@@ -293,11 +293,22 @@ export async function createVariantCard(
     visible: true,
     blendMode: 'NORMAL',
   }];
-  card.itemSpacing = 16; // 1rem gap
+  card.itemSpacing = 8; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
 
   // ...top row removed...
+
+  // Variant type label (above thumbnail)
+  const variantTypeLabel = figma.createText();
+  variantTypeLabel.fontName = getFontStyle("Bold");
+  variantTypeLabel.fontSize = TOKENS.fontSizeBodySm;
+  variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  variantTypeLabel.opacity = 0.5;
+  variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+  variantTypeLabel.characters = `Variant`;
+  variantTypeLabel.name = 'Variant Type Label';
+  card.appendChild(variantTypeLabel);
 
   // Empty placeholder Frame ready for "Replace with"
   const thumb = figma.createFrame();
@@ -313,7 +324,7 @@ export async function createVariantCard(
   // Empty Frame with background fill - ready for "Replace with"
   card.appendChild(thumb);
 
-  // Variant details section: type label + name row + control label + traffic
+  // Variant details section: name row + control label + traffic
   const variantDetailsContainer = figma.createFrame();
   variantDetailsContainer.layoutMode = 'VERTICAL';
   variantDetailsContainer.counterAxisSizingMode = 'AUTO';
@@ -323,18 +334,8 @@ export async function createVariantCard(
   variantDetailsContainer.strokes = [];
   variantDetailsContainer.name = 'Variant Details';
   variantDetailsContainer.layoutAlign = 'STRETCH';
-  variantDetailsContainer.paddingBottom = 0;
-  variantDetailsContainer.paddingTop = 0;
-
-  // Variant type label (moved here)
-  const variantTypeLabel = figma.createText();
-  variantTypeLabel.fontName = getFontStyle("Bold");
-  variantTypeLabel.fontSize = TOKENS.fontSizeBodySm;
-  variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-  variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantTypeLabel.characters = `Variant`;
-  variantTypeLabel.name = 'Variant Type Label';
-  variantDetailsContainer.appendChild(variantTypeLabel);
+  variantDetailsContainer.paddingBottom = 8 ;
+  variantDetailsContainer.paddingTop = 8;
 
   // Radio button + variant name row
   const nameRow = figma.createFrame();
@@ -408,16 +409,16 @@ export async function createVariantCard(
     winnerBadge.paddingTop = 2;
     winnerBadge.paddingBottom = 2;
     winnerBadge.cornerRadius = 4;
-    winnerBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite50) }];
+    winnerBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite100) }];
     winnerBadge.strokes = [];
     winnerBadge.name = 'Recommended Winner Badge';
     
     const winnerText = figma.createText();
-    winnerText.fontName = getFontStyle("Bold");
+    winnerText.fontName = getFontStyle("Medium");
     winnerText.fontSize = TOKENS.fontSizeBodyMd;
     winnerText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
     winnerText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    winnerText.characters = 'Recommended winner';
+    winnerText.characters = 'Recommended';
     winnerText.name = 'Recommended Winner Text';
     winnerBadge.appendChild(winnerText);
     badgesRow.appendChild(winnerBadge);
@@ -460,14 +461,14 @@ export async function createVariantCard(
     rolledoutBadge.paddingTop = 2;
     rolledoutBadge.paddingBottom = 2;
     rolledoutBadge.cornerRadius = 4;
-    rolledoutBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet50) }];
+    rolledoutBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBrand) }];
     rolledoutBadge.strokes = [];
     rolledoutBadge.name = 'Rolled-out Badge';
     
     const rolledoutText = figma.createText();
     rolledoutText.fontName = getFontStyle("Bold");
     rolledoutText.fontSize = TOKENS.fontSizeBodyMd;
-    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet700) }];
+    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
     rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
     rolledoutText.characters = 'Rolled-out';
     rolledoutText.name = 'Rolled-out Text';
@@ -501,31 +502,19 @@ export async function createVariantCard(
   metricsSection.strokes = [];
   metricsSection.name = 'Metrics Section';
   metricsSection.paddingBottom = 0;
-  metricsSection.paddingTop = 0;
+  metricsSection.paddingTop = 8;
   metricsSection.layoutAlign = 'STRETCH';
 
   // Metrics header
   const metricsHeader = figma.createText();
   metricsHeader.fontName = getFontStyle("Bold");
   metricsHeader.fontSize = TOKENS.fontSizeBodySm;
-  metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
+  metricsHeader.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+  metricsHeader.opacity = 0.5;
   metricsHeader.textAutoResize = 'WIDTH_AND_HEIGHT';
   metricsHeader.characters = 'Metrics';
   metricsHeader.name = 'Metrics Header';
   metricsSection.appendChild(metricsHeader);
-
-  // Metrics values row
-  const metricsRow = figma.createFrame();
-  metricsRow.layoutMode = 'VERTICAL';
-  metricsRow.counterAxisSizingMode = 'AUTO';
-  metricsRow.primaryAxisSizingMode = 'AUTO';
-  metricsRow.primaryAxisAlignItems = 'MIN'; // Top align items vertically
-  metricsRow.counterAxisAlignItems = 'MIN'; // Left align items horizontally
-  metricsRow.itemSpacing = TOKENS.space8;
-  metricsRow.fills = [];
-  metricsRow.strokes = [];
-  metricsRow.name = 'Metrics Row';
-  metricsRow.layoutAlign = 'MIN';
 
   // Format metrics with proper decimal places
   const formatMetric = (value: number | undefined): string => {
@@ -540,11 +529,12 @@ export async function createVariantCard(
     metricItem.layoutMode = 'HORIZONTAL';
     metricItem.counterAxisSizingMode = 'AUTO';
     metricItem.primaryAxisSizingMode = 'AUTO';
+    metricItem.layoutAlign = 'STRETCH'; // Stretch to parent width
+    metricItem.primaryAxisAlignItems = 'SPACE_BETWEEN'; // Space between label (left) and value badge (right)
     metricItem.itemSpacing = 8;
     metricItem.fills = [];
     metricItem.strokes = [];
     metricItem.name = `${metricName} Metric Item`;
-    metricItem.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
     metricItem.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
     // metricItem.height = 24; // Removed because .height is read-only for auto layout frames
     
@@ -571,7 +561,7 @@ export async function createVariantCard(
     
     if (isWinner) {
       // Winner value: green background
-      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite50) }];
+      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite100) }];
     } else {
       // Regular value: light gray background
       valueBadge.fills = [{ type: 'SOLID', color: hexToRgb('#F5F6F8') }];
@@ -582,7 +572,7 @@ export async function createVariantCard(
     
     const valueText = figma.createText();
     if (isWinner) {
-      valueText.fontName = getFontStyle("Bold");
+      valueText.fontName = getFontStyle("Medium");
       valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
     } else {
       valueText.fontName = getFontStyle("Medium");
@@ -628,11 +618,22 @@ export async function createVariantCard(
     const metricName = metric.name;
     const abbreviation = metric.abbreviation || metric.name;
     const metricItem = createMetricItem(metricName, abbreviation, formatMetric(metricValue), isWinner);
-    metricsRow.appendChild(metricItem);
+    metricsSection.appendChild(metricItem);
   }
 
-  metricsSection.appendChild(metricsRow);
   card.appendChild(metricsSection);
+  
+  // After metrics section is added to card, resize metric items to match section width
+  // This ensures they stretch to full width
+  if (metricsSection.children.length > 1) { // More than just the header
+    const sectionWidth = metricsSection.width;
+    for (let i = 1; i < metricsSection.children.length; i++) {
+      const metricItem = metricsSection.children[i] as FrameNode;
+      if (metricItem.type === 'FRAME') {
+        metricItem.resize(sectionWidth, metricItem.height);
+      }
+    }
+  }
 
   return card;
 }
