@@ -1550,6 +1550,17 @@ export interface ExperimentV2 {
     figma?: string;
     jira?: string;
     miro?: string;
+    notion?: string;
+    amplitude?: string;
+    asana?: string;
+    linear?: string;
+    slack?: string;
+    github?: string;
+    confluence?: string;
+    trello?: string;
+    monday?: string;
+    clickup?: string;
+    generic?: string;
   };
   outcomes?: {
     winningPaths?: Array<{ eventId: string; variantId: string }>;
@@ -2189,6 +2200,16 @@ if (figma.editorType === 'figma') {
       experiment.links?.figma || '',
       experiment.links?.jira || '',
       experiment.links?.miro || '',
+      experiment.links?.notion || '',
+      experiment.links?.amplitude || '',
+      experiment.links?.asana || '',
+      experiment.links?.linear || '',
+      experiment.links?.slack || '',
+      experiment.links?.github || '',
+      experiment.links?.confluence || '',
+      experiment.links?.trello || '',
+      experiment.links?.monday || '',
+      experiment.links?.clickup || '',
       metrics,
       (experiment as any).status || 'running'
     );

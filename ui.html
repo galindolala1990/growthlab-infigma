@@ -4320,10 +4320,20 @@
         description: experimentDescription,
         status: experimentStatus, // Include status for info card badge
         links: {
-          // Only include known providers
+          // Include all known providers
           figma: (relatedLinks.find(l => l.provider === 'figma') || {}).url || '',
           jira: (relatedLinks.find(l => l.provider === 'jira') || {}).url || '',
-          miro: (relatedLinks.find(l => l.provider === 'miro') || {}).url || ''
+          miro: (relatedLinks.find(l => l.provider === 'miro') || {}).url || '',
+          notion: (relatedLinks.find(l => l.provider === 'notion') || {}).url || '',
+          amplitude: (relatedLinks.find(l => l.provider === 'amplitude') || {}).url || '',
+          asana: (relatedLinks.find(l => l.provider === 'asana') || {}).url || '',
+          linear: (relatedLinks.find(l => l.provider === 'linear') || {}).url || '',
+          slack: (relatedLinks.find(l => l.provider === 'slack') || {}).url || '',
+          github: (relatedLinks.find(l => l.provider === 'github') || {}).url || '',
+          confluence: (relatedLinks.find(l => l.provider === 'confluence') || {}).url || '',
+          trello: (relatedLinks.find(l => l.provider === 'trello') || {}).url || '',
+          monday: (relatedLinks.find(l => l.provider === 'monday') || {}).url || '',
+          clickup: (relatedLinks.find(l => l.provider === 'clickup') || {}).url || ''
         },
         outcomes: experimentStatus === 'completed' && rolledoutVariant ? {
           winningPaths: [], // Could be filled if you want
