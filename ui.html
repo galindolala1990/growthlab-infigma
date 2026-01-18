@@ -4333,7 +4333,9 @@
           confluence: (relatedLinks.find(l => l.provider === 'confluence') || {}).url || '',
           trello: (relatedLinks.find(l => l.provider === 'trello') || {}).url || '',
           monday: (relatedLinks.find(l => l.provider === 'monday') || {}).url || '',
-          clickup: (relatedLinks.find(l => l.provider === 'clickup') || {}).url || ''
+          clickup: (relatedLinks.find(l => l.provider === 'clickup') || {}).url || '',
+          // Include all generic links as an array
+          generic: relatedLinks.filter(l => l.provider === 'generic').map(l => l.url)
         },
         outcomes: experimentStatus === 'completed' && rolledoutVariant ? {
           winningPaths: [], // Could be filled if you want

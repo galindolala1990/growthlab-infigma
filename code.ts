@@ -2210,6 +2210,7 @@ if (figma.editorType === 'figma') {
       experiment.links?.trello || '',
       experiment.links?.monday || '',
       experiment.links?.clickup || '',
+      Array.isArray(experiment.links?.generic) ? experiment.links.generic : [],
       metrics,
       (experiment as any).status || 'running'
     );
