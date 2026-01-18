@@ -387,16 +387,24 @@ export async function createVariantCard(
   variantDetailsContainer.appendChild(variantLabel);
 
   // Add status badges row (Recommended winner/Running/Rolled-out) - moved below variant label
-  const badgesRow = figma.createFrame();
-  badgesRow.layoutMode = 'HORIZONTAL';
-  badgesRow.counterAxisSizingMode = 'AUTO';
-  badgesRow.primaryAxisSizingMode = 'AUTO';
-  badgesRow.itemSpacing = TOKENS.space8;
-  badgesRow.fills = [];
-  badgesRow.strokes = [];
-  badgesRow.name = 'Status Badges Row';
-  badgesRow.layoutAlign = 'MIN';
-  badgesRow.layoutGrow = 0;
+  // Only create badgesRow when we actually have badges to add (lazy initialization)
+  let badgesRow: FrameNode | null = null;
+
+  const getOrCreateBadgesRow = (): FrameNode => {
+    if (!badgesRow) {
+      badgesRow = figma.createFrame();
+      badgesRow.layoutMode = 'HORIZONTAL';
+      badgesRow.counterAxisSizingMode = 'AUTO';
+      badgesRow.primaryAxisSizingMode = 'AUTO';
+      badgesRow.itemSpacing = TOKENS.space8;
+      badgesRow.fills = [];
+      badgesRow.strokes = [];
+      badgesRow.name = 'Status Badges Row';
+      badgesRow.layoutAlign = 'MIN';
+      badgesRow.layoutGrow = 0;
+    }
+    return badgesRow;
+  };
 
   // Recommended winner badge (based on metrics outcomes)
   if (options?.isRecommendedWinner) {
@@ -421,7 +429,7 @@ export async function createVariantCard(
     winnerText.characters = 'Recommended';
     winnerText.name = 'Recommended Winner Text';
     winnerBadge.appendChild(winnerText);
-    badgesRow.appendChild(winnerBadge);
+    getOrCreateBadgesRow().appendChild(winnerBadge);
   }
 
   // Running badge
@@ -447,7 +455,7 @@ export async function createVariantCard(
     runningText.characters = 'Running';
     runningText.name = 'Running Text';
     runningBadge.appendChild(runningText);
-    badgesRow.appendChild(runningBadge);
+    getOrCreateBadgesRow().appendChild(runningBadge);
   }
 
   // Rolled-out badge (NEW)
@@ -473,12 +481,15 @@ export async function createVariantCard(
     rolledoutText.characters = 'Rolled-out';
     rolledoutText.name = 'Rolled-out Text';
     rolledoutBadge.appendChild(rolledoutText);
-    badgesRow.appendChild(rolledoutBadge);
+    getOrCreateBadgesRow().appendChild(rolledoutBadge);
   }
 
-  // Only append badges row if there are badges to show
-  if (badgesRow.children.length > 0) {
-    variantDetailsContainer.appendChild(badgesRow);
+  // Only append badges row if it was created and has badges to show
+  if (badgesRow !== null) {
+    const badgesRowFrame = badgesRow as FrameNode;
+    if (badgesRowFrame.children.length > 0) {
+      variantDetailsContainer.appendChild(badgesRowFrame);
+    }
   }
 
   card.appendChild(variantDetailsContainer);
@@ -564,7 +575,7 @@ export async function createVariantCard(
       valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite100) }];
     } else {
       // Regular value: light gray background
-      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb('#F5F6F8') }];
+      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
     }
     
     valueBadge.strokes = [];

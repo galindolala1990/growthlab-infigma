@@ -2188,7 +2188,8 @@ if (figma.editorType === 'figma') {
       experiment.description || 'e.g., Testing if new CTA increases conversions.',
       experiment.links?.figma || '',
       experiment.links?.jira || '',
-      experiment.links?.miro || ''
+      experiment.links?.miro || '',
+      metrics
     );
     attachNodeMeta(infoCard, {
       name: infoCardName,
