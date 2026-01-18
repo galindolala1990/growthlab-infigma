@@ -3,6 +3,66 @@ import { TOKENS } from "./design-tokens";
 import { hexToRgb } from "./layout-utils";
 import { loadFonts, getLoadedFigtreeSemibold } from "./load-fonts";
 
+// Brand icon SVG markup (complete SVGs for figma.createNodeFromSvg)
+const BRAND_SVGS: Record<string, string> = {
+  // Official Figma multi-color logo
+  figma: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+    <path d="M8 24c2.208 0 4-1.792 4-4v-4H8c-2.208 0-4 1.792-4 4s1.792 4 4 4z" fill="#0ACF83"/>
+    <path d="M4 12c0-2.208 1.792-4 4-4h4v8H8c-2.208 0-4-1.792-4-4z" fill="#A259FF"/>
+    <path d="M4 4c0-2.208 1.792-4 4-4h4v8H8C5.792 8 4 6.208 4 4z" fill="#F24E1E"/>
+    <path d="M12 0h4c2.208 0 4 1.792 4 4s-1.792 4-4 4h-4V0z" fill="#FF7262"/>
+    <path d="M20 12c0 2.208-1.792 4-4 4s-4-1.792-4-4 1.792-4 4-4 4 1.792 4 4z" fill="#1ABCFE"/>
+  </svg>`,
+  // Miro logo (yellow)
+  miro: `<svg viewBox="0 0 24 24" width="24" height="24" fill="#FFDD00">
+    <path d="M17.392 0H13.9L17 4.808 10.444 0H6.949l3.102 6.3L3.494 0H0l3.05 8.131L0 24h3.494L10.05 6.985 6.949 24h3.494L17 5.494 13.899 24h3.493L24 3.672 17.392 0z"/>
+  </svg>`,
+  // Jira logo (blue)
+  jira: `<svg viewBox="0 0 24 24" width="24" height="24" fill="#0052CC">
+    <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z"/>
+  </svg>`,
+  // Generic link icon
+  generic: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </svg>`
+};
+
+/**
+ * Create a brand icon as a Figma frame from SVG
+ * @param brand - Brand name (figma, miro, jira, generic)
+ * @param size - Icon size in pixels (default 14)
+ * @returns FrameNode containing the vector icon
+ */
+function createBrandIconVector(brand: string, size: number = 14): FrameNode {
+  const brandLower = brand.toLowerCase();
+  const svgMarkup = BRAND_SVGS[brandLower] || BRAND_SVGS.generic;
+  
+  try {
+    // Create node from SVG - this returns a FrameNode with vectors inside
+    const svgNode = figma.createNodeFromSvg(svgMarkup);
+    svgNode.name = `${brand} Icon`;
+    
+    // Scale to target size (SVG is 24x24)
+    const scale = size / 16;
+    svgNode.resize(size, size);
+    
+    // Flatten to clean up the structure
+    svgNode.fills = [];
+    
+    return svgNode;
+  } catch (e) {
+    console.error(`Failed to create SVG icon for ${brand}:`, e);
+    
+    // Fallback: create empty frame
+    const fallback = figma.createFrame();
+    fallback.name = `${brand} Icon (fallback)`;
+    fallback.resize(size, size);
+    fallback.fills = [];
+    return fallback;
+  }
+}
+
 export interface MetricDefinition {
   id: string;
   name: string;
@@ -11,13 +71,46 @@ export interface MetricDefinition {
   max?: number;
 }
 
+// Status configuration matching the plugin UI dropdown
+export type ExperimentStatus = 'draft' | 'running' | 'paused' | 'completed';
+
+interface StatusConfig {
+  label: string;
+  bgColor: string;
+  textColor: string;
+}
+
+const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
+  draft: {
+    label: 'Draft',
+    bgColor: TOKENS.yellow100, // yellow-100
+    textColor: TOKENS.yellow600, // yellow-600
+  },
+  running: {
+    label: 'Running',
+    bgColor: TOKENS.royalBlue100,
+    textColor: TOKENS.royalBlue600,
+  },
+  paused: {
+    label: 'Paused',
+    bgColor: TOKENS.coralRed100, // red-100
+    textColor: TOKENS.coralRed600, // red-600
+  },
+  completed: {
+    label: 'Completed',
+    bgColor: TOKENS.malachite100,
+    textColor: TOKENS.malachite800,
+  },
+};
+
 export async function createExperimentInfoCard(
   experimentName: string,
   description: string = "",
   figmaLink: string = "",
   jiraLink: string = "",
   miroLink: string = "",
-  metrics?: MetricDefinition[]
+  metrics?: MetricDefinition[],
+  status: ExperimentStatus = 'running'
 ): Promise<FrameNode> {
   // Ensure all fonts are loaded before creating any text nodes
   await loadFonts();
@@ -37,22 +130,24 @@ export async function createExperimentInfoCard(
   card.effects = [];
   card.resize(400, 540);
 
-  // Status badge (Active)
+  // Status badge - uses status from plugin's experiment status field
+  const statusConfig = STATUS_STYLES[status] || STATUS_STYLES.running;
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
   badge.counterAxisSizingMode = "AUTO";
   badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 12;
-  badge.paddingTop = badge.paddingBottom = 4;
-  badge.cornerRadius = 8;
-  badge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.royalBlue100) }];
+  badge.paddingLeft = badge.paddingRight = 6;
+  badge.paddingTop = badge.paddingBottom = 2;
+  badge.cornerRadius = 4;
+  badge.fills = [{ type: "SOLID", color: hexToRgb(statusConfig.bgColor) }];
   badge.name = "Status Badge";
   const badgeText = figma.createText();
-  badgeText.fontName = { family: "Figtree", style: "Bold" };
+  badgeText.fontName = { family: "Figtree", style: "Medium" };
   badgeText.fontSize = TOKENS.fontSizeBodySm;
-  badgeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.royalBlue600) }];
+  badgeText.lineHeight = { unit: "PIXELS", value: 13 };
+  badgeText.fills = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
   badgeText.textAutoResize = "WIDTH_AND_HEIGHT";
-  badgeText.characters = "Active";
+  badgeText.characters = statusConfig.label;
   badge.appendChild(badgeText);
   card.appendChild(badge);
 
@@ -149,26 +244,33 @@ export async function createExperimentInfoCard(
   linksLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   linksLabel.characters = "Artifacts";
   linksSection.appendChild(linksLabel);
-  const linksRow = figma.createFrame();
-  linksRow.layoutMode = "HORIZONTAL";
-  linksRow.counterAxisSizingMode = "AUTO";
-  linksRow.primaryAxisSizingMode = "AUTO";
-  linksRow.itemSpacing = 8;
-  linksRow.fills = [];
-  linksRow.strokes = [];
+  
+  // Links container - vertical stack for multiple links
+  const linksContainer = figma.createFrame();
+  linksContainer.layoutMode = "VERTICAL";
+  linksContainer.counterAxisSizingMode = "AUTO";
+  linksContainer.primaryAxisSizingMode = "AUTO";
+  linksContainer.primaryAxisAlignItems = "MIN";
+  linksContainer.counterAxisAlignItems = "MIN";
+  linksContainer.layoutAlign = 'STRETCH';
+  linksContainer.itemSpacing = 8;
+  linksContainer.fills = [];
+  linksContainer.strokes = [];
+  linksContainer.name = "Links";
+  
   // Add Figma link
   if (figmaLink) {
-    linksRow.appendChild(createLinkChip("Figma", figmaLink));
+    linksContainer.appendChild(createLinkChip("Figma", figmaLink));
   }
   // Add Jira link
   if (jiraLink) {
-    linksRow.appendChild(createLinkChip("Jira", jiraLink));
+    linksContainer.appendChild(createLinkChip("Jira", jiraLink));
   }
   // Add Miro link
   if (miroLink) {
-    linksRow.appendChild(createLinkChip("Miro", miroLink));
+    linksContainer.appendChild(createLinkChip("Miro", miroLink));
   }
-  linksSection.appendChild(linksRow);
+  linksSection.appendChild(linksContainer);
   card.appendChild(linksSection);
 
   return card;
@@ -183,6 +285,7 @@ async function createDescriptionSection(experimentName: string, description: str
   section.primaryAxisAlignItems = "MIN";
   section.counterAxisAlignItems = "MIN";
   section.layoutAlign = 'STRETCH';
+  section.resizeWithoutConstraints(section.width, section.height);
   section.itemSpacing = 8;
   section.fills = [];
   section.strokes = [];
@@ -340,49 +443,65 @@ function createLinkChip(label: string, url?: string): FrameNode {
   chip.layoutMode = "HORIZONTAL";
   chip.counterAxisSizingMode = "AUTO";
   chip.primaryAxisSizingMode = "AUTO";
-  chip.primaryAxisAlignItems = 'MIN';
-  chip.counterAxisAlignItems = 'MIN';
+  chip.primaryAxisAlignItems = "MIN";
+  chip.counterAxisAlignItems = "CENTER";
   chip.layoutAlign = 'STRETCH';
-  chip.minWidth = 336; // 6.25rem
-  chip.maxWidth = 336; // 6.25rem
-  chip.itemSpacing = 4;
-  chip.paddingLeft = chip.paddingRight = 8;
-  chip.paddingTop = chip.paddingBottom = 6;
-  chip.cornerRadius = 4;
+  chip.minWidth = 336; // 21rem
+  chip.maxWidth = 336; // 21rem
+  chip.itemSpacing = 8;
+  chip.paddingLeft = chip.paddingRight = 12;
+  chip.paddingTop = chip.paddingBottom = 8;
+  chip.cornerRadius = 8;
   chip.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsSurface) }];
   chip.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   chip.strokeWeight = 1;
   chip.name = "Link Chip";
-  // Icon
-  const icon = figma.createText();
-  icon.fontName = { family: "Figtree", style: "Regular" };
-  icon.fontSize = TOKENS.fontSizeBodySm;
-  icon.lineHeight = { unit: "PIXELS", value: 14 };
-  icon.fills = label === 'Figma' ? [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBrand) }] :
-                label === 'Jira' ? [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBrand) }] :
-                label === 'Miro' ? [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBrand) }] :
-                [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  icon.textAutoResize = "WIDTH_AND_HEIGHT";
-  icon.characters = label === 'Figma' ? '🟠' : label === 'Jira' ? '🟦' : label === 'Miro' ? '🟨' : '🔗';
+  
+  // Brand icon (vector) - larger size for this layout
+  const icon = createBrandIconVector(label, 16);
   chip.appendChild(icon);
-  // Label: show the url or label
-  const txt = figma.createText();
-  txt.fontName = { family: "Figtree", style: "Regular" };
-  txt.fontSize = TOKENS.fontSizeBodySm;
-  txt.lineHeight = { unit: "PIXELS", value: 14 };
-  txt.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  txt.textAutoResize = "WIDTH_AND_HEIGHT";
-  txt.layoutAlign = "STRETCH";
-  txt.name = "Link Label";
-  txt.characters = ` ${label}`;
+  
+  // Text container (vertical stack for title + URL)
+  const textContainer = figma.createFrame();
+  textContainer.layoutMode = "VERTICAL";
+  textContainer.counterAxisSizingMode = "AUTO";
+  textContainer.primaryAxisSizingMode = "AUTO";
+  textContainer.itemSpacing = 0;
+  textContainer.fills = [];
+  textContainer.name = "Link Text";
+  
+  // Title (brand name) - Medium weight
+  const title = figma.createText();
+  title.fontName = { family: "Figtree", style: "Bold" };
+  title.fontSize = TOKENS.fontSizeBodySm;
+  title.lineHeight = { unit: "PIXELS", value: 12 };
+  title.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  title.textAutoResize = "WIDTH_AND_HEIGHT";
+  title.name = "Link Title";
+  title.characters = `${label}`;
+  textContainer.appendChild(title);
+  
+  // URL - smaller, secondary color
   if (url) {
-    const maxLength = 55; // Adjust as needed
+    const urlText = figma.createText();
+    urlText.fontName = { family: "Figtree", style: "Regular" };
+    urlText.fontSize = TOKENS.fontSizeBodySm;
+    urlText.lineHeight = { unit: "PIXELS", value: 12 };
+    urlText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+    urlText.textAutoResize = "WIDTH_AND_HEIGHT";
+    urlText.name = "Link URL";
+    // Truncate long URLs
+    const maxLength = 50;
     const displayUrl = url.length > maxLength 
       ? url.substring(0, maxLength) + '...' 
       : url;
-  txt.characters = ` ${displayUrl}`;
-}
-  chip.appendChild(txt);
+    urlText.characters = url.length > maxLength 
+      ? url.substring(0, maxLength) + '...' 
+      : url;
+    textContainer.appendChild(urlText);
+  }
+  
+  chip.appendChild(textContainer);
   // Figma plugin API does not support setting hyperlinks on FrameNode directly.
   // If hyperlink support is added in the future, add it here.
   return chip;

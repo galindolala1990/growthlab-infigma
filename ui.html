@@ -4318,6 +4318,7 @@
         name: experimentName,
         roundNumber: 1,
         description: experimentDescription,
+        status: experimentStatus, // Include status for info card badge
         links: {
           // Only include known providers
           figma: (relatedLinks.find(l => l.provider === 'figma') || {}).url || '',

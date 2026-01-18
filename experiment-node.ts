@@ -133,9 +133,13 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   const selection = figma.currentPage.selection;
   
   // Check if user has selected a Frame or Rectangle to use as thumbnail
-  if (selection && selection.length > 0) {
-    const selectedNode = selection[0];
-    
+  // Only use FRAME or RECTANGLE types - ignore TEXT and other node types
+  // to prevent accidentally cloning text content (like pasted URLs) into thumbnails
+  const selectedNode = selection && selection.length > 0 ? selection[0] : null;
+  const isValidThumbnailSource = selectedNode && 
+    (selectedNode.type === 'FRAME' || selectedNode.type === 'RECTANGLE');
+  
+  if (selectedNode && isValidThumbnailSource) {
     // If it's already a Frame, clone it directly
     if (selectedNode.type === 'FRAME') {
       thumb = selectedNode.clone() as FrameNode;
@@ -146,7 +150,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       thumb.clipsContent = true;
     }
     // If it's a Rectangle (with or without image fill), wrap it in a Frame
-    else if (selectedNode.type === 'RECTANGLE') {
+    else {
       const rect = selectedNode.clone() as RectangleNode;
       thumb = figma.createFrame();
       thumb.layoutMode = 'NONE';
@@ -163,30 +167,9 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       if ('cornerRadius' in rect) rect.cornerRadius = TOKENS.radiusSM;
       thumb.appendChild(rect);
     }
-    // For other node types (GROUP, etc.), wrap in a Frame
-    else {
-      const clonedNode = selectedNode.clone();
-      thumb = figma.createFrame();
-      thumb.layoutMode = 'NONE';
-      thumb.resize(268, 160);
-      thumb.cornerRadius = TOKENS.radiusSM;
-      thumb.name = 'Thumbnail - Replace with image';
-      thumb.layoutAlign = 'MIN';
-      thumb.clipsContent = true;
-      
-      // Scale and center the cloned node to fit (only if it supports resize)
-      if ('resize' in clonedNode && typeof clonedNode.resize === 'function') {
-        const scaleX = 268 / clonedNode.width;
-        const scaleY = 160 / clonedNode.height;
-        const scale = Math.min(scaleX, scaleY);
-        clonedNode.resize(clonedNode.width * scale, clonedNode.height * scale);
-        clonedNode.x = (268 - clonedNode.width) / 2;
-        clonedNode.y = (160 - clonedNode.height) / 2;
-      }
-      thumb.appendChild(clonedNode);
-    }
   } else {
     // Create empty placeholder Frame ready for "Replace with"
+    // This is the default when no valid thumbnail source is selected
     const placeholder = figma.createFrame();
     placeholder.layoutMode = 'NONE';
     placeholder.resize(268, 160);

@@ -2189,7 +2189,8 @@ if (figma.editorType === 'figma') {
       experiment.links?.figma || '',
       experiment.links?.jira || '',
       experiment.links?.miro || '',
-      metrics
+      metrics,
+      (experiment as any).status || 'running'
     );
     attachNodeMeta(infoCard, {
       name: infoCardName,
