@@ -1760,6 +1760,7 @@ export interface MetricDefinition {
   abbreviation?: string;
   min?: number;
   max?: number;
+  isPrimary?: boolean;
 }
 
 export interface CreateFlowV2Payload {
@@ -1800,6 +1801,7 @@ const KEEP_OPEN = true;
 import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle } from './layout-utils';
 import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
+import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
 import { loadFonts } from './load-fonts';
 
 if (figma.editorType === 'figma') {
@@ -2188,12 +2190,50 @@ if (figma.editorType === 'figma') {
     // Remove any existing flow frames with the same name/id
     const flowFrameName = `Experiment Flow — ${experiment.name}`;
     const infoCardName = `Experiment Info — ${experiment.name}`;
+    const cardsContainerName = `Experiment Cards — ${experiment.name}`;
     const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
     if (existingFlow) existingFlow.remove();
     let infoCard = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === infoCardName) as FrameNode | undefined;
     if (infoCard) infoCard.remove();
+    // Also remove existing cards container (info + outcome)
+    const existingCardsContainer = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === cardsContainerName);
+    if (existingCardsContainer) existingCardsContainer.remove();
 
-    // Create experiment info card (optional, for context)
+    // Collect all variants from flow events for outcome card
+    const allVariants: Array<{
+      id?: string;
+      key: string;
+      name: string;
+      description?: string;
+      isControl?: boolean;
+      traffic: number;
+      status?: string;
+      metrics?: { [key: string]: number };
+      isWinner?: boolean;
+      isRolledOut?: boolean;
+      isStatSig?: boolean;
+    }> = [];
+    
+    for (const event of flow.events) {
+      if (event.variants && event.variants.length > 0) {
+        event.variants.forEach((variant, index) => {
+          allVariants.push({
+            id: variant.id,
+            key: variant.key,
+            name: variant.name || `Variant ${variant.key}`,
+            description: variant.description,
+            isControl: index === 0, // First variant is typically control
+            traffic: variant.traffic,
+            metrics: variant.metrics,
+            isWinner: false, // Can be determined by comparing metrics
+            isRolledOut: false,
+            isStatSig: (variant as any).isStatSig, // Pass statistical significance from UI
+          });
+        });
+      }
+    }
+
+    // Create experiment info card with outcome card below it
     infoCard = await createExperimentInfoCard(
       experiment.name,
       experiment.description || 'e.g., Testing if new CTA increases conversions.',
@@ -2212,7 +2252,24 @@ if (figma.editorType === 'figma') {
       experiment.links?.clickup || '',
       Array.isArray(experiment.links?.generic) ? experiment.links.generic : [],
       metrics,
-      (experiment as any).status || 'running'
+      (experiment as any).status || 'running',
+      {
+        showOutcomeCard: allVariants.length > 0,
+        variants: allVariants,
+        owner: (experiment as any).owner,
+        experimentType: (experiment as any).experimentType,
+        hypothesis: (experiment as any).hypothesis,
+        startDate: (experiment as any).startDate,
+        endDate: (experiment as any).endDate,
+        totalSampleSize: (experiment as any).sampleSize,
+        confidenceLevel: (experiment as any).confidenceLevel,
+        primaryMetric: (() => {
+          // Find the metric marked as primary, or fall back to first metric
+          const primaryMetricDef = metrics?.find(m => m.isPrimary) || (metrics && metrics.length > 0 ? metrics[0] : undefined);
+          if (!primaryMetricDef) return undefined;
+          return primaryMetricDef.abbreviation?.toLowerCase() || primaryMetricDef.name.replace(/\s+/g, '_').toLowerCase();
+        })(),
+      }
     );
     attachNodeMeta(infoCard, {
       name: infoCardName,
@@ -2829,7 +2886,16 @@ if (figma.editorType === 'figma') {
     });
   }
 
-  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string }) => {
+  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string; width?: number; height?: number }) => {
+    // Handle UI resize
+    if (msg.type === 'resize-ui') {
+      const resizeMsg = msg as { type: string; width?: number; height?: number };
+      if (typeof resizeMsg.width === 'number' && typeof resizeMsg.height === 'number') {
+        figma.ui.resize(resizeMsg.width, resizeMsg.height);
+      }
+      return;
+    }
+
     if (msg.type === 'create-flow-v2' && 'payload' in msg && msg.payload) {
       figma.notify('Handler: create-flow-v2 (NEW SCHEMA)');
       console.log('Handler: create-flow-v2 (NEW SCHEMA)');

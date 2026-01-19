@@ -91,11 +91,47 @@
       --color-pale-sky-100: #edeef1;
       --color-pale-sky-200: #d8dbdf;
       --color-pale-sky-300: #b6bac3;
+      /* --- Electric Violet (Brand Purple) --- */
+      --color-electric-violet-50: #f4f2ff;
+      --color-electric-violet-100: #e9e8ff;
+      --color-electric-violet-200: #d6d4ff;
+      --color-electric-violet-300: #b9b1ff;
+      --color-electric-violet-400: #9785ff;
       --color-electric-violet-500: #6f4cff;
       --color-electric-violet-600: #6330f7;
+      --color-electric-violet-700: #551ee3;
+      --color-electric-violet-800: #4718bf;
+      --color-electric-violet-900: #3b169c;
+      --color-electric-violet-950: #230b6a;
+
+       /* --- Yellow (Warning) --- */
+      --color-yellow-50: #fffbea;
+      --color-yellow-100: #fff4c6;
+      --color-yellow-200: #ffe270;
+      --color-yellow-300: #ffd44a;
+      --color-yellow-400: #ffc020;
+      --color-yellow-500: #f99e07;
+      --color-yellow-600: #dd7602;
+      --color-yellow-700: #b75306;
+      --color-yellow-800: #943f0c;
+      --color-yellow-900: #7a340d;
+      --color-yellow-950: #461a02;
+
       --color-royal-blue-50: #eff7ff;
       --color-royal-blue-600: #2563eb;
       --color-transparent: #ffffff00;
+      /* --- Malachite (Success Green) --- */
+      --color-malachite-50: #effef4;
+      --color-malachite-100: #dafee5;
+      --color-malachite-200: #b8facd;
+      --color-malachite-300: #80f5a6;
+      --color-malachite-400: #42e679;
+      --color-malachite-500: #1fe461;
+      --color-malachite-600: #0eab43;
+      --color-malachite-700: #0f8637;
+      --color-malachite-800: #126930;
+      --color-malachite-900: #10572a;
+      --color-malachite-950: #033015;   
 
 
   /* === Color Core === */
@@ -111,8 +147,8 @@
       --text-link: var(--color-royal-blue-600);
       --border: var(--color-pale-sky-200);
       --border-dark:var(--color-azure-300);
-      --accent-success: #126930;
-      --accent-success-bg: #eaf7f0;
+      --accent-success: var(--color-white-100);
+      --accent-success-bg: var(--color-malachite-600);
       --accent-primary-dark: var(--color-azure-900);
       
 
@@ -287,17 +323,72 @@
       padding: var(--section-padding);
     }
 
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-16);
+    }
+
     .header-content {
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
-      margin-bottom: var(--space-16);
+    }
+
+    .expand-btn {
+      width: 28px;
+      height: 28px;
+    }
+    .expand-btn svg {
+      width: 16px;
+      height: 16px;
     }
 
     .header-inputs {
       display: flex;
       flex-direction: column;
       gap: var(--space-16);
+    }
+
+    /* Collapsible More Options Section */
+    .more-options {
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+    .more-options summary {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      cursor: pointer;
+      padding: var(--space-8) 0;
+      font-size: var(--body-md-size);
+      font-weight: 400;
+      color: var(--text-secondary);
+      list-style: none;
+      user-select: none;
+      transition: color 0.15s ease;
+    }
+    .more-options summary::-webkit-details-marker {
+      display: none;
+    }
+    .more-options summary:hover {
+      color: var(--text-primary);
+    }
+    .more-options summary .chevron-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+    .more-options[open] summary .chevron-icon {
+      transform: rotate(90deg);
+    }
+    .more-options-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+      padding-top: var(--space-8);
     }
 
     /* Form Container*/
@@ -419,6 +510,11 @@
     }
 
     .metric-row:hover .icon-btn {
+      opacity: 1;
+    }
+
+    /* Primary metric button - always visible when selected */
+    .metric-row .icon-btn.primary-metric-btn.is-primary {
       opacity: 1;
     }
 
@@ -1093,7 +1189,7 @@
       flex: 1;
       min-width: 0;
       width: 100%;
-      /*gap: var(--space-8);*/
+      gap: var(--space-8);
       padding-bottom: var(--space-8);
     }
 
@@ -1389,6 +1485,71 @@
       min-width: auto;
     }
 
+    /* Variant significance checkbox */
+    .variant-significance-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      margin-top: var(--space-12);
+    }
+
+    .variant-significance-checkbox {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      min-width: 14px;
+      min-height: 14px;
+      border: 1.5px solid var(--input-field-border-color);
+      border-radius: 3px;
+      background: var(--fills-surface);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      margin: 0;
+      padding: 0;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .variant-significance-checkbox:hover {
+      border-color: var(--input-field-border-color);
+    }
+
+    .variant-significance-checkbox:checked {
+      background: var(--accent-primary-dark);
+      border-color: var(--accent-primary-dark);
+    }
+
+    .variant-significance-checkbox:checked::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 4px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .variant-significance-label {
+      font-size: var(--body-md-size);
+      font-weight: 400;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .variant-significance-label:hover {
+      color: var(--text-primary);
+    }
+
+    .variant-significance-checkbox:checked + .variant-significance-label {
+      color: var(--text-primary);
+    }
+
+
     /* ============================================
      * EXPERIMENT STATUS SECTION
      * Status dropdown + Rolled-out variant selector
@@ -1407,14 +1568,11 @@
     }
 
     .status-field {
-      flex: 1;
-      min-width: 120px;
-      max-width: 150px;
+      flex: 0 0 calc(50% - var(--space-12) / 2);
     }
 
     .rolledout-field {
       flex: 1;
-      min-width: 120px;
     }
 
     .rolledout-field.hidden {
@@ -2366,41 +2524,38 @@
       <div class="form-content">
       <!-- Header Section -->
       <section class="section-header">
-        <div class="header-content">
-          <h1>Create experiment</h1>
-          <p class="body-md">Define design variants, flow, and success metrics.</p>
+        <div class="header-row">
+          <div class="header-content">
+            <h1>Create experiment</h1>
+            <p class="body-md">Define design variants, flow, and success metrics.</p>
+          </div>
+          <button type="button" class="icon-btn expand-btn" id="expandBtn" title="Expand window">
+            <!-- Icon injected via JS -->
+          </button>
         </div>
         <div class="header-inputs">
-          <!-- InputField Component: Vertical variant, default state -->
+          <!-- Experiment Name (Required - Always Visible) -->
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Experiment name</label>
             <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden">CR</span>
               <input class="InputField__input" type="text" id="experimentName" placeholder="e.g., Landing page CTA test">
-              <span class="InputField__suffix hidden"></span>
-              <!-- Lucide: chevron-down -->
-              <span class="InputField__icon hidden">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m6 9 6 6 6-6"/>
-                </svg>
-              </span>
             </div>
           </div>
-
-          <!-- InputField Component: Vertical variant, default state -->
+          <!-- Description -->
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Description</label>
             <div class="InputField__wrapper">
-              <span class="InputField__prefix hidden"></span>
               <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Testing if new CTA increases conversions">
-              <span class="InputField__suffix hidden"></span>
-              <span class="InputField__icon hidden"></span>
             </div>
           </div>
 
-          <!-- Experiment Status Section -->
+
+          <!-- Status Row (Always Visible) -->
           <div class="experiment-status-section">
             <div class="experiment-status-row">
+              <!-- Hidden Experiment Type (auto-inferred from variant count) -->
+              <input type="hidden" id="experimentType" name="experimentType" value="ab_test">
+
               <!-- Status Dropdown -->
               <div class="status-field">
                 <div class="SelectField">
@@ -2414,9 +2569,7 @@
                         </svg>
                       </span>
                     </button>
-                    <div class="CustomDropdown__menu" id="statusMenu">
-                      <!-- Options will be populated by JS -->
-                    </div>
+                    <div class="CustomDropdown__menu" id="statusMenu"></div>
                     <input type="hidden" id="experimentStatus" name="experimentStatus" value="running">
                   </div>
                 </div>
@@ -2435,9 +2588,7 @@
                         </svg>
                       </span>
                     </button>
-                    <div class="CustomDropdown__menu" id="rolledoutVariantMenu">
-                      <!-- Options will be populated dynamically -->
-                    </div>
+                    <div class="CustomDropdown__menu" id="rolledoutVariantMenu"></div>
                     <input type="hidden" id="rolledoutVariant" name="rolledoutVariant" value="">
                   </div>
                 </div>
@@ -2445,28 +2596,78 @@
             </div>
           </div>
 
-          <!-- Related links subsection -->
-          <div class="links-subsection" id="linksSubsection">
-            <div class="links-header" id="linksHeader">
-              <span class="links-header__label">Artifacts</span>
-            </div>
-            <div class="links-content">
-              <!-- Links list (dynamically populated) -->
-              <div class="links-list" id="linksList"></div>
-              <!-- Add link input -->
-              <div class="link-input-wrapper">
-                <div class="link-input-row">
-                  <div class="InputField" data-state="default" data-variant="horizontal">
-                    <div class="InputField__wrapper">
-                      <input class="InputField__input" type="text" id="linkInput" placeholder="Paste a link...">
-                    </div>
+          <!-- Collapsible More Options Section -->
+          <details class="more-options" id="moreOptionsSection">
+            <summary>
+              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6"/>
+              </svg>
+              More options
+            </summary>
+            <div class="more-options-content">
+              <!-- Hypothesis -->
+              <div class="InputField" data-state="default" data-variant="vertical">
+                <label class="InputField__label">Hypothesis</label>
+                <div class="InputField__wrapper">
+                  <input class="InputField__input" type="text" id="experimentHypothesis" placeholder="If we [change], then [metric] will [improve] because [reason]">
+                </div>
+              </div>
+
+              <!-- Owner -->
+              <div class="InputField" data-state="default" data-variant="vertical">
+                <label class="InputField__label">Owner</label>
+                <div class="InputField__wrapper">
+                  <input class="InputField__input" type="text" id="experimentOwner" placeholder="e.g., John Smith or Growth Team">
+                </div>
+              </div>
+
+              <!-- Timeline Fields -->
+              <div class="timeline-fields" style="display: flex; gap: var(--space-12);">
+                <div class="InputField" data-state="default" data-variant="vertical" style="flex: 1; min-width: 0;">
+                  <label class="InputField__label">Start Date</label>
+                  <div class="InputField__wrapper">
+                    <input class="InputField__input" type="date" id="experimentStartDate">
                   </div>
                 </div>
-                <div class="link-input-error" id="linkInputError" style="display: none;"></div>
+                <div class="InputField" data-state="default" data-variant="vertical" style="flex: 1; min-width: 0;">
+                  <label class="InputField__label">End Date</label>
+                  <div class="InputField__wrapper">
+                    <input class="InputField__input" type="date" id="experimentEndDate">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sample Size Field -->
+              <div class="InputField" data-state="default" data-variant="vertical">
+                <label class="InputField__label">Sample Size</label>
+                <div class="InputField__wrapper">
+                  <input class="InputField__input" type="number" id="experimentSampleSize" placeholder="e.g., 10000" min="0">
+                </div>
+              </div>
+              <!-- Confidence Level (hardcoded to 95%) -->
+              <input type="hidden" id="experimentConfidenceLevel" value="95">
+
+              <!-- Artifacts/Links -->
+              <div class="links-subsection" id="linksSubsection">
+                <div class="links-header" id="linksHeader">
+                  <span class="links-header__label">Artifacts</span>
+                </div>
+                <div class="links-content">
+                  <div class="links-list" id="linksList"></div>
+                  <div class="link-input-wrapper">
+                    <div class="link-input-row">
+                      <div class="InputField" data-state="default" data-variant="horizontal">
+                        <div class="InputField__wrapper">
+                          <input class="InputField__input" type="text" id="linkInput" placeholder="Paste a link...">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="link-input-error" id="linkInputError" style="display: none;"></div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
+          </details>
 
         </div>
 
@@ -2647,7 +2848,15 @@
       // https://lucide.dev/icons/split
       'split': '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M12 2v8.3a4 4 0 0 1 1.172 2.872L21 21"/><path d="m9 15-6 6"/>',
       // https://lucide.dev/icons/square-asterisk
-      'square-asterisk': '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="m8.5 14 7-4"/><path d="m8.5 10 7 4"/>'
+      'square-asterisk': '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="m8.5 14 7-4"/><path d="m8.5 10 7 4"/>',
+      // https://lucide.dev/icons/star
+      'star': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+      // Star filled (custom - same path with fill)
+      'star-filled': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>',
+      // https://lucide.dev/icons/maximize-2
+      'maximize-2': '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
+      // https://lucide.dev/icons/minimize-2
+      'minimize-2': '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/>'
     };
 
     /**
@@ -3118,7 +3327,7 @@
 
     // Sample data for metrics (matching Figma design)
     const defaultMetrics = [
-      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', min: 0.695, max: 0.925 },
+      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', min: 0.695, max: 0.925, isPrimary: true },
       { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', min: 0.695, max: 0.925 },
     ];
 
@@ -3230,6 +3439,31 @@
       rangeContainer.appendChild(separator);
       rangeContainer.appendChild(maxFieldDiv);
 
+      // Primary metric toggle button (star icon)
+      const primaryBtn = document.createElement('button');
+      primaryBtn.className = 'icon-btn primary-metric-btn';
+      primaryBtn.type = 'button';
+      primaryBtn.innerHTML = metric.isPrimary ? getIcon('star-filled') : getIcon('star');
+      primaryBtn.style.color = 'var(--color-yellow-500)';
+      // If primary, always visible; if not, hidden until hover (handled by CSS)
+      if (metric.isPrimary) {
+        primaryBtn.style.opacity = '1';
+        primaryBtn.classList.add('is-primary');
+      }
+      primaryBtn.setAttribute('data-tooltip', metric.isPrimary ? 'Primary metric' : 'Set as primary');
+      primaryBtn.setAttribute('data-tooltip-position', 'bottom');
+      primaryBtn.setAttribute('data-tooltip-align', 'center');
+      primaryBtn.setAttribute('data-tooltip-cursor', 'pointer');
+      primaryBtn.onclick = (e) => {
+        e.preventDefault();
+        // Clear isPrimary from all other metrics
+        metrics.forEach(m => { m.isPrimary = false; });
+        // Set this one as primary
+        metric.isPrimary = true;
+        // Re-render to update all star buttons, but do not hide button
+        renderMetrics(metrics);
+      };
+
       // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn';
@@ -3248,6 +3482,7 @@
       // Assemble row
       row.appendChild(nameFieldDiv);
       row.appendChild(rangeContainer);
+      row.appendChild(primaryBtn);
       row.appendChild(deleteBtn);
 
       // Store references for data sync
@@ -3579,6 +3814,75 @@
 
       metricsSection.appendChild(row3);
 
+      // Variant options row (Control + Significance checkboxes)
+      const optionsRow = document.createElement('div');
+      optionsRow.className = 'variant-options-row';
+      optionsRow.style.display = 'flex';
+      optionsRow.style.gap = '16px';
+      optionsRow.style.flexWrap = 'wrap';
+
+      // Control checkbox - allows marking this variant as the baseline
+      const controlRow = document.createElement('div');
+      controlRow.className = 'variant-significance-row';
+      
+      const controlCheckbox = document.createElement('input');
+      controlCheckbox.type = 'checkbox';
+      controlCheckbox.className = 'variant-significance-checkbox';
+      controlCheckbox.id = `variant-control-${eventIndex}-${variantIndex}`;
+      // Default first variant as control, or use stored value
+      controlCheckbox.checked = variant.isControl === true || (variant.isControl === undefined && variantIndex === 0);
+      if (controlCheckbox.checked) {
+        variant.isControl = true;
+      }
+      
+      const controlLabel = document.createElement('label');
+      controlLabel.className = 'variant-significance-label';
+      controlLabel.htmlFor = `variant-control-${eventIndex}-${variantIndex}`;
+      controlLabel.textContent = 'Control (baseline)';
+      
+      controlRow.appendChild(controlCheckbox);
+      controlRow.appendChild(controlLabel);
+      optionsRow.appendChild(controlRow);
+
+      // Significance checkbox row - hidden if this is the control variant
+      const significanceRow = document.createElement('div');
+      significanceRow.className = 'variant-significance-row';
+      significanceRow.id = `variant-sig-row-${eventIndex}-${variantIndex}`;
+      // Hide significance row if this is control
+      significanceRow.style.display = controlCheckbox.checked ? 'none' : 'flex';
+      
+      const significanceCheckbox = document.createElement('input');
+      significanceCheckbox.type = 'checkbox';
+      significanceCheckbox.className = 'variant-significance-checkbox';
+      significanceCheckbox.id = `variant-sig-${eventIndex}-${variantIndex}`;
+      significanceCheckbox.checked = variant.isStatSig === true;
+      significanceCheckbox.addEventListener('change', () => {
+        variant.isStatSig = significanceCheckbox.checked;
+      });
+      
+      const significanceLabel = document.createElement('label');
+      significanceLabel.className = 'variant-significance-label';
+      significanceLabel.htmlFor = `variant-sig-${eventIndex}-${variantIndex}`;
+      significanceLabel.textContent = 'Statistically significant';
+      
+      significanceRow.appendChild(significanceCheckbox);
+      significanceRow.appendChild(significanceLabel);
+      optionsRow.appendChild(significanceRow);
+
+      // Control checkbox change handler
+      controlCheckbox.addEventListener('change', () => {
+        variant.isControl = controlCheckbox.checked;
+        // Hide/show significance checkbox based on control status
+        significanceRow.style.display = controlCheckbox.checked ? 'none' : 'flex';
+        // If marking as control, clear significance
+        if (controlCheckbox.checked) {
+          variant.isStatSig = undefined;
+          significanceCheckbox.checked = false;
+        }
+      });
+
+      metricsSection.appendChild(optionsRow);
+
       // Add description and metrics to subtree
       subtree.appendChild(row2);
       subtree.appendChild(metricsSection);
@@ -3790,13 +4094,19 @@
     }
 
     /**
-     * Updates the events count display
+     * Updates the events count display and auto-infers experiment type
      */
     function updateEventsCount() {
       const countEl = document.getElementById('eventsCount');
       const eventCount = events.filter(e => e.name).length;
       const variantCount = events.reduce((sum, e) => sum + (e.variants?.length || 0), 0);
       countEl.textContent = `${eventCount} event${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
+      
+      // Auto-infer experiment type based on variant count
+      // 3+ variants = Multivariate, otherwise A/B Test
+      const inferredType = variantCount >= 3 ? 'multivariate' : 'ab_test';
+      const inferredLabel = variantCount >= 3 ? 'Multivariate' : 'A/B Test';
+      selectExperimentType(inferredType, inferredLabel);
     }
 
     /**
@@ -4308,6 +4618,13 @@
       // --- Gather form values ---
       const experimentName = document.getElementById('experimentName').value.trim();
       const experimentDescription = document.getElementById('experimentDescription').value.trim();
+      const experimentOwner = document.getElementById('experimentOwner').value.trim();
+      const experimentHypothesis = document.getElementById('experimentHypothesis').value.trim();
+      const experimentStartDate = document.getElementById('experimentStartDate').value;
+      const experimentEndDate = document.getElementById('experimentEndDate').value;
+      const experimentSampleSize = parseInt(document.getElementById('experimentSampleSize').value) || 0;
+      const experimentConfidenceLevel = parseInt(document.getElementById('experimentConfidenceLevel').value) || 95;
+      const experimentType = document.getElementById('experimentType').value;
       const experimentStatus = document.getElementById('experimentStatus').value;
       const rolledoutVariant = document.getElementById('rolledoutVariant').value;
 
@@ -4318,6 +4635,13 @@
         name: experimentName,
         roundNumber: 1,
         description: experimentDescription,
+        owner: experimentOwner, // Include owner for info card
+        hypothesis: experimentHypothesis, // Include hypothesis for info card
+        startDate: experimentStartDate, // Include start date for timeline
+        endDate: experimentEndDate, // Include end date for timeline
+        sampleSize: experimentSampleSize, // Include total sample size
+        confidenceLevel: experimentConfidenceLevel, // Include confidence level
+        experimentType: experimentType, // Include experiment type
         status: experimentStatus, // Include status for info card badge
         links: {
           // Include all known providers
@@ -4352,7 +4676,8 @@
           name: m.name,
           abbreviation: m.abbreviation,
           min: m.min,
-          max: m.max
+          max: m.max,
+          isPrimary: m.isPrimary === true
         }));
 
       // --- Build flow object (v2 schema) ---
@@ -4384,7 +4709,9 @@
             description: variant.description || '',
             traffic: Number(variant.traffic) || 0,
             metrics: variant.metrics || {},
-            style: variant.color ? { variantColor: variant.color } : undefined
+            style: variant.color ? { variantColor: variant.color } : undefined,
+            isControl: variant.isControl === true, // Use explicit control flag
+            isStatSig: variant.isControl === true ? undefined : (variant.isStatSig === true) // Only treatment variants can be significant
           };
         });
         let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
@@ -4486,12 +4813,15 @@
       if (addMetricBtn) {
         addMetricBtn.onclick = (e) => {
           e.preventDefault();
+          // If this is the first metric, make it primary by default
+          const isFirstMetric = metrics.length === 0;
           metrics.push({ 
             id: `metric-${Date.now()}`,
             name: '',
             abbreviation: '',
             min: '',
-            max: ''
+            max: '',
+            isPrimary: isFirstMetric
           });
           renderMetrics(metrics);
         };
@@ -4669,6 +4999,33 @@
       });
     }
 
+    // Experiment type dropdown configuration
+    const experimentTypeOptions = [
+      { value: 'ab_test', label: 'A/B Test' },
+      { value: 'multivariate', label: 'Multivariate' },
+      { value: 'feature_flag', label: 'Feature Flag' },
+      { value: 'holdout', label: 'Holdout' },
+      { value: 'rollout', label: 'Rollout' },
+    ];
+
+    /**
+     * Initialize experiment type (no-op, type is now auto-inferred from variant count)
+     */
+    function initExperimentTypeDropdown() {
+      // Type is auto-inferred in updateEventsCount() based on variant count
+      // No dropdown initialization needed
+    }
+
+    /**
+     * Select an experiment type (auto-inferred, no visible dropdown)
+     */
+    function selectExperimentType(value, label) {
+      const hiddenInput = document.getElementById('experimentType');
+      if (hiddenInput) {
+        hiddenInput.value = value;
+      }
+    }
+
     // Status dropdown configuration
     const statusOptions = [
       { value: 'draft', label: 'Draft', color: '#ca8a04' },  
@@ -4787,14 +5144,51 @@
       }
     };
 
+    // =============== Expand/Collapse Modal ===============
+    let isExpanded = false;
+    const COLLAPSED_SIZE = { width: 400, height: 720 };
+    const EXPANDED_SIZE = { width: 600, height: 900 };
+
+    function initExpandButton() {
+      const expandBtn = document.getElementById('expandBtn');
+      if (!expandBtn) return;
+
+      // Set initial icon
+      expandBtn.innerHTML = getIcon('maximize-2', { size: 18 });
+
+      expandBtn.addEventListener('click', () => {
+        isExpanded = !isExpanded;
+        const size = isExpanded ? EXPANDED_SIZE : COLLAPSED_SIZE;
+        
+        // Update icon
+        expandBtn.innerHTML = isExpanded 
+          ? getIcon('minimize-2', { size: 18 }) 
+          : getIcon('maximize-2', { size: 18 });
+        
+        // Update title
+        expandBtn.title = isExpanded ? 'Collapse window' : 'Expand window';
+
+        // Send resize message to plugin
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'resize-ui', 
+            width: size.width, 
+            height: size.height 
+          }
+        }, '*');
+      });
+    }
+
     // Initialize all DOM-dependent handlers
     // Wrap in DOMContentLoaded to ensure DOM elements exist before accessing them
     function initializeAllHandlers() {
       initializeLinkInputHandlers();
       initializeFormSubmitHandler();
       initializeButtonHandlers();
+      initExperimentTypeDropdown();
       initStatusDropdown();
       initRolledoutDropdown();
+      initExpandButton();
     }
 
     if (document.readyState === 'loading') {

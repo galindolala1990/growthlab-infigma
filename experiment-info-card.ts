@@ -2,6 +2,7 @@
 import { TOKENS } from "./design-tokens";
 import { hexToRgb } from "./layout-utils";
 import { loadFonts, getLoadedFigtreeSemibold } from "./load-fonts";
+import { createOutcomeCardFromExperimentData, type VariantOutcome } from "./experiment-outcome-card";
 
 // Brand icon SVG markup (complete SVGs for figma.createNodeFromSvg)
 const BRAND_SVGS: Record<string, string> = {
@@ -228,6 +229,22 @@ export interface MetricDefinition {
   abbreviation?: string;
   min?: number;
   max?: number;
+  isPrimary?: boolean;
+}
+
+export interface VariantData {
+  id?: string;
+  key: string;
+  name: string;
+  description?: string;
+  color?: string;
+  isControl?: boolean;
+  traffic: number;
+  status?: string;
+  metrics?: { [key: string]: number };
+  isWinner?: boolean;
+  isRolledOut?: boolean;
+  isStatSig?: boolean;
 }
 
 // Status configuration matching the plugin UI dropdown
@@ -262,6 +279,32 @@ const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
   },
 };
 
+// Experiment type labels
+function getExperimentTypeLabel(type: string): string {
+  const labels: { [key: string]: string } = {
+    'ab_test': 'A/B Test',
+    'multivariate': 'Multivariate',
+    'feature_flag': 'Feature Flag',
+    'holdout': 'Holdout',
+    'rollout': 'Rollout',
+  };
+  return labels[type] || type;
+}
+
+export interface ExperimentCardOptions {
+  // Outcome card options
+  showOutcomeCard?: boolean;
+  variants?: VariantData[];
+  owner?: string;
+  experimentType?: string;
+  hypothesis?: string;
+  startDate?: string;
+  endDate?: string;
+  totalSampleSize?: number;
+  confidenceLevel?: number;
+  primaryMetric?: string;
+}
+
 export async function createExperimentInfoCard(
   experimentName: string,
   description: string = "",
@@ -281,7 +324,8 @@ export async function createExperimentInfoCard(
   genericLinks: string[] = [],
 
   metrics?: MetricDefinition[],
-  status: ExperimentStatus = 'running'
+  status: ExperimentStatus = 'running',
+  options?: ExperimentCardOptions
 ): Promise<FrameNode> {
   // Ensure all fonts are loaded before creating any text nodes
   await loadFonts();
@@ -294,88 +338,46 @@ export async function createExperimentInfoCard(
   card.itemSpacing = 24;
   card.paddingLeft = card.paddingRight = 32;
   card.paddingTop = card.paddingBottom = 32;
-  card.cornerRadius = 18;
+  card.cornerRadius = 24;
   card.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsSurface) }];
   card.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   card.strokeWeight = 1;
   card.effects = [];
-  card.minWidth = 400;
+  card.minWidth = 480;
   card.minHeight = 400;
 
   // Description section with experiment name, description, and status badge
   const statusConfig = STATUS_STYLES[status] || STATUS_STYLES.running;
-  const descSection = await createDescriptionSection(experimentName, description || "", statusConfig);
+  const descSection = await createDescriptionSection(experimentName, description || "", statusConfig, options?.experimentType);
   card.appendChild(descSection);
   // Make Description section fill card width (minus padding)
   descSection.primaryAxisSizingMode = "AUTO";
   descSection.itemSpacing = 8;
   descSection.resize(card.width - card.paddingLeft - card.paddingRight, descSection.height);
 
-  // Metrics section
-  const metricsSection = figma.createFrame();
-  metricsSection.layoutMode = "VERTICAL";
-  metricsSection.counterAxisSizingMode = "AUTO";
-  metricsSection.primaryAxisSizingMode = "AUTO";
-  metricsSection.layoutAlign = 'STRETCH';
-  metricsSection.primaryAxisAlignItems = "MIN";
-  metricsSection.counterAxisAlignItems = "MIN";
-  metricsSection.paddingBottom = 0;
-  metricsSection.paddingTop = 0;
-  metricsSection.paddingLeft = 0;
-  metricsSection.paddingRight = 0;
-  metricsSection.itemSpacing = 0;
-  metricsSection.fills = [];
-  metricsSection.strokes = [];
-  metricsSection.name = "Metrics Section";
-  // Header row with Metrics Header and Expected Range
-  const headerRow = figma.createFrame();
-  headerRow.layoutMode = "HORIZONTAL";
-  headerRow.counterAxisSizingMode = "AUTO";
-  headerRow.primaryAxisSizingMode = "AUTO";
-  headerRow.primaryAxisAlignItems = "SPACE_BETWEEN";
-  headerRow.counterAxisAlignItems = "MIN";
-  headerRow.itemSpacing = 0;
-  headerRow.fills = [];
-  headerRow.strokes = [];
-  headerRow.name = "Metrics Header Row";
-  headerRow.layoutAlign = 'STRETCH';
-  headerRow.minWidth = 336; // 21rem
-  headerRow.maxWidth = 336; // 21rems
-  headerRow.paddingBottom = TOKENS.space8;
-  headerRow.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
-  headerRow.strokeWeight = 1.5;
-  headerRow.strokeTopWeight = 0;
-  headerRow.strokeRightWeight = 0;
-  headerRow.strokeLeftWeight = 0;
-  const metricsLabel = figma.createText();
-  metricsLabel.fontName = { family: "Figtree", style: "Bold" };
-  metricsLabel.fontSize = TOKENS.fontSizeLabel;
-  metricsLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  metricsLabel.opacity = 0.5;
-  metricsLabel.textAutoResize = "WIDTH_AND_HEIGHT";
-  metricsLabel.characters = "Metric Name";
-  headerRow.appendChild(metricsLabel);
-  const expectedRangeLabel = figma.createText();
-  expectedRangeLabel.fontName = { family: "Figtree", style: "Bold" };
-  expectedRangeLabel.fontSize = TOKENS.fontSizeLabel;
-  expectedRangeLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  expectedRangeLabel.opacity = 0.5;
-  expectedRangeLabel.textAutoResize = "WIDTH_AND_HEIGHT";
-  expectedRangeLabel.characters = "Expected Range";
-  headerRow.appendChild(expectedRangeLabel);
-  metricsSection.appendChild(headerRow);
-  // Metrics rows
-  if (metrics && metrics.length > 0) {
-    metrics.forEach((metric, index) => {
-      metricsSection.appendChild(createMetricRow(index + 1, metric.name, metric.min, metric.max));
-    });
-  } else {
-    // Fallback to default metrics if none provided
-    metricsSection.appendChild(createMetricRow(1, "Click through rate (CTR)", undefined, undefined));
-    metricsSection.appendChild(createMetricRow(2, "Conversion rate (CR)", undefined, undefined));
-    metricsSection.appendChild(createMetricRow(3, "Sign ups (SU)", undefined, undefined));
+  // Owner section (if provided)
+  if (options?.owner) {
+    const ownerSection = await createOwnerSection(options.owner);
+    card.appendChild(ownerSection);
   }
-  card.appendChild(metricsSection);
+
+  // Hypothesis section (if provided)
+  if (options?.hypothesis) {
+    const hypothesisSection = await createHypothesisSection(options.hypothesis);
+    card.appendChild(hypothesisSection);
+  }
+
+  // Timeline section (if start or end date provided)
+  if (options?.startDate || options?.endDate) {
+    const timelineSection = await createTimelineSection(options.startDate, options.endDate);
+    card.appendChild(timelineSection);
+  }
+
+  // Sample Size section (if provided)
+  if (options?.totalSampleSize && options.totalSampleSize > 0) {
+    const sampleSizeSection = await createSampleSizeSection(options.totalSampleSize);
+    card.appendChild(sampleSizeSection);
+  }
 
   // Links section
   const linksSection = figma.createFrame();
@@ -390,7 +392,7 @@ export async function createExperimentInfoCard(
   linksSection.strokes = [];
   linksSection.name = "Links Section";
   const linksLabel = figma.createText();
-  linksLabel.fontName = { family: "Figtree", style: "Bold" };
+  linksLabel.fontName = { family: "Figtree", style: "Medium" };
   linksLabel.fontSize = TOKENS.fontSizeLabel;
   linksLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   linksLabel.opacity = 0.5;
@@ -474,10 +476,45 @@ export async function createExperimentInfoCard(
   linksSection.appendChild(linksContainer);
   card.appendChild(linksSection);
 
+  // If outcome card is requested and we have variants, create a container with both cards
+  if (options?.showOutcomeCard && options?.variants && options.variants.length > 0 && metrics && metrics.length > 0) {
+    // Create container frame for both cards
+    const container = figma.createFrame();
+    container.name = `Experiment Info — ${experimentName}`;
+    container.layoutMode = "VERTICAL";
+    container.counterAxisSizingMode = "AUTO";
+    container.primaryAxisSizingMode = "AUTO";
+    container.itemSpacing = 24;
+    container.fills = [];
+    container.strokes = [];
+
+    // Add info card to container
+    container.appendChild(card);
+
+    // Create outcome card
+    const outcomeCard = await createOutcomeCardFromExperimentData(
+      experimentName,
+      metrics,
+      options.variants,
+      {
+        hypothesis: options.hypothesis,
+        startDate: options.startDate,
+        endDate: options.endDate,
+        totalSampleSize: options.totalSampleSize,
+        confidenceLevel: options.confidenceLevel,
+        status: status,
+        primaryMetric: options.primaryMetric,
+      }
+    );
+    container.appendChild(outcomeCard);
+
+    return container;
+  }
+
   return card;
 }
 
-async function createDescriptionSection(experimentName: string, description: string, statusConfig: StatusConfig): Promise<FrameNode> {
+async function createDescriptionSection(experimentName: string, description: string, statusConfig: StatusConfig, experimentType?: string): Promise<FrameNode> {
   await loadFonts();
   const section = figma.createFrame();
   section.layoutMode = "VERTICAL";
@@ -492,7 +529,39 @@ async function createDescriptionSection(experimentName: string, description: str
   section.strokes = [];
   section.name = "Description Section";
   
-  // Status badge - above experiment name
+  // Badge row - horizontal container for type and status badges
+  const badgeRow = figma.createFrame();
+  badgeRow.layoutMode = "HORIZONTAL";
+  badgeRow.counterAxisSizingMode = "AUTO";
+  badgeRow.primaryAxisSizingMode = "AUTO";
+  badgeRow.itemSpacing = 8;
+  badgeRow.fills = [];
+  badgeRow.name = "Badge Row";
+
+  // Experiment type badge (if provided) - appears first
+  if (experimentType) {
+    const typeLabel = getExperimentTypeLabel(experimentType);
+    const typeBadge = figma.createFrame();
+    typeBadge.layoutMode = "HORIZONTAL";
+    typeBadge.counterAxisSizingMode = "AUTO";
+    typeBadge.primaryAxisSizingMode = "AUTO";
+    typeBadge.paddingLeft = typeBadge.paddingRight = 6;
+    typeBadge.paddingTop = typeBadge.paddingBottom = 2;
+    typeBadge.cornerRadius = 4;
+    typeBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.electricViolet100) }];
+    typeBadge.name = "Type Badge";
+    const typeText = figma.createText();
+    typeText.fontName = { family: "Figtree", style: "Medium" };
+    typeText.fontSize = TOKENS.fontSizeBodySm;
+    typeText.lineHeight = { unit: "PIXELS", value: 13 };
+    typeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.electricViolet600) }];
+    typeText.textAutoResize = "WIDTH_AND_HEIGHT";
+    typeText.characters = typeLabel;
+    typeBadge.appendChild(typeText);
+    badgeRow.appendChild(typeBadge);
+  }
+
+  // Status badge - appears second
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
   badge.counterAxisSizingMode = "AUTO";
@@ -510,7 +579,9 @@ async function createDescriptionSection(experimentName: string, description: str
   badgeText.textAutoResize = "WIDTH_AND_HEIGHT";
   badgeText.characters = statusConfig.label;
   badge.appendChild(badgeText);
-  section.appendChild(badge);
+  badgeRow.appendChild(badge);
+
+  section.appendChild(badgeRow);
   
   // Experiment name
   const titleText = figma.createText();
@@ -533,6 +604,203 @@ async function createDescriptionSection(experimentName: string, description: str
     section.appendChild(valueText);
   }
   
+  return section;
+}
+
+async function createOwnerSection(owner: string): Promise<FrameNode> {
+  await loadFonts();
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.primaryAxisAlignItems = "MIN";
+  section.counterAxisAlignItems = "MIN";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 4;
+  section.fills = [];
+  section.strokes = [];
+  section.name = "Owner Section";
+
+  // Label (styled same as Artifacts)
+  const labelText = figma.createText();
+  labelText.fontName = { family: "Figtree", style: "Medium" };
+  labelText.fontSize = TOKENS.fontSizeLabel;
+  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  labelText.opacity = 0.5;
+  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
+  labelText.characters = "Owner";
+  section.appendChild(labelText);
+
+  // Owner name
+  const ownerText = figma.createText();
+  ownerText.fontName = { family: "Figtree", style: "Regular" };
+  ownerText.fontSize = TOKENS.fontSizeBodyMd;
+  ownerText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  ownerText.textAutoResize = "WIDTH_AND_HEIGHT";
+  ownerText.characters = owner;
+  section.appendChild(ownerText);
+
+  return section;
+}
+
+async function createHypothesisSection(hypothesis: string): Promise<FrameNode> {
+  await loadFonts();
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.primaryAxisAlignItems = "MIN";
+  section.counterAxisAlignItems = "MIN";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 8;
+  section.paddingTop = section.paddingBottom = 12;
+  section.paddingLeft = section.paddingRight = 12;
+  section.cornerRadius = 8;
+  section.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
+  section.strokes = [];
+  section.name = "Hypothesis Section";
+
+  // Label (styled same as Artifacts)
+  const labelText = figma.createText();
+  labelText.fontName = { family: "Figtree", style: "Medium" };
+  labelText.fontSize = TOKENS.fontSizeLabel;
+  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  labelText.opacity = 0.5;
+  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
+  labelText.characters = "Hypothesis";
+  section.appendChild(labelText);
+
+  // Hypothesis text
+  const hypothesisText = figma.createText();
+  hypothesisText.fontName = { family: "Figtree", style: "Regular" };
+  hypothesisText.fontSize = TOKENS.fontSizeBodyMd;
+  hypothesisText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  hypothesisText.textAutoResize = "WIDTH_AND_HEIGHT";
+  hypothesisText.characters = hypothesis;
+  section.appendChild(hypothesisText);
+
+  return section;
+}
+
+async function createTimelineSection(startDateStr?: string, endDateStr?: string): Promise<FrameNode> {
+  await loadFonts();
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.primaryAxisAlignItems = "MIN";
+  section.counterAxisAlignItems = "MIN";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 4;
+  section.fills = [];
+  section.strokes = [];
+  section.name = "Timeline Section";
+
+  // Helper to format date - handles YYYY-MM-DD format from date picker
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const date = new Date(year, month, day);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
+  // Calculate duration in days
+  const calculateDuration = (start: string, end: string): string => {
+    if (!start || !end) return "";
+    const startParts = start.split('-');
+    const endParts = end.split('-');
+    const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+    const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Same day";
+    if (diffDays === 1) return "1 day";
+    if (diffDays < 7) return `${diffDays} days`;
+    const weeks = Math.floor(diffDays / 7);
+    const remainingDays = diffDays % 7;
+    if (remainingDays === 0) return weeks === 1 ? "1 week" : `${weeks} weeks`;
+    return `${weeks}w ${remainingDays}d`;
+  };
+
+  // Label (styled same as Artifacts)
+  const labelText = figma.createText();
+  labelText.fontName = { family: "Figtree", style: "Medium" };
+  labelText.fontSize = TOKENS.fontSizeLabel;
+  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  labelText.opacity = 0.5;
+  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
+  labelText.characters = "Timeline";
+  section.appendChild(labelText);
+
+  // Build timeline text: "Jan 23, 2026 → Jan 31, 2026 (8 days)"
+  let timelineStr = "";
+  if (startDateStr) {
+    timelineStr += formatDate(startDateStr);
+  }
+  if (startDateStr && endDateStr) {
+    timelineStr += " → ";
+  }
+  if (endDateStr) {
+    timelineStr += formatDate(endDateStr);
+  }
+  if (startDateStr && endDateStr) {
+    const duration = calculateDuration(startDateStr, endDateStr);
+    if (duration) {
+      timelineStr += ` (${duration})`;
+    }
+  }
+
+  const valueText = figma.createText();
+  valueText.fontName = { family: "Figtree", style: "Regular" };
+  valueText.fontSize = TOKENS.fontSizeBodyMd;
+  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
+  valueText.characters = timelineStr;
+  section.appendChild(valueText);
+
+  return section;
+}
+
+async function createSampleSizeSection(sampleSize: number): Promise<FrameNode> {
+  await loadFonts();
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.primaryAxisAlignItems = "MIN";
+  section.counterAxisAlignItems = "MIN";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 4;
+  section.fills = [];
+  section.strokes = [];
+  section.name = "Sample Size Section";
+
+  // Label (styled same as Artifacts)
+  const labelText = figma.createText();
+  labelText.fontName = { family: "Figtree", style: "Medium" };
+  labelText.fontSize = TOKENS.fontSizeLabel;
+  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  labelText.opacity = 0.5;
+  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
+  labelText.characters = "Sample Size";
+  section.appendChild(labelText);
+
+  // Format number with commas
+  const formattedSize = sampleSize.toLocaleString('en-US');
+
+  const valueText = figma.createText();
+  valueText.fontName = { family: "Figtree", style: "Regular" };
+  valueText.fontSize = TOKENS.fontSizeBodyMd;
+  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
+  valueText.characters = `${formattedSize} users`;
+  section.appendChild(valueText);
+
   return section;
 }
 
@@ -575,90 +843,6 @@ async function createSection(label: string, value: string, _muted: boolean = fal
   return section;
 }
 
-function createMetricRow(num: number, label: string, min?: number, max?: number): FrameNode {
-  const row = figma.createFrame();
-  row.layoutMode = "HORIZONTAL";
-  row.counterAxisSizingMode = "AUTO";
-  row.primaryAxisSizingMode = "AUTO";
-  row.layoutAlign = 'STRETCH';
-  row.counterAxisAlignItems = 'CENTER'; 
-  row.primaryAxisAlignItems = 'SPACE_BETWEEN';
-  row.paddingTop = row.paddingBottom = TOKENS.space8;
-  row.paddingLeft = 0;
-  row.paddingRight = 0;
-  row.minWidth = 336; // 21rem
-  row.maxWidth = 336; // 21rems
-  row.fills = [];
-  row.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
-  row.strokeWeight = 1;
-  row.strokeTopWeight = 0;
-  row.strokeRightWeight = 0;
-  row.strokeLeftWeight = 0;
-  row.name = `Metric Row`;
-  // Number - hidden for now
-  // const numText = figma.createText();
-  // numText.fontName = { family: "Figtree", style: "Regular" };
-  // numText.fontSize = 14;
-  // numText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
-  // numText.textAutoResize = "WIDTH_AND_HEIGHT";
-  // numText.characters = `${num}.`;
-  // row.appendChild(numText);
-  // Label
-  const labelText = figma.createText();
-  labelText.fontName = { family: "Figtree", style: "Regular" };
-  labelText.fontSize = TOKENS.fontSizeBodySm;
-  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-  labelText.characters = label;
-  labelText.name = "Metric Label";
-  row.appendChild(labelText);
-  // Icon + value pill
-  const pill = figma.createFrame();
-  pill.layoutMode = "HORIZONTAL";
-  pill.counterAxisSizingMode = "AUTO";
-  pill.primaryAxisSizingMode = "AUTO";
-  pill.primaryAxisAlignItems = 'CENTER';
-  pill.counterAxisAlignItems = 'CENTER';
-  pill.itemSpacing = 4;
-  pill.paddingLeft = 6;
-  pill.paddingRight = 6;
-  pill.paddingTop = pill.paddingBottom = 2;
-  pill.cornerRadius = 4
-  pill.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
-  pill.name = "Metric Pill";
-  // Icon (target/goal) - hidden for now
-  // const icon = figma.createText();
-  // icon.fontName = { family: "Figtree", style: "Bold" };
-  // icon.fontSize = TOKENS.fontSizeBodySm;
-  // icon.lineHeight = { unit: "PIXELS", value: 14 };
-  // icon.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  // icon.opacity = 0.5;
-  // icon.textAutoResize = "WIDTH_AND_HEIGHT";
-  // icon.characters = "◎";
-  // icon.name = "Metric Icon";
-  // pill.appendChild(icon);
-  // Value - format as min - max
-  const valueText = figma.createText();
-  valueText.fontName = { family: "Figtree", style: "Regular" };
-  valueText.fontSize = TOKENS.fontSizeBodySm;
-  valueText.lineHeight = { unit: "PIXELS", value: 14 };
-  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-  let valueString = "--";
-  if (min !== undefined && max !== undefined) {
-    valueString = `${min} - ${max}`;
-  } else if (min !== undefined) {
-    valueString = `${min} - --`;
-  } else if (max !== undefined) {
-    valueString = `-- - ${max}`;
-  }
-  valueText.characters = valueString;
-  valueText.name = "Metric Value";
-  pill.appendChild(valueText);
-  row.appendChild(pill);
-  return row;
-}
-
 function createLinkChip(label: string, url?: string): FrameNode {
   const chip = figma.createFrame();
   chip.layoutMode = "HORIZONTAL";
@@ -670,9 +854,9 @@ function createLinkChip(label: string, url?: string): FrameNode {
   chip.minWidth = 336; // 21rem
   chip.maxWidth = 336; // 21rem
   chip.itemSpacing = 8;
-  chip.paddingLeft = chip.paddingRight = 12;
+  chip.paddingLeft = chip.paddingRight = 8;
   chip.paddingTop = chip.paddingBottom = 8;
-  chip.cornerRadius = 8;
+  chip.cornerRadius = 4;
   chip.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsSurface) }];
   chip.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   chip.strokeWeight = 1;
@@ -717,10 +901,16 @@ function createLinkChip(label: string, url?: string): FrameNode {
   title.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   title.textAutoResize = "WIDTH_AND_HEIGHT";
   title.name = "Link Title";
-  title.characters = linkLabels[label] || `${label} link`;
+  const titleText = linkLabels[label] || `${label} link`;
+  title.characters = titleText;
+  
+  // Add hyperlink to the title text
+  if (url) {
+    title.setRangeHyperlink(0, titleText.length, { type: 'URL', value: url });
+  }
   textContainer.appendChild(title);
   
-  // URL - smaller, secondary color
+  // URL - smaller, secondary color with hyperlink
   if (url) {
     const urlText = figma.createText();
     urlText.fontName = { family: "Figtree", style: "Regular" };
@@ -730,19 +920,18 @@ function createLinkChip(label: string, url?: string): FrameNode {
     urlText.opacity = 0.5;
     urlText.textAutoResize = "WIDTH_AND_HEIGHT";
     urlText.name = "Link URL";
-    // Truncate long URLs
+    // Truncate long URLs for display
     const maxLength = 58;
     const displayUrl = url.length > maxLength 
       ? url.substring(0, maxLength) + '...' 
       : url;
-    urlText.characters = url.length > maxLength 
-      ? url.substring(0, maxLength) + '...' 
-      : url;
+    urlText.characters = displayUrl;
+    
+    // Add hyperlink to the URL text (full URL, not truncated)
+    urlText.setRangeHyperlink(0, displayUrl.length, { type: 'URL', value: url });
     textContainer.appendChild(urlText);
   }
   
   chip.appendChild(textContainer);
-  // Figma plugin API does not support setting hyperlinks on FrameNode directly.
-  // If hyperlink support is added in the future, add it here.
   return chip;
 }
