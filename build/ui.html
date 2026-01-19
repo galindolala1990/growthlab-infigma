@@ -585,6 +585,35 @@
     }
 
     /* ============================================
+     * INLINE ADD ROW
+     * Clickable row to add new items
+     * ============================================ */
+    .inline-add-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: var(--button-padding);
+      color: var(--text-secondary);
+      font-size: var(--body-md-size);
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: background 0.15s ease, color 0.15s ease;
+      margin-right: 32px;
+    }
+    .inline-add-row:hover {
+      background: var(--button-secondary-hover-bg);
+      color: var(--text-primary);
+    }
+    .inline-add-row svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
+    }
+    .inline-add-row:hover svg {
+      opacity: 1;
+    }
+
+    /* ============================================
      * TOOLTIP COMPONENT
      * Props: data-tooltip, data-tooltip-position, 
      *        data-tooltip-align, data-tooltip-size,
@@ -1359,12 +1388,14 @@
      /*  gap: var(--space-8);*/
       flex: 1;
       min-width: 0;
+      width: 100%;
     }
 
     .variant-row {
       display: flex;
       gap: var(--space-8);
       align-items: center;
+      width: 100%;
     }
 
     /* Variant subtree toggle button */
@@ -1418,6 +1449,8 @@
       transition: max-height 0.2s ease, opacity 0.15s ease;
       max-height: 500px; /* Arbitrary large value for animation */
       opacity: 1;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .variant-subtree.collapsed {
@@ -1431,6 +1464,7 @@
     .variant-name-field {
       flex: 1;
       min-width: 0;
+      width: 100%;
     }
 
     .variant-traffic-field {
@@ -1452,6 +1486,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--input-field-label-gap);
+      width: 100%;
     }
 
     .variant-metrics-label {
@@ -3536,24 +3571,40 @@
       const emptyState = document.getElementById('metricsEmptyState');
       list.innerHTML = '';
 
-      if (!metricsArray || metricsArray.length === 0) {
-        emptyState.classList.remove('hidden');
-        list.style.display = 'none';
-        updateMetricsCount();
-        // Re-render events to update variant metric fields
-        if (!skipEventRender && typeof events !== 'undefined') {
-          renderEvents(events);
-        }
-        return;
-      }
-
+      // Always hide the old empty state - we use inline add row instead
       emptyState.classList.add('hidden');
       list.style.display = 'flex';
 
-      metricsArray.forEach((m, i) => {
-        const row = createMetricRow(m, i);
-        list.appendChild(row);
-      });
+      // Render existing metrics
+      if (metricsArray && metricsArray.length > 0) {
+        metricsArray.forEach((m, i) => {
+          const row = createMetricRow(m, i);
+          list.appendChild(row);
+        });
+      }
+
+      // Add inline "Add metric" row
+      const addRow = document.createElement('div');
+      addRow.className = 'inline-add-row';
+      addRow.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="M12 5v14"/>
+        </svg>
+        <span>Add metric...</span>
+      `;
+      addRow.onclick = () => {
+        const isFirstMetric = metrics.length === 0;
+        metrics.push({
+          id: `metric-${Date.now()}`,
+          name: '',
+          abbreviation: '',
+          min: undefined,
+          max: undefined,
+          isPrimary: isFirstMetric
+        });
+        renderMetrics(metrics);
+      };
+      list.appendChild(addRow);
 
       updateMetricsCount();
       
@@ -4004,35 +4055,9 @@
       });
       inputContainer.appendChild(eventInput);
 
-      // Actions (add variant + delete)
+      // Actions (delete only - add variant uses inline row)
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'event-actions';
-
-      // Add variant button (Lucide: git-branch-plus)
-      const addVariantBtn = document.createElement('button');
-      addVariantBtn.type = 'button';
-      addVariantBtn.className = 'icon-btn';
-      addVariantBtn.innerHTML = getIcon('git-branch-plus');
-      addVariantBtn.setAttribute('data-tooltip', 'Add variant');
-      addVariantBtn.setAttribute('data-tooltip-position', 'bottom');
-      addVariantBtn.setAttribute('data-tooltip-align', 'end');
-      addVariantBtn.setAttribute('data-tooltip-cursor', 'pointer');
-      addVariantBtn.onclick = () => {
-        event.hasVariants = true;
-        const variantIndex = event.variants.length;
-        const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
-        event.variants.push({
-          id: `var-${eventIndex}-${variantIndex}`,
-          name: '',
-          description: '',
-          color: defaultColor,
-          traffic: '',
-          metrics: { ctr: '', cr: '' },
-          isWinner: false,
-          collapsed: false
-        });
-        renderEvents(events);
-      };
 
       // Delete button (Lucide: minus)
       const deleteBtn = document.createElement('button');
@@ -4048,7 +4073,6 @@
         renderEvents(events);
       };
 
-      actionsDiv.appendChild(addVariantBtn);
       actionsDiv.appendChild(deleteBtn);
 
       mainRow.appendChild(stepDiv);
@@ -4056,32 +4080,60 @@
       mainRow.appendChild(actionsDiv);
       row.appendChild(mainRow);
 
-      // Variants container (if this event has variants)
-      if (event.hasVariants || event.variants?.length > 0) {
-        const variantsContainer = document.createElement('div');
-        variantsContainer.className = 'event-variants-container';
+      // Variants container (always show to allow adding variants)
+      const variantsContainer = document.createElement('div');
+      variantsContainer.className = 'event-variants-container';
 
-        // Step indicator for variants (mirrors event-step structure)
-        const variantsStep = document.createElement('div');
-        variantsStep.className = 'event-variants-step';
+      // Step indicator for variants (mirrors event-step structure)
+      const variantsStep = document.createElement('div');
+      variantsStep.className = 'event-variants-step';
 
-        const variantsLine = document.createElement('div');
-        variantsLine.className = 'event-variants-line';
-        variantsStep.appendChild(variantsLine);
+      const variantsLine = document.createElement('div');
+      variantsLine.className = 'event-variants-line';
+      variantsStep.appendChild(variantsLine);
 
-        const variantsList = document.createElement('div');
-        variantsList.className = 'variants-list';
+      const variantsList = document.createElement('div');
+      variantsList.className = 'variants-list';
 
-        // Render each variant card
+      // Render each variant card
+      if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, vIndex) => {
           const variantCard = createVariantCard(variant, vIndex, eventIndex);
           variantsList.appendChild(variantCard);
         });
-
-        variantsContainer.appendChild(variantsStep);
-        variantsContainer.appendChild(variantsList);
-        row.appendChild(variantsContainer);
       }
+
+      // Add inline "Add variant" row
+      const addVariantRow = document.createElement('div');
+      addVariantRow.className = 'inline-add-row';
+      addVariantRow.style.marginLeft = '0';
+      addVariantRow.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="M12 5v14"/>
+        </svg>
+        <span>Add variant...</span>
+      `;
+      addVariantRow.onclick = () => {
+        event.hasVariants = true;
+        const variantIndex = event.variants.length;
+        const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
+        event.variants.push({
+          id: `var-${eventIndex}-${variantIndex}`,
+          name: '',
+          label: String.fromCharCode(65 + variantIndex),
+          trafficPercent: 50,
+          color: defaultColor,
+          isControl: variantIndex === 0,
+          isStatSig: false,
+          metrics: {}
+        });
+        renderEvents(events);
+      };
+      variantsList.appendChild(addVariantRow);
+
+      variantsContainer.appendChild(variantsStep);
+      variantsContainer.appendChild(variantsList);
+      row.appendChild(variantsContainer);
 
       // Sync input to event data
       const nameInput = eventInput.querySelector('.InputField__input');
@@ -4117,20 +4169,37 @@
       const emptyState = document.getElementById('eventsEmptyState');
       list.innerHTML = '';
 
-      if (!eventsList || eventsList.length === 0) {
-        emptyState.classList.remove('hidden');
-        list.style.display = 'none';
-        updateEventsCount();
-        return;
-      }
-
+      // Always hide the old empty state - we use inline add row instead
       emptyState.classList.add('hidden');
       list.style.display = 'flex';
 
-      eventsList.forEach((event, index) => {
-        const eventRow = createEventRow(event, index, eventsList.length);
-        list.appendChild(eventRow);
-      });
+      // Render existing events
+      if (eventsList && eventsList.length > 0) {
+        eventsList.forEach((event, index) => {
+          const eventRow = createEventRow(event, index, eventsList.length);
+          list.appendChild(eventRow);
+        });
+      }
+
+      // Add inline "Add event" row
+      const addRow = document.createElement('div');
+      addRow.className = 'inline-add-row';
+      addRow.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="M12 5v14"/>
+        </svg>
+        <span>Add event...</span>
+      `;
+      addRow.onclick = () => {
+        events.push({
+          id: `event-${Date.now()}`,
+          name: '',
+          hasVariants: false,
+          variants: []
+        });
+        renderEvents(events);
+      };
+      list.appendChild(addRow);
 
       updateEventsCount();
     }
