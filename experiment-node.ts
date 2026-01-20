@@ -246,9 +246,6 @@ export async function createVariantCard(
   variantIndex?: number, 
   options?: { 
     rolledout?: boolean;
-    winningMetrics?: Record<string, string>; // Metric key -> Variant ID that wins this metric
-    variantId?: string; // Current variant ID for comparison
-    isRecommendedWinner?: boolean; // Whether this variant is the recommended winner based on metrics
     metrics?: MetricDefinition[]; // Available metrics from plugin
   }
 ): Promise<FrameNode> {
@@ -282,7 +279,32 @@ export async function createVariantCard(
 
   // ...top row removed...
 
-  // Variant type label (above thumbnail)
+  // Header row: Variant type label + badges (above thumbnail)
+  const headerRow = figma.createFrame();
+  headerRow.layoutMode = 'HORIZONTAL';
+  headerRow.counterAxisSizingMode = 'AUTO';
+  headerRow.primaryAxisSizingMode = 'FIXED';
+  headerRow.primaryAxisAlignItems = 'SPACE_BETWEEN';
+  headerRow.counterAxisAlignItems = 'CENTER';
+  headerRow.minHeight = 16;
+  headerRow.fills = [];
+  headerRow.strokes = [];
+  headerRow.name = 'Header Row';
+  headerRow.layoutAlign = 'STRETCH';
+  // Set initial width to match card min width minus padding
+  headerRow.resize(300 - 32, 16); // 300 - (16 padding * 2)
+
+  // Left container for variant label
+  const headerLeft = figma.createFrame();
+  headerLeft.layoutMode = 'HORIZONTAL';
+  headerLeft.counterAxisSizingMode = 'AUTO';
+  headerLeft.primaryAxisSizingMode = 'AUTO';
+  headerLeft.primaryAxisAlignItems = 'MIN';
+  headerLeft.fills = [];
+  headerLeft.strokes = [];
+  headerLeft.name = 'Header Left';
+
+  // Variant type label
   const variantTypeLabel = figma.createText();
   variantTypeLabel.fontName = getFontStyle("Bold");
   variantTypeLabel.fontSize = TOKENS.fontSizeBodySm;
@@ -291,7 +313,51 @@ export async function createVariantCard(
   variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
   variantTypeLabel.characters = `Variant`;
   variantTypeLabel.name = 'Variant Type Label';
-  card.appendChild(variantTypeLabel);
+  headerLeft.appendChild(variantTypeLabel);
+  headerRow.appendChild(headerLeft);
+
+  // Right container for badges
+  const headerRight = figma.createFrame();
+  headerRight.layoutMode = 'HORIZONTAL';
+  headerRight.counterAxisSizingMode = 'AUTO';
+  headerRight.primaryAxisSizingMode = 'AUTO';
+  headerRight.itemSpacing = 6;
+  headerRight.counterAxisAlignItems = 'CENTER';
+  headerRight.fills = [];
+  headerRight.strokes = [];
+  headerRight.name = 'Header Badges';
+
+  // Rolled out badge - outlined style (deployment status)
+  if (options?.rolledout) {
+    const rolledoutBadge = figma.createFrame();
+    rolledoutBadge.layoutMode = 'HORIZONTAL';
+    rolledoutBadge.counterAxisSizingMode = 'AUTO';
+    rolledoutBadge.primaryAxisSizingMode = 'AUTO';
+    rolledoutBadge.paddingLeft = 6;
+    rolledoutBadge.paddingRight = 6;
+    rolledoutBadge.paddingTop = 2;
+    rolledoutBadge.paddingBottom = 2;
+    rolledoutBadge.cornerRadius = 4;
+    rolledoutBadge.fills = [];
+    rolledoutBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
+    rolledoutBadge.strokeWeight = 1;
+    rolledoutBadge.name = 'Rolled Out Badge';
+    
+    const rolledoutText = figma.createText();
+    rolledoutText.fontName = getFontStyle("Medium");
+    rolledoutText.fontSize = TOKENS.fontSizeBodySm;
+    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
+    rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    rolledoutText.characters = 'Rolled out';
+    rolledoutText.name = 'Rolled Out Text';
+    rolledoutBadge.appendChild(rolledoutText);
+    headerRight.appendChild(rolledoutBadge);
+  }
+
+  // Always add right container (even if empty, for consistent layout)
+  headerRow.appendChild(headerRight);
+
+  card.appendChild(headerRow);
 
   // Empty placeholder Frame ready for "Replace with"
   const thumb = figma.createFrame();
@@ -326,9 +392,8 @@ export async function createVariantCard(
   nameRow.counterAxisSizingMode = 'AUTO';
   nameRow.primaryAxisSizingMode = 'AUTO';
   nameRow.itemSpacing = 6;
-  nameRow.primaryAxisAlignItems = 'MIN'; // Vertically distribute/center items along horizontal axis
-  nameRow.counterAxisAlignItems = 'CENTER'; // Middle align vertically (center items in the row)
-  // nameRow.height = 24; // Removed because .height is read-only for auto layout frames
+  nameRow.primaryAxisAlignItems = 'MIN';
+  nameRow.counterAxisAlignItems = 'CENTER';
   nameRow.fills = [];
   nameRow.strokes = [];
   nameRow.name = 'Name Row';
@@ -369,88 +434,6 @@ export async function createVariantCard(
   variantLabel.name = 'Variant Label';
   variantDetailsContainer.appendChild(variantLabel);
 
-  // Add status badges row (Recommended winner/Running/Rolled-out) - moved below variant label
-  // Only create badgesRow when we actually have badges to add (lazy initialization)
-  let badgesRow: FrameNode | null = null;
-
-  const getOrCreateBadgesRow = (): FrameNode => {
-    if (!badgesRow) {
-      badgesRow = figma.createFrame();
-      badgesRow.layoutMode = 'HORIZONTAL';
-      badgesRow.counterAxisSizingMode = 'AUTO';
-      badgesRow.primaryAxisSizingMode = 'AUTO';
-      badgesRow.itemSpacing = TOKENS.space8;
-      badgesRow.fills = [];
-      badgesRow.strokes = [];
-      badgesRow.name = 'Status Badges Row';
-      badgesRow.layoutAlign = 'MIN';
-      badgesRow.layoutGrow = 0;
-    }
-    return badgesRow;
-  };
-
-  // Recommended winner badge (based on metrics outcomes) - outlined style for visual hierarchy
-  if (options?.isRecommendedWinner) {
-    const winnerBadge = figma.createFrame();
-    winnerBadge.layoutMode = 'HORIZONTAL';
-    winnerBadge.counterAxisSizingMode = 'AUTO';
-    winnerBadge.primaryAxisSizingMode = 'AUTO';
-    winnerBadge.paddingLeft = 6;
-    winnerBadge.paddingRight = 6;
-    winnerBadge.paddingTop = 2;
-    winnerBadge.paddingBottom = 2;
-    winnerBadge.cornerRadius = 4;
-    winnerBadge.fills = []; // Transparent for outlined style
-    winnerBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite600) }];
-    winnerBadge.strokeWeight = 1;
-    winnerBadge.name = 'Recommended Winner Badge';
-    
-    const winnerText = figma.createText();
-    winnerText.fontName = getFontStyle("Medium");
-    winnerText.fontSize = TOKENS.fontSizeBodyMd;
-    winnerText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite600) }];
-    winnerText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    winnerText.characters = 'Recommended';
-    winnerText.name = 'Recommended Winner Text';
-    winnerBadge.appendChild(winnerText);
-    getOrCreateBadgesRow().appendChild(winnerBadge);
-  }
-
-  // Rolled-out badge - outlined style for visual hierarchy
-  if (options?.rolledout) {
-    const rolledoutBadge = figma.createFrame();
-    rolledoutBadge.layoutMode = 'HORIZONTAL';
-    rolledoutBadge.counterAxisSizingMode = 'AUTO';
-    rolledoutBadge.primaryAxisSizingMode = 'AUTO';
-    rolledoutBadge.paddingLeft = 6;
-    rolledoutBadge.paddingRight = 6;
-    rolledoutBadge.paddingTop = 2;
-    rolledoutBadge.paddingBottom = 2;
-    rolledoutBadge.cornerRadius = 4;
-    rolledoutBadge.fills = []; // Transparent for outlined style
-    rolledoutBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
-    rolledoutBadge.strokeWeight = 1;
-    rolledoutBadge.name = 'Rolled-out Badge';
-    
-    const rolledoutText = figma.createText();
-    rolledoutText.fontName = getFontStyle("Medium");
-    rolledoutText.fontSize = TOKENS.fontSizeBodyMd;
-    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
-    rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    rolledoutText.characters = 'Rolled out';
-    rolledoutText.name = 'Rolled-out Text';
-    rolledoutBadge.appendChild(rolledoutText);
-    getOrCreateBadgesRow().appendChild(rolledoutBadge);
-  }
-
-  // Only append badges row if it was created and has badges to show
-  if (badgesRow !== null) {
-    const badgesRowFrame = badgesRow as FrameNode;
-    if (badgesRowFrame.children.length > 0) {
-      variantDetailsContainer.appendChild(badgesRowFrame);
-    }
-  }
-
   card.appendChild(variantDetailsContainer);
 
   // Separator line
@@ -486,15 +469,19 @@ export async function createVariantCard(
   metricsHeader.name = 'Metrics Header';
   metricsSection.appendChild(metricsHeader);
 
-  // Format metrics with proper decimal places
+  // Format metrics with decimal values (matches outcome card)
   const formatMetric = (value: number | undefined): string => {
-    if (value === undefined || value === null) return '0.00';
+    if (value === undefined || value === null) return '--';
+    if (Math.abs(value) >= 1000) {
+      return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+    // Always show as decimal with 2 decimal places
     return value.toFixed(2);
   };
 
   // Create metric text items: metric name (abbreviation): value format
-  // If this variant wins the metric, style the value like winner badge
-  const createMetricItem = (metricName: string, abbreviation: string, value: string, isWinner: boolean = false): FrameNode => {
+  // Styling matches outcome card table for consistency
+  const createMetricItem = (metricName: string, abbreviation: string, value: string): FrameNode => {
     const metricItem = figma.createFrame();
     metricItem.layoutMode = 'HORIZONTAL';
     metricItem.counterAxisSizingMode = 'AUTO';
@@ -518,49 +505,34 @@ export async function createVariantCard(
     labelText.name = `${metricName} Label`;
     metricItem.appendChild(labelText);
     
-    // Value - always displayed as badge, with winner styling if this variant wins
-    const valueBadge = figma.createFrame();
-    valueBadge.layoutMode = 'HORIZONTAL';
-    valueBadge.counterAxisSizingMode = 'AUTO';
-    valueBadge.primaryAxisSizingMode = 'AUTO';
-    valueBadge.paddingLeft = 6;
-    valueBadge.paddingRight = 6;
-    valueBadge.paddingTop = 2;
-    valueBadge.paddingBottom = 2;
-    valueBadge.cornerRadius = 4;
-    
-    if (isWinner) {
-      // Winner value: green background
-      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite100) }];
-    } else {
-      // Regular value: light gray background
-      valueBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
-    }
-    
-    valueBadge.strokes = [];
-    valueBadge.name = `${metricName} Value Badge`;
+    // Value - text only, winner indicated by green color
+    const valueContainer = figma.createFrame();
+    valueContainer.layoutMode = 'HORIZONTAL';
+    valueContainer.counterAxisSizingMode = 'AUTO';
+    valueContainer.primaryAxisSizingMode = 'AUTO';
+    valueContainer.paddingLeft = 0;
+    valueContainer.paddingRight = 0;
+    valueContainer.paddingTop = 0;
+    valueContainer.paddingBottom = 0;
+    valueContainer.fills = []; // Remove badge backgrounds entirely
+    valueContainer.strokes = [];
+    valueContainer.name = `${metricName} Value`;
     
     const valueText = figma.createText();
-    if (isWinner) {
-      valueText.fontName = getFontStyle("Medium");
-      valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
-    } else {
-      valueText.fontName = getFontStyle("Medium");
-      valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textSecondary) }];
-    }
+    // Consistent styling matching outcome card table
+    valueText.fontName = getFontStyle("Medium");
+    valueText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     valueText.fontSize = TOKENS.fontSizeBodyMd;
     valueText.textAutoResize = 'WIDTH_AND_HEIGHT';
     valueText.characters = value;
-    valueText.name = `${metricName} Value`;
-    valueBadge.appendChild(valueText);
-    metricItem.appendChild(valueBadge);
+    valueText.name = `${metricName} Value Text`;
+    valueContainer.appendChild(valueText);
+    metricItem.appendChild(valueContainer);
     
     return metricItem;
   };
 
   // Display only metrics that are defined in the plugin
-  const variantId = options?.variantId || (variant as any).id;
-  const winningMetrics = options?.winningMetrics || {};
   const availableMetrics = options?.metrics || [];
   
   // Generate metric key from abbreviation or name (same logic as UI)
@@ -584,10 +556,9 @@ export async function createVariantCard(
       ? (typeof metricValueRaw === 'number' ? metricValueRaw : parseFloat(String(metricValueRaw)) || 0)
       : 0;
     
-    const isWinner = winningMetrics[metricKey] === variantId;
     const metricName = metric.name;
     const abbreviation = metric.abbreviation || metric.name;
-    const metricItem = createMetricItem(metricName, abbreviation, formatMetric(metricValue), isWinner);
+    const metricItem = createMetricItem(metricName, abbreviation, formatMetric(metricValue));
     metricsSection.appendChild(metricItem);
   }
 

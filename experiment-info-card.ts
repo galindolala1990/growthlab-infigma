@@ -269,13 +269,13 @@ const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
   },
   paused: {
     label: 'Paused',
-    bgColor: TOKENS.coralRed100,
-    textColor: TOKENS.coralRed600,
+    bgColor: TOKENS.azure100,       // Gray - neutral state
+    textColor: TOKENS.azure600,
   },
   completed: {
     label: 'Ended',
-    bgColor: TOKENS.malachite100,
-    textColor: TOKENS.malachite800,
+    bgColor: TOKENS.azure100,       // Gray - neutral completion
+    textColor: TOKENS.azure600,
   },
   rolled_out: {
     label: 'Rolled out',
@@ -512,7 +512,6 @@ export async function createExperimentInfoCard(
         endDate: options.endDate,
         audience: options.audience,
         totalSampleSize: options.totalSampleSize,
-        confidenceLevel: options.confidenceLevel,
         status: status,
         primaryMetric: options.primaryMetric,
       }

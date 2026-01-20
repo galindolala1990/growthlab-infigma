@@ -2329,95 +2329,6 @@ if (figma.editorType === 'figma') {
     
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
-        // Calculate which variant wins each metric (data-driven winner, dynamic based on available metrics)
-        const calculateMetricWinners = (variants: any[]): Record<string, string> => {
-          const winners: Record<string, string> = {};
-          
-          if (!metrics || metrics.length === 0) {
-            return winners;
-          }
-          
-          // For each metric, find the variant with the highest value
-          for (const metric of metrics) {
-            if (!metric.name) continue;
-            
-            const metricKey = getMetricKey(metric);
-            let maxValue = -1;
-            let winnerId: string | undefined;
-            
-            for (const variant of variants) {
-              const variantMetrics = variant.metrics || {};
-              const variantId = variant.id;
-              const value = typeof variantMetrics[metricKey] === 'number' 
-                ? variantMetrics[metricKey] 
-                : parseFloat(String(variantMetrics[metricKey])) || 0;
-              
-              if (value > maxValue) {
-                maxValue = value;
-                winnerId = variantId;
-              }
-            }
-            
-            if (winnerId) {
-              winners[metricKey] = winnerId;
-            }
-          }
-          
-          return winners;
-        };
-        
-        // Calculate which variant is the recommended winner (wins most metrics)
-        const calculateRecommendedWinner = (variants: any[], winningMetrics: Record<string, string>): string | undefined => {
-          // Count how many metrics each variant wins
-          const variantScores: Record<string, number> = {};
-          
-          // Initialize scores
-          for (const variant of variants) {
-            variantScores[variant.id] = 0;
-          }
-          
-          // Count wins for each variant (dynamic based on available metrics)
-          for (const [metricKey, winnerId] of Object.entries(winningMetrics)) {
-            variantScores[winnerId] = (variantScores[winnerId] || 0) + 1;
-          }
-          
-          // Find variant with highest score
-          let maxScore = -1;
-          let recommendedWinner: string | undefined;
-          
-          for (const [variantId, score] of Object.entries(variantScores)) {
-            if (score > maxScore) {
-              maxScore = score;
-              recommendedWinner = variantId;
-            }
-          }
-          
-          // If there's a tie, prioritize by metric order (first metric wins)
-          if (maxScore > 0 && metrics && metrics.length > 0) {
-            const tiedVariants = Object.entries(variantScores)
-              .filter(([_, score]) => score === maxScore)
-              .map(([variantId]) => variantId);
-            
-            if (tiedVariants.length > 1) {
-              // Break tie: use first metric's winner
-              for (const metric of metrics) {
-                if (!metric.name) continue;
-                const metricKey = getMetricKey(metric);
-                const winnerId = winningMetrics[metricKey];
-                if (winnerId && tiedVariants.includes(winnerId)) {
-                  recommendedWinner = winnerId;
-                  break;
-                }
-              }
-            }
-          }
-          
-          return recommendedWinner;
-        };
-        
-        const winningMetrics = calculateMetricWinners(event.variants);
-        const recommendedWinnerId = calculateRecommendedWinner(event.variants, winningMetrics);
-        
         let totalVariantWidth = 0;
         const variantCards: FrameNode[] = [];
         
@@ -2428,26 +2339,19 @@ if (figma.editorType === 'figma') {
           
           const variantColor = (variant as any).color || variant.style?.variantColor;
           
-          // Check if this variant is rolled out (rolled-out variant is the winner)
+          // Check if this variant is rolled out
           const isRolledout = experiment.outcomes?.rolledoutVariantId === variant.id;
           
           const variantForCard = {
             ...variant,
             name: safeVariantName,
-            // If this is the rolled-out variant, it's the winner
             status: isRolledout ? 'winner' : ((variant as any).status || 'none'),
-            metrics: variant.metrics || {}, // Use metrics as-is, no normalization needed
+            metrics: variant.metrics || {},
             color: variantColor,
           };
           
-          // Check if this variant is the recommended winner based on metrics
-          const isRecommendedWinner = recommendedWinnerId === variant.id;
-          
           const variantCard = await createVariantCard(variantForCard, vIdx, { 
             rolledout: isRolledout,
-            winningMetrics: winningMetrics,
-            variantId: variant.id,
-            isRecommendedWinner: isRecommendedWinner,
             metrics: metrics
           });
           // Position off-screen temporarily to measure width

@@ -34,12 +34,6 @@ export interface VariantOutcome {
     [metricKey: string]: {
       value: number;
       uplift?: number;           // % change vs control (null for control)
-      isStatSig?: boolean;       // Statistical significance reached
-      confidenceLevel?: number;  // e.g., 95, 99
-      confidenceInterval?: {
-        lower: number;
-        upper: number;
-      };
     };
   };
   isWinner?: boolean;    // Recommended winner based on primary metric
@@ -54,7 +48,6 @@ export interface ExperimentOutcomeData {
   endDate?: string;
   audience?: string;        // Target audience for the experiment
   totalSampleSize?: number;
-  confidenceLevel?: number;  // e.g., 95, 99
   status: 'running' | 'completed' | 'paused' | 'draft' | 'rolled_out';
   primaryMetric?: string;  // Key of the primary decision metric
   metrics: MetricDefinition[];
@@ -82,13 +75,13 @@ const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
   },
   paused: {
     label: 'Paused',
-    bgColor: TOKENS.coralRed100,
-    textColor: TOKENS.coralRed600,
+    bgColor: TOKENS.azure100,       // Gray - neutral state
+    textColor: TOKENS.azure600,
   },
   completed: {
     label: 'Ended',
-    bgColor: TOKENS.malachite100,
-    textColor: TOKENS.malachite800,
+    bgColor: TOKENS.azure100,       // Gray - neutral completion
+    textColor: TOKENS.azure600,
   },
   rolled_out: {
     label: 'Rolled out',
@@ -139,18 +132,15 @@ function getExperimentTypeLabel(type: string): string {
 }
 
 /**
- * Format metric value with appropriate precision
+ * Format metric value with appropriate precision (always decimal)
  */
 function formatMetricValue(value: number | undefined): string {
   if (value === undefined || value === null) return '--';
   if (Math.abs(value) >= 1000) {
     return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
   }
-  if (Math.abs(value) >= 1) {
-    return value.toFixed(2);
-  }
-  // For small decimals (like rates), show as percentage
-  return (value * 100).toFixed(2) + '%';
+  // Always show as decimal with 2 decimal places
+  return value.toFixed(2);
 }
 
 /**
@@ -675,41 +665,6 @@ function createMetricValueCell(
     upliftText.characters = formatUplift(uplift);
     upliftRow.appendChild(upliftText);
 
-    // Statistical significance indicator
-    if (metricData.isStatSig !== undefined) {
-      const sigBadge = figma.createFrame();
-      sigBadge.layoutMode = "HORIZONTAL";
-      sigBadge.counterAxisSizingMode = "AUTO";
-      sigBadge.primaryAxisSizingMode = "AUTO";
-      sigBadge.paddingLeft = sigBadge.paddingRight = 4;
-      sigBadge.paddingTop = sigBadge.paddingBottom = 2;
-      sigBadge.cornerRadius = 3;
-      sigBadge.counterAxisAlignItems = "CENTER";
-      
-      if (metricData.isStatSig) {
-        sigBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.malachite100) }];
-      } else {
-        sigBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.yellow100) }];
-      }
-      sigBadge.name = "Sig Badge";
-
-      const sigText = figma.createText();
-      sigText.fontName = getFontStyle("Medium");
-      sigText.fontSize = TOKENS.fontSizeLabel; // 9px - more visible
-      sigText.lineHeight = { unit: "PIXELS", value: 10 };
-      
-      if (metricData.isStatSig) {
-        sigText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.malachite800) }];
-        sigText.characters = metricData.confidenceLevel ? `${metricData.confidenceLevel}%` : 'Sig';
-      } else {
-        sigText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.yellow600) }];
-        sigText.characters = 'NS';
-      }
-      sigText.textAutoResize = "WIDTH_AND_HEIGHT";
-      sigBadge.appendChild(sigText);
-      upliftRow.appendChild(sigBadge);
-    }
-
     cell.appendChild(upliftRow);
   }
 
@@ -800,11 +755,6 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
   recommendationText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   recommendationText.textAutoResize = "WIDTH_AND_HEIGHT";
 
-  // Check if any non-control variant has statistical significance
-  const hasAnySignificance = data.variants.some(v => 
-    !v.isControl && Object.values(v.metrics).some(m => m.isStatSig === true)
-  );
-  
   // Find the best performing variant (highest uplift on primary metric)
   const primaryMetricKey = data.primaryMetric || (primaryMetricDef ? getMetricKey(primaryMetricDef) : null);
   let bestVariant: typeof data.variants[0] | undefined;
@@ -824,27 +774,9 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
     const metricName = primaryMetricDef?.name || 'primary metric';
     const winnerMetric = winner.metrics[primaryMetricKey || ''];
     const upliftText = winnerMetric?.uplift ? formatUplift(winnerMetric.uplift) : '';
-    
-    if (winnerMetric?.isStatSig === true) {
-      recommendationText.characters = `Roll out "${winner.name}" — ${upliftText} lift on ${metricName} with statistical significance.`;
-    } else if (winnerMetric?.isStatSig === false) {
-      recommendationText.characters = `"${winner.name}" shows ${upliftText} on ${metricName} but lacks statistical significance. Extend the test or increase sample size.`;
-    } else {
-      recommendationText.characters = `"${winner.name}" is the recommended winner${upliftText ? ` (${upliftText} on ${metricName})` : ''}. Review data before rolling out.`;
-    }
-  } else if (bestVariant && hasAnySignificance) {
-    // No explicit winner, but we have a best performer with significance
-    const metricName = primaryMetricDef?.name || 'primary metric';
-    const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
-    const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
-    
-    if (bestMetric?.isStatSig === true) {
-      recommendationText.characters = `"${bestVariant.name}" leads with ${upliftText} on ${metricName} (significant). Mark as winner to roll out.`;
-    } else {
-      recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName} but results are not yet significant. Continue the experiment.`;
-    }
+    recommendationText.characters = `Roll out "${winner.name}"${upliftText ? ` — ${upliftText} lift on ${metricName}` : ''}. Review data before deploying.`;
   } else if (data.status === 'running') {
-    recommendationText.characters = "Experiment is live. Collect more data to reach statistical significance before making decisions.";
+    recommendationText.characters = "Experiment is live. Collect more data before making decisions.";
   } else if (data.status === 'paused') {
     recommendationText.characters = "Experiment is paused. Resume data collection or analyze current results to determine next steps.";
   } else if (data.status === 'rolled_out') {
@@ -856,102 +788,20 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
       recommendationText.characters = "A variant has been rolled out. Monitor production metrics for any regressions.";
     }
   } else if (bestVariant) {
-    // Has a best performer but no significance data
+    // Has a best performer
     const metricName = primaryMetricDef?.name || 'primary metric';
     const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
     const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
-    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Confirm statistical significance before rolling out.`;
+    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Review data and mark as winner to roll out.`;
   } else {
-    recommendationText.characters = "No clear winner. Consider extending the experiment, increasing sample size, or revising the hypothesis.";
+    recommendationText.characters = "No clear winner yet. Consider extending the experiment or revising the hypothesis.";
   }
   
   section.appendChild(recommendationText);
 
-  // Check if any variant has statistical significance data
-  const hasSignificanceData = data.variants.some(v => 
-    Object.values(v.metrics).some(m => m.isStatSig !== undefined)
-  );
-
-  // Only show legend if significance data is present
-  if (hasSignificanceData) {
-    const legendRow = figma.createFrame();
-    legendRow.layoutMode = "HORIZONTAL";
-    legendRow.counterAxisSizingMode = "AUTO";
-    legendRow.primaryAxisSizingMode = "AUTO";
-    legendRow.itemSpacing = 16;
-    legendRow.paddingTop = 8;
-    legendRow.fills = [];
-    legendRow.name = "Legend Row";
-
-    // Sig legend item
-    const sigLegend = createLegendItem('Sig', 'Statistically significant', TOKENS.malachite100, TOKENS.malachite800);
-    legendRow.appendChild(sigLegend);
-
-    // NS legend item
-    const nsLegend = createLegendItem('NS', 'Not significant', TOKENS.yellow100, TOKENS.yellow600);
-    legendRow.appendChild(nsLegend);
-
-    // Confidence level indicator (if provided)
-    if (data.confidenceLevel && data.confidenceLevel > 0) {
-      const confidenceText = figma.createText();
-      confidenceText.fontName = getFontStyle("Regular");
-      confidenceText.fontSize = TOKENS.fontSizeLabel;
-      confidenceText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
-      confidenceText.textAutoResize = "WIDTH_AND_HEIGHT";
-      confidenceText.characters = `@ ${data.confidenceLevel}% confidence`;
-      legendRow.appendChild(confidenceText);
-    }
-
-    section.appendChild(legendRow);
-  }
-
   return section;
 }
 
-/**
- * Create a legend item
- */
-function createLegendItem(badge: string, label: string, bgColor: string, textColor: string): FrameNode {
-  const item = figma.createFrame();
-  item.layoutMode = "HORIZONTAL";
-  item.counterAxisSizingMode = "AUTO";
-  item.primaryAxisSizingMode = "AUTO";
-  item.itemSpacing = 4;
-  item.counterAxisAlignItems = "CENTER";
-  item.fills = [];
-  item.name = `Legend: ${badge}`;
-
-  // Badge
-  const badgeFrame = figma.createFrame();
-  badgeFrame.layoutMode = "HORIZONTAL";
-  badgeFrame.counterAxisSizingMode = "AUTO";
-  badgeFrame.primaryAxisSizingMode = "AUTO";
-  badgeFrame.paddingLeft = badgeFrame.paddingRight = 3;
-  badgeFrame.paddingTop = badgeFrame.paddingBottom = 1;
-  badgeFrame.cornerRadius = 2;
-  badgeFrame.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
-
-  const badgeText = figma.createText();
-  badgeText.fontName = getFontStyle("Medium");
-  badgeText.fontSize = 7;
-  badgeText.lineHeight = { unit: "PIXELS", value: 8 };
-  badgeText.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
-  badgeText.textAutoResize = "WIDTH_AND_HEIGHT";
-  badgeText.characters = badge;
-  badgeFrame.appendChild(badgeText);
-  item.appendChild(badgeFrame);
-
-  // Label
-  const labelText = figma.createText();
-  labelText.fontName = getFontStyle("Regular");
-  labelText.fontSize = TOKENS.fontSizeLabel;
-  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
-  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-  labelText.characters = label;
-  item.appendChild(labelText);
-
-  return item;
-}
 
 /**
  * Convenience function to create an outcome card from experiment info card data
@@ -970,7 +820,6 @@ export async function createOutcomeCardFromExperimentData(
     metrics?: { [key: string]: number };
     isWinner?: boolean;
     isRolledOut?: boolean;
-    isStatSig?: boolean; // Variant-level statistical significance
   }>,
   options?: {
     hypothesis?: string;
@@ -979,7 +828,6 @@ export async function createOutcomeCardFromExperimentData(
     endDate?: string;
     audience?: string;
     totalSampleSize?: number;
-    confidenceLevel?: number;
     status?: 'running' | 'completed' | 'paused' | 'draft' | 'rolled_out';
     primaryMetric?: string;
   }
@@ -1006,10 +854,6 @@ export async function createOutcomeCardFromExperimentData(
       outcomeMetrics[metricKey] = {
         value,
         uplift,
-        // Use variant-level isStatSig for all metrics of this variant
-        // Control variants don't show significance (they're the baseline)
-        isStatSig: isControl ? undefined : v.isStatSig,
-        confidenceLevel: undefined,
       };
     }
 
@@ -1033,7 +877,6 @@ export async function createOutcomeCardFromExperimentData(
     endDate: options?.endDate,
     audience: options?.audience,
     totalSampleSize: options?.totalSampleSize,
-    confidenceLevel: options?.confidenceLevel,
     status: options?.status || 'running',
     primaryMetric: options?.primaryMetric,
     metrics,

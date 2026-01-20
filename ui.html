@@ -3925,41 +3925,9 @@
       controlRow.appendChild(controlLabel);
       optionsRow.appendChild(controlRow);
 
-      // Significance checkbox row - hidden if this is the control variant
-      const significanceRow = document.createElement('div');
-      significanceRow.className = 'variant-significance-row';
-      significanceRow.id = `variant-sig-row-${eventIndex}-${variantIndex}`;
-      // Hide significance row if this is control
-      significanceRow.style.display = controlCheckbox.checked ? 'none' : 'flex';
-      
-      const significanceCheckbox = document.createElement('input');
-      significanceCheckbox.type = 'checkbox';
-      significanceCheckbox.className = 'variant-significance-checkbox';
-      significanceCheckbox.id = `variant-sig-${eventIndex}-${variantIndex}`;
-      significanceCheckbox.checked = variant.isStatSig === true;
-      significanceCheckbox.addEventListener('change', () => {
-        variant.isStatSig = significanceCheckbox.checked;
-      });
-      
-      const significanceLabel = document.createElement('label');
-      significanceLabel.className = 'variant-significance-label';
-      significanceLabel.htmlFor = `variant-sig-${eventIndex}-${variantIndex}`;
-      significanceLabel.textContent = 'Statistically significant';
-      
-      significanceRow.appendChild(significanceCheckbox);
-      significanceRow.appendChild(significanceLabel);
-      optionsRow.appendChild(significanceRow);
-
       // Control checkbox change handler
       controlCheckbox.addEventListener('change', () => {
         variant.isControl = controlCheckbox.checked;
-        // Hide/show significance checkbox based on control status
-        significanceRow.style.display = controlCheckbox.checked ? 'none' : 'flex';
-        // If marking as control, clear significance
-        if (controlCheckbox.checked) {
-          variant.isStatSig = undefined;
-          significanceCheckbox.checked = false;
-        }
       });
 
       metricsSection.appendChild(optionsRow);
@@ -4160,7 +4128,6 @@
           trafficPercent: 50,
           color: defaultColor,
           isControl: variantIndex === 0,
-          isStatSig: false,
           metrics: {}
         });
         renderEvents(events);
@@ -4817,8 +4784,7 @@
             traffic: Number(variant.traffic) || 0,
             metrics: variant.metrics || {},
             style: variant.color ? { variantColor: variant.color } : undefined,
-            isControl: variant.isControl === true, // Use explicit control flag
-            isStatSig: variant.isControl === true ? undefined : (variant.isStatSig === true) // Only treatment variants can be significant
+            isControl: variant.isControl === true // Use explicit control flag
           };
         });
         let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
@@ -5135,11 +5101,11 @@
 
     // Status dropdown configuration
     const statusOptions = [
-      { value: 'draft', label: 'Draft', color: '#ca8a04' },  
-      { value: 'running', label: 'Live', color: '#2563eb' },
-      { value: 'paused', label: 'Paused', color: '#dc2626' },
-      { value: 'completed', label: 'Ended', color: '#16a34a' },
-      { value: 'rolled_out', label: 'Rolled out', color: '#7c3aed' },
+      { value: 'draft', label: 'Draft', color: '#ca8a04' },       // Yellow - needs setup
+      { value: 'running', label: 'Live', color: '#2563eb' },      // Blue - active
+      { value: 'paused', label: 'Paused', color: '#506179' },     // Gray - neutral state
+      { value: 'completed', label: 'Ended', color: '#506179' },   // Gray - neutral completion
+      { value: 'rolled_out', label: 'Rolled out', color: '#7c3aed' }, // Purple - deployed
     ];
 
     /**
