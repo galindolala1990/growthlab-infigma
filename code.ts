@@ -2257,6 +2257,7 @@ if (figma.editorType === 'figma') {
         showOutcomeCard: allVariants.length > 0,
         variants: allVariants,
         owner: (experiment as any).owner,
+        audience: (experiment as any).audience,
         experimentType: (experiment as any).experimentType,
         hypothesis: (experiment as any).hypothesis,
         startDate: (experiment as any).startDate,

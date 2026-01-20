@@ -389,7 +389,7 @@ export async function createVariantCard(
     return badgesRow;
   };
 
-  // Recommended winner badge (based on metrics outcomes)
+  // Recommended winner badge (based on metrics outcomes) - outlined style for visual hierarchy
   if (options?.isRecommendedWinner) {
     const winnerBadge = figma.createFrame();
     winnerBadge.layoutMode = 'HORIZONTAL';
@@ -400,14 +400,15 @@ export async function createVariantCard(
     winnerBadge.paddingTop = 2;
     winnerBadge.paddingBottom = 2;
     winnerBadge.cornerRadius = 4;
-    winnerBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite100) }];
-    winnerBadge.strokes = [];
+    winnerBadge.fills = []; // Transparent for outlined style
+    winnerBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite600) }];
+    winnerBadge.strokeWeight = 1;
     winnerBadge.name = 'Recommended Winner Badge';
     
     const winnerText = figma.createText();
     winnerText.fontName = getFontStyle("Medium");
     winnerText.fontSize = TOKENS.fontSizeBodyMd;
-    winnerText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite800) }];
+    winnerText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.malachite600) }];
     winnerText.textAutoResize = 'WIDTH_AND_HEIGHT';
     winnerText.characters = 'Recommended';
     winnerText.name = 'Recommended Winner Text';
@@ -415,33 +416,7 @@ export async function createVariantCard(
     getOrCreateBadgesRow().appendChild(winnerBadge);
   }
 
-  // Running badge
-  if (variant.status === 'running') {
-    const runningBadge = figma.createFrame();
-    runningBadge.layoutMode = 'HORIZONTAL';
-    runningBadge.counterAxisSizingMode = 'AUTO';
-    runningBadge.primaryAxisSizingMode = 'AUTO';
-    runningBadge.paddingLeft = 6;
-    runningBadge.paddingRight = 6;
-    runningBadge.paddingTop = 2;
-    runningBadge.paddingBottom = 2;
-    runningBadge.cornerRadius = 4;
-    runningBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue50) }];
-    runningBadge.strokes = [];
-    runningBadge.name = 'Running Badge';
-    
-    const runningText = figma.createText();
-    runningText.fontName = getFontStyle("Bold");
-    runningText.fontSize = TOKENS.fontSizeBodySm;
-    runningText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
-    runningText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    runningText.characters = 'Running';
-    runningText.name = 'Running Text';
-    runningBadge.appendChild(runningText);
-    getOrCreateBadgesRow().appendChild(runningBadge);
-  }
-
-  // Rolled-out badge (NEW)
+  // Rolled-out badge - outlined style for visual hierarchy
   if (options?.rolledout) {
     const rolledoutBadge = figma.createFrame();
     rolledoutBadge.layoutMode = 'HORIZONTAL';
@@ -452,16 +427,17 @@ export async function createVariantCard(
     rolledoutBadge.paddingTop = 2;
     rolledoutBadge.paddingBottom = 2;
     rolledoutBadge.cornerRadius = 4;
-    rolledoutBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBrand) }];
-    rolledoutBadge.strokes = [];
+    rolledoutBadge.fills = []; // Transparent for outlined style
+    rolledoutBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
+    rolledoutBadge.strokeWeight = 1;
     rolledoutBadge.name = 'Rolled-out Badge';
     
     const rolledoutText = figma.createText();
-    rolledoutText.fontName = getFontStyle("Bold");
+    rolledoutText.fontName = getFontStyle("Medium");
     rolledoutText.fontSize = TOKENS.fontSizeBodyMd;
-    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.white) }];
+    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
     rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    rolledoutText.characters = 'Rolled-out';
+    rolledoutText.characters = 'Rolled out';
     rolledoutText.name = 'Rolled-out Text';
     rolledoutBadge.appendChild(rolledoutText);
     getOrCreateBadgesRow().appendChild(rolledoutBadge);

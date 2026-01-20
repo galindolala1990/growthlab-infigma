@@ -248,7 +248,7 @@ export interface VariantData {
 }
 
 // Status configuration matching the plugin UI dropdown
-export type ExperimentStatus = 'draft' | 'running' | 'paused' | 'completed';
+export type ExperimentStatus = 'draft' | 'running' | 'paused' | 'completed' | 'rolled_out';
 
 interface StatusConfig {
   label: string;
@@ -259,23 +259,28 @@ interface StatusConfig {
 const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
   draft: {
     label: 'Draft',
-    bgColor: TOKENS.yellow100, // yellow-100
-    textColor: TOKENS.yellow600, // yellow-600
+    bgColor: TOKENS.yellow100,
+    textColor: TOKENS.yellow600,
   },
   running: {
-    label: 'Running',
+    label: 'Live',
     bgColor: TOKENS.royalBlue100,
     textColor: TOKENS.royalBlue600,
   },
   paused: {
     label: 'Paused',
-    bgColor: TOKENS.coralRed100, // red-100
-    textColor: TOKENS.coralRed600, // red-600
+    bgColor: TOKENS.coralRed100,
+    textColor: TOKENS.coralRed600,
   },
   completed: {
-    label: 'Completed',
+    label: 'Ended',
     bgColor: TOKENS.malachite100,
     textColor: TOKENS.malachite800,
+  },
+  rolled_out: {
+    label: 'Rolled out',
+    bgColor: TOKENS.electricViolet100,
+    textColor: TOKENS.electricViolet600,
   },
 };
 
@@ -296,6 +301,7 @@ export interface ExperimentCardOptions {
   showOutcomeCard?: boolean;
   variants?: VariantData[];
   owner?: string;
+  audience?: string;  // Target audience for the experiment
   experimentType?: string;
   hypothesis?: string;
   startDate?: string;
@@ -346,39 +352,42 @@ export async function createExperimentInfoCard(
   card.minWidth = 480;
   card.minHeight = 400;
 
-  // Description section with experiment name, description, and status badge
+  // === SECTION 1: WHAT (Name + Description + Badges) ===
   const statusConfig = STATUS_STYLES[status] || STATUS_STYLES.running;
   const descSection = await createDescriptionSection(experimentName, description || "", statusConfig, options?.experimentType);
   card.appendChild(descSection);
-  // Make Description section fill card width (minus padding)
   descSection.primaryAxisSizingMode = "AUTO";
   descSection.itemSpacing = 8;
   descSection.resize(card.width - card.paddingLeft - card.paddingRight, descSection.height);
 
-  // Owner section (if provided)
-  if (options?.owner) {
-    const ownerSection = await createOwnerSection(options.owner);
-    card.appendChild(ownerSection);
-  }
-
-  // Hypothesis section (if provided)
+  // === SECTION 2: WHY (Hypothesis) ===
   if (options?.hypothesis) {
     const hypothesisSection = await createHypothesisSection(options.hypothesis);
     card.appendChild(hypothesisSection);
   }
 
-  // Timeline section (if start or end date provided)
+  // === SECTION 3: WHO + WHEN (Owner + Audience + Timeline) ===
+  // Owner section
+  if (options?.owner) {
+    const ownerSection = await createOwnerSection(options.owner);
+    card.appendChild(ownerSection);
+  }
+
+  // Audience section
+  if (options?.audience) {
+    const audienceSection = await createAudienceSection(options.audience);
+    card.appendChild(audienceSection);
+  }
+
+  // Timeline section
   if (options?.startDate || options?.endDate) {
     const timelineSection = await createTimelineSection(options.startDate, options.endDate);
     card.appendChild(timelineSection);
   }
 
-  // Sample Size section (if provided)
-  if (options?.totalSampleSize && options.totalSampleSize > 0) {
-    const sampleSizeSection = await createSampleSizeSection(options.totalSampleSize);
-    card.appendChild(sampleSizeSection);
-  }
+  // Sample Size moved to Outcome Card (more relevant alongside metrics results)
 
+  // === SECTION 4: RESOURCES ===
   // Links section
   const linksSection = figma.createFrame();
   linksSection.layoutMode = "VERTICAL";
@@ -397,7 +406,7 @@ export async function createExperimentInfoCard(
   linksLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   linksLabel.opacity = 0.5;
   linksLabel.textAutoResize = "WIDTH_AND_HEIGHT";
-  linksLabel.characters = "Artifacts";
+  linksLabel.characters = "Resources";
   linksSection.appendChild(linksLabel);
   
   // Links container - vertical stack for multiple links
@@ -498,8 +507,10 @@ export async function createExperimentInfoCard(
       options.variants,
       {
         hypothesis: options.hypothesis,
+        experimentType: options.experimentType,
         startDate: options.startDate,
         endDate: options.endDate,
+        audience: options.audience,
         totalSampleSize: options.totalSampleSize,
         confidenceLevel: options.confidenceLevel,
         status: status,
@@ -529,7 +540,7 @@ async function createDescriptionSection(experimentName: string, description: str
   section.strokes = [];
   section.name = "Description Section";
   
-  // Badge row - horizontal container for type and status badges
+  // Badge row - horizontal container for combined type badge and status badge
   const badgeRow = figma.createFrame();
   badgeRow.layoutMode = "HORIZONTAL";
   badgeRow.counterAxisSizingMode = "AUTO";
@@ -538,38 +549,39 @@ async function createDescriptionSection(experimentName: string, description: str
   badgeRow.fills = [];
   badgeRow.name = "Badge Row";
 
-  // Experiment type badge (if provided) - appears first
-  if (experimentType) {
-    const typeLabel = getExperimentTypeLabel(experimentType);
-    const typeBadge = figma.createFrame();
-    typeBadge.layoutMode = "HORIZONTAL";
-    typeBadge.counterAxisSizingMode = "AUTO";
-    typeBadge.primaryAxisSizingMode = "AUTO";
-    typeBadge.paddingLeft = typeBadge.paddingRight = 6;
-    typeBadge.paddingTop = typeBadge.paddingBottom = 2;
-    typeBadge.cornerRadius = 4;
-    typeBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.electricViolet100) }];
-    typeBadge.name = "Type Badge";
-    const typeText = figma.createText();
-    typeText.fontName = { family: "Figtree", style: "Medium" };
-    typeText.fontSize = TOKENS.fontSizeBodySm;
-    typeText.lineHeight = { unit: "PIXELS", value: 13 };
-    typeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.electricViolet600) }];
-    typeText.textAutoResize = "WIDTH_AND_HEIGHT";
-    typeText.characters = typeLabel;
-    typeBadge.appendChild(typeText);
-    badgeRow.appendChild(typeBadge);
-  }
+  // Combined type badge: "A/B Test • Experiment Info" or just "Experiment Info"
+  const cardTypeBadge = figma.createFrame();
+  cardTypeBadge.layoutMode = "HORIZONTAL";
+  cardTypeBadge.counterAxisSizingMode = "AUTO";
+  cardTypeBadge.primaryAxisSizingMode = "AUTO";
+  cardTypeBadge.paddingLeft = cardTypeBadge.paddingRight = 8;
+  cardTypeBadge.paddingTop = cardTypeBadge.paddingBottom = 4;
+  cardTypeBadge.cornerRadius = 4;
+  cardTypeBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure100) }];
+  cardTypeBadge.name = "Card Type Badge";
+  const cardTypeText = figma.createText();
+  cardTypeText.fontName = { family: "Figtree", style: "Medium" };
+  cardTypeText.fontSize = TOKENS.fontSizeBodySm;
+  cardTypeText.lineHeight = { unit: "PIXELS", value: 13 };
+  cardTypeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure700) }];
+  cardTypeText.textAutoResize = "WIDTH_AND_HEIGHT";
+  // Combine experiment type with card type
+  const typeLabel = experimentType ? getExperimentTypeLabel(experimentType) : '';
+  cardTypeText.characters = typeLabel ? `${typeLabel} • Experiment Info` : 'Experiment Info';
+  cardTypeBadge.appendChild(cardTypeText);
+  badgeRow.appendChild(cardTypeBadge);
 
-  // Status badge - appears second
+  // Status badge (outlined for softer visual hierarchy)
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
   badge.counterAxisSizingMode = "AUTO";
   badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 6;
-  badge.paddingTop = badge.paddingBottom = 2;
+  badge.paddingLeft = badge.paddingRight = 8;
+  badge.paddingTop = badge.paddingBottom = 4;
   badge.cornerRadius = 4;
-  badge.fills = [{ type: "SOLID", color: hexToRgb(statusConfig.bgColor) }];
+  badge.fills = []; // Transparent background for outlined style
+  badge.strokes = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
+  badge.strokeWeight = 1;
   badge.name = "Status Badge";
   const badgeText = figma.createText();
   badgeText.fontName = { family: "Figtree", style: "Medium" };
@@ -583,21 +595,21 @@ async function createDescriptionSection(experimentName: string, description: str
 
   section.appendChild(badgeRow);
   
-  // Experiment name
+  // Experiment name (Bold, 20px - consistent with Outcome Card)
   const titleText = figma.createText();
-  titleText.fontName = { family: "Figtree", style: "Medium" };
-  titleText.fontSize = 24;
+  titleText.fontName = { family: "Figtree", style: "Bold" };
+  titleText.fontSize = 20;
   titleText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   titleText.textAutoResize = "WIDTH_AND_HEIGHT";
-  titleText.characters = experimentName && experimentName.length > 0 ? experimentName : 'Experiment name';
+  titleText.characters = experimentName && experimentName.length > 0 ? experimentName : 'Untitled Experiment';
   section.appendChild(titleText);
   
-  // Description text
+  // Description text (Secondary color - consistent with Outcome Card hypothesis)
   if (description) {
     const valueText = figma.createText();
     valueText.fontName = { family: "Figtree", style: "Regular" };
     valueText.fontSize = TOKENS.fontSizeBodyMd;
-    valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+    valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
     valueText.textAutoResize = "WIDTH_AND_HEIGHT";
     valueText.layoutAlign = "STRETCH";
     valueText.characters = description;
@@ -621,7 +633,7 @@ async function createOwnerSection(owner: string): Promise<FrameNode> {
   section.strokes = [];
   section.name = "Owner Section";
 
-  // Label (styled same as Artifacts)
+  // Label (styled same as Resources)
   const labelText = figma.createText();
   labelText.fontName = { family: "Figtree", style: "Medium" };
   labelText.fontSize = TOKENS.fontSizeLabel;
@@ -643,6 +655,42 @@ async function createOwnerSection(owner: string): Promise<FrameNode> {
   return section;
 }
 
+async function createAudienceSection(audience: string): Promise<FrameNode> {
+  await loadFonts();
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.primaryAxisAlignItems = "MIN";
+  section.counterAxisAlignItems = "MIN";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 4;
+  section.fills = [];
+  section.strokes = [];
+  section.name = "Audience Section";
+
+  // Label (styled same as other section labels)
+  const labelText = figma.createText();
+  labelText.fontName = { family: "Figtree", style: "Medium" };
+  labelText.fontSize = TOKENS.fontSizeLabel;
+  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  labelText.opacity = 0.5;
+  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
+  labelText.characters = "Audience";
+  section.appendChild(labelText);
+
+  // Audience description
+  const audienceText = figma.createText();
+  audienceText.fontName = { family: "Figtree", style: "Regular" };
+  audienceText.fontSize = TOKENS.fontSizeBodyMd;
+  audienceText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  audienceText.textAutoResize = "WIDTH_AND_HEIGHT";
+  audienceText.characters = audience;
+  section.appendChild(audienceText);
+
+  return section;
+}
+
 async function createHypothesisSection(hypothesis: string): Promise<FrameNode> {
   await loadFonts();
   const section = figma.createFrame();
@@ -660,7 +708,7 @@ async function createHypothesisSection(hypothesis: string): Promise<FrameNode> {
   section.strokes = [];
   section.name = "Hypothesis Section";
 
-  // Label (styled same as Artifacts)
+  // Label (styled same as Resources)
   const labelText = figma.createText();
   labelText.fontName = { family: "Figtree", style: "Medium" };
   labelText.fontSize = TOKENS.fontSizeLabel;
@@ -727,7 +775,7 @@ async function createTimelineSection(startDateStr?: string, endDateStr?: string)
     return `${weeks}w ${remainingDays}d`;
   };
 
-  // Label (styled same as Artifacts)
+  // Label (styled same as Resources)
   const labelText = figma.createText();
   labelText.fontName = { family: "Figtree", style: "Medium" };
   labelText.fontSize = TOKENS.fontSizeLabel;
@@ -766,43 +814,7 @@ async function createTimelineSection(startDateStr?: string, endDateStr?: string)
   return section;
 }
 
-async function createSampleSizeSection(sampleSize: number): Promise<FrameNode> {
-  await loadFonts();
-  const section = figma.createFrame();
-  section.layoutMode = "VERTICAL";
-  section.counterAxisSizingMode = "AUTO";
-  section.primaryAxisSizingMode = "AUTO";
-  section.primaryAxisAlignItems = "MIN";
-  section.counterAxisAlignItems = "MIN";
-  section.layoutAlign = 'STRETCH';
-  section.itemSpacing = 4;
-  section.fills = [];
-  section.strokes = [];
-  section.name = "Sample Size Section";
-
-  // Label (styled same as Artifacts)
-  const labelText = figma.createText();
-  labelText.fontName = { family: "Figtree", style: "Medium" };
-  labelText.fontSize = TOKENS.fontSizeLabel;
-  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  labelText.opacity = 0.5;
-  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-  labelText.characters = "Sample Size";
-  section.appendChild(labelText);
-
-  // Format number with commas
-  const formattedSize = sampleSize.toLocaleString('en-US');
-
-  const valueText = figma.createText();
-  valueText.fontName = { family: "Figtree", style: "Regular" };
-  valueText.fontSize = TOKENS.fontSizeBodyMd;
-  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-  valueText.characters = `${formattedSize} users`;
-  section.appendChild(valueText);
-
-  return section;
-}
+// Sample Size section removed - now shown in Outcome Card header
 
 async function createSection(label: string, value: string, _muted: boolean = false): Promise<FrameNode> {
   await loadFonts();

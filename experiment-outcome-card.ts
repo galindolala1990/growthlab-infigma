@@ -48,12 +48,14 @@ export interface VariantOutcome {
 
 export interface ExperimentOutcomeData {
   experimentName: string;
+  experimentType?: string;   // 'ab_test', 'multivariate', etc.
   hypothesis?: string;
   startDate?: string;
   endDate?: string;
+  audience?: string;        // Target audience for the experiment
   totalSampleSize?: number;
   confidenceLevel?: number;  // e.g., 95, 99
-  status: 'running' | 'completed' | 'paused' | 'draft';
+  status: 'running' | 'completed' | 'paused' | 'draft' | 'rolled_out';
   primaryMetric?: string;  // Key of the primary decision metric
   metrics: MetricDefinition[];
   variants: VariantOutcome[];
@@ -66,7 +68,37 @@ interface OutcomeStatusConfig {
   textColor: string;
 }
 
-const OUTCOME_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
+// Experiment status styles - consistent with Info Card and Plugin UI
+const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
+  draft: {
+    label: 'Draft',
+    bgColor: TOKENS.yellow100,
+    textColor: TOKENS.yellow600,
+  },
+  running: {
+    label: 'Live',
+    bgColor: TOKENS.royalBlue100,
+    textColor: TOKENS.royalBlue600,
+  },
+  paused: {
+    label: 'Paused',
+    bgColor: TOKENS.coralRed100,
+    textColor: TOKENS.coralRed600,
+  },
+  completed: {
+    label: 'Ended',
+    bgColor: TOKENS.malachite100,
+    textColor: TOKENS.malachite800,
+  },
+  rolled_out: {
+    label: 'Rolled out',
+    bgColor: TOKENS.electricViolet100,
+    textColor: TOKENS.electricViolet600,
+  },
+};
+
+// Variant outcome styles (for table rows, not header)
+const VARIANT_OUTCOME_STYLES: Record<string, OutcomeStatusConfig> = {
   winner: {
     label: 'Winner',
     bgColor: TOKENS.malachite100,
@@ -87,17 +119,24 @@ const OUTCOME_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
-  running: {
-    label: 'Running',
-    bgColor: TOKENS.royalBlue100,
-    textColor: TOKENS.royalBlue600,
-  },
   rolledOut: {
     label: 'Rolled Out',
     bgColor: TOKENS.electricViolet100,
     textColor: TOKENS.electricViolet600,
   },
 };
+
+// Experiment type labels
+function getExperimentTypeLabel(type: string): string {
+  const labels: { [key: string]: string } = {
+    'ab_test': 'A/B Test',
+    'multivariate': 'Multivariate',
+    'feature_flag': 'Feature Flag',
+    'holdout': 'Holdout',
+    'rollout': 'Rollout',
+  };
+  return labels[type] || type;
+}
 
 /**
  * Format metric value with appropriate precision
@@ -171,7 +210,8 @@ export async function createExperimentOutcomeCard(
 }
 
 /**
- * Create header section with experiment name and status
+ * Create header section with experiment name, status, and key metrics context
+ * Note: Hypothesis is shown in Info Card, not duplicated here
  */
 async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNode> {
   const section = figma.createFrame();
@@ -182,7 +222,7 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   section.fills = [];
   section.name = "Header Section";
 
-  // Status badge row
+  // Badge row - combined type badge and status badge
   const badgeRow = figma.createFrame();
   badgeRow.layoutMode = "HORIZONTAL";
   badgeRow.counterAxisSizingMode = "AUTO";
@@ -191,90 +231,102 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   badgeRow.fills = [];
   badgeRow.name = "Badge Row";
 
-  // Experiment status badge
-  const statusConfig = OUTCOME_STATUS_STYLES[data.status] || OUTCOME_STATUS_STYLES.running;
-  const statusBadge = createBadge(statusConfig.label, statusConfig.bgColor, statusConfig.textColor);
-  badgeRow.appendChild(statusBadge);
-
-  // Outcome card type badge
-  const typeBadge = createBadge('Outcome Report', TOKENS.azure100, TOKENS.azure700);
+  // Combined type badge: "A/B Test • Outcome Report" or just "Outcome Report"
+  const typeLabel = data.experimentType ? getExperimentTypeLabel(data.experimentType) : '';
+  const combinedLabel = typeLabel ? `${typeLabel} • Outcome Report` : 'Outcome Report';
+  const typeBadge = createBadge(combinedLabel, TOKENS.azure100, TOKENS.azure700);
   badgeRow.appendChild(typeBadge);
+
+  // Experiment status badge (outlined for softer visual hierarchy)
+  const statusConfig = EXPERIMENT_STATUS_STYLES[data.status] || EXPERIMENT_STATUS_STYLES.running;
+  const statusBadge = createOutlinedBadge(statusConfig.label, statusConfig.textColor, statusConfig.textColor);
+  badgeRow.appendChild(statusBadge);
 
   section.appendChild(badgeRow);
 
-  // Experiment name
+  // Experiment name (Bold, 20px - consistent with Info Card)
   const titleText = figma.createText();
   titleText.fontName = getFontStyle("Bold");
   titleText.fontSize = 20;
   titleText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   titleText.textAutoResize = "WIDTH_AND_HEIGHT";
-  titleText.characters = data.experimentName || 'Experiment Outcome';
+  titleText.characters = data.experimentName || 'Untitled Experiment';
   section.appendChild(titleText);
 
-  // Hypothesis (if provided)
-  if (data.hypothesis) {
-    const hypothesisText = figma.createText();
-    hypothesisText.fontName = getFontStyle("Regular");
-    hypothesisText.fontSize = TOKENS.fontSizeBodyMd;
-    hypothesisText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
-    hypothesisText.textAutoResize = "WIDTH_AND_HEIGHT";
-    hypothesisText.characters = `Hypothesis: ${data.hypothesis}`;
-    section.appendChild(hypothesisText);
-  }
-
-  // Date range and sample size info row
-  const infoRow = figma.createFrame();
-  infoRow.layoutMode = "HORIZONTAL";
-  infoRow.counterAxisSizingMode = "AUTO";
-  infoRow.primaryAxisSizingMode = "AUTO";
-  infoRow.itemSpacing = 16;
-  infoRow.fills = [];
-  infoRow.name = "Info Row";
-
+  // Context row: Timeline + Audience + Sample Size (compact metadata line)
+  const contextParts: string[] = [];
+  
+  // Add timeline
   if (data.startDate || data.endDate) {
-    const dateText = figma.createText();
-    dateText.fontName = getFontStyle("Regular");
-    dateText.fontSize = TOKENS.fontSizeBodySm;
-    dateText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
-    dateText.textAutoResize = "WIDTH_AND_HEIGHT";
-    const dateRange = [data.startDate, data.endDate].filter(Boolean).join(' — ');
-    dateText.characters = dateRange;
-    infoRow.appendChild(dateText);
+    const dateRange = [data.startDate, data.endDate].filter(Boolean).join(' → ');
+    contextParts.push(dateRange);
   }
-
+  
+  // Add audience
+  if (data.audience) {
+    contextParts.push(data.audience);
+  }
+  
+  // Add sample size
   if (data.totalSampleSize) {
-    const sampleText = figma.createText();
-    sampleText.fontName = getFontStyle("Regular");
-    sampleText.fontSize = TOKENS.fontSizeBodySm;
-    sampleText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
-    sampleText.textAutoResize = "WIDTH_AND_HEIGHT";
-    sampleText.characters = `n = ${data.totalSampleSize.toLocaleString()}`;
-    infoRow.appendChild(sampleText);
+    contextParts.push(`n=${data.totalSampleSize.toLocaleString()}`);
   }
-
-  if (infoRow.children.length > 0) {
-    section.appendChild(infoRow);
-  } else {
-    // Remove unused frame to prevent floating empty frames
-    infoRow.remove();
+  
+  // Render context line if we have any parts
+  if (contextParts.length > 0) {
+    const contextText = figma.createText();
+    contextText.fontName = getFontStyle("Regular");
+    contextText.fontSize = TOKENS.fontSizeBodySm;
+    contextText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
+    contextText.textAutoResize = "WIDTH_AND_HEIGHT";
+    contextText.characters = contextParts.join('  •  ');
+    section.appendChild(contextText);
   }
 
   return section;
 }
 
 /**
- * Create a simple badge
+ * Create a filled badge (for primary badges like Card Type)
  */
 function createBadge(label: string, bgColor: string, textColor: string): FrameNode {
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
   badge.counterAxisSizingMode = "AUTO";
   badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 6;
-  badge.paddingTop = badge.paddingBottom = 2;
+  badge.paddingLeft = badge.paddingRight = 8;
+  badge.paddingTop = badge.paddingBottom = 4;
   badge.cornerRadius = 4;
   badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
   badge.name = `${label} Badge`;
+
+  const text = figma.createText();
+  text.fontName = getFontStyle("Medium");
+  text.fontSize = TOKENS.fontSizeBodySm;
+  text.lineHeight = { unit: "PIXELS", value: 13 };
+  text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
+  text.textAutoResize = "WIDTH_AND_HEIGHT";
+  text.characters = label;
+  badge.appendChild(text);
+
+  return badge;
+}
+
+/**
+ * Create an outlined badge (for status badges - softer visual hierarchy)
+ */
+function createOutlinedBadge(label: string, borderColor: string, textColor: string): FrameNode {
+  const badge = figma.createFrame();
+  badge.layoutMode = "HORIZONTAL";
+  badge.counterAxisSizingMode = "AUTO";
+  badge.primaryAxisSizingMode = "AUTO";
+  badge.paddingLeft = badge.paddingRight = 8;
+  badge.paddingTop = badge.paddingBottom = 4;
+  badge.cornerRadius = 4;
+  badge.fills = []; // Transparent background
+  badge.strokes = [{ type: "SOLID", color: hexToRgb(borderColor) }];
+  badge.strokeWeight = 1;
+  badge.name = `${label} Status Badge`;
 
   const text = figma.createText();
   text.fontName = getFontStyle("Medium");
@@ -427,7 +479,7 @@ function createMicroBadge(label: string, bgColor: string, textColor: string): Fr
   badge.counterAxisSizingMode = "AUTO";
   badge.primaryAxisSizingMode = "AUTO";
   badge.paddingLeft = badge.paddingRight = 4;
-  badge.paddingTop = badge.paddingBottom = 1;
+  badge.paddingTop = badge.paddingBottom = 2;
   badge.cornerRadius = 3;
   badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
   badge.name = `${label} Micro Badge`;
@@ -632,6 +684,7 @@ function createMetricValueCell(
       sigBadge.paddingLeft = sigBadge.paddingRight = 4;
       sigBadge.paddingTop = sigBadge.paddingBottom = 2;
       sigBadge.cornerRadius = 3;
+      sigBadge.counterAxisAlignItems = "CENTER";
       
       if (metricData.isStatSig) {
         sigBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.malachite100) }];
@@ -730,14 +783,14 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
     getMetricKey(m) === data.primaryMetric || m.isPrimary
   );
 
-  // Header (styled same as Artifacts)
+  // Header (styled same as section labels)
   const headerText = figma.createText();
   headerText.fontName = getFontStyle("Medium");
   headerText.fontSize = TOKENS.fontSizeLabel;
   headerText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   headerText.opacity = 0.5;
   headerText.textAutoResize = "WIDTH_AND_HEIGHT";
-  headerText.characters = "Recommendation";
+  headerText.characters = "Next Steps";
   section.appendChild(headerText);
 
   // Recommendation text
@@ -770,36 +823,46 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
     // Explicit winner declared
     const metricName = primaryMetricDef?.name || 'primary metric';
     const winnerMetric = winner.metrics[primaryMetricKey || ''];
-    const upliftText = winnerMetric?.uplift ? ` with ${formatUplift(winnerMetric.uplift)} uplift` : '';
+    const upliftText = winnerMetric?.uplift ? formatUplift(winnerMetric.uplift) : '';
     
     if (winnerMetric?.isStatSig === true) {
-      recommendationText.characters = `Based on ${metricName}, "${winner.name}" is the winner${upliftText} (statistically significant). Ready to roll out.`;
+      recommendationText.characters = `Roll out "${winner.name}" — ${upliftText} lift on ${metricName} with statistical significance.`;
     } else if (winnerMetric?.isStatSig === false) {
-      recommendationText.characters = `"${winner.name}" shows${upliftText} on ${metricName}, but is not statistically significant. Consider collecting more data before rolling out.`;
+      recommendationText.characters = `"${winner.name}" shows ${upliftText} on ${metricName} but lacks statistical significance. Extend the test or increase sample size.`;
     } else {
-      recommendationText.characters = `Based on ${metricName}, "${winner.name}" is the recommended winner${upliftText}. Consider rolling out this variant.`;
+      recommendationText.characters = `"${winner.name}" is the recommended winner${upliftText ? ` (${upliftText} on ${metricName})` : ''}. Review data before rolling out.`;
     }
   } else if (bestVariant && hasAnySignificance) {
     // No explicit winner, but we have a best performer with significance
     const metricName = primaryMetricDef?.name || 'primary metric';
     const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
-    const upliftText = bestMetric?.uplift ? `${formatUplift(bestMetric.uplift)} uplift` : 'positive uplift';
+    const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
     
     if (bestMetric?.isStatSig === true) {
-      recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName} (statistically significant). Consider marking as winner and rolling out.`;
+      recommendationText.characters = `"${bestVariant.name}" leads with ${upliftText} on ${metricName} (significant). Mark as winner to roll out.`;
     } else {
-      recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}, but not all results are statistically significant. Continue monitoring.`;
+      recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName} but results are not yet significant. Continue the experiment.`;
     }
   } else if (data.status === 'running') {
-    recommendationText.characters = "Experiment is still running. Continue collecting data to reach statistical significance.";
+    recommendationText.characters = "Experiment is live. Collect more data to reach statistical significance before making decisions.";
+  } else if (data.status === 'paused') {
+    recommendationText.characters = "Experiment is paused. Resume data collection or analyze current results to determine next steps.";
+  } else if (data.status === 'rolled_out') {
+    // Find the rolled out variant
+    const rolledOutVariant = data.variants.find(v => v.isRolledOut);
+    if (rolledOutVariant) {
+      recommendationText.characters = `"${rolledOutVariant.name}" has been rolled out to all users. Monitor production metrics for any regressions.`;
+    } else {
+      recommendationText.characters = "A variant has been rolled out. Monitor production metrics for any regressions.";
+    }
   } else if (bestVariant) {
     // Has a best performer but no significance data
     const metricName = primaryMetricDef?.name || 'primary metric';
     const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
-    const upliftText = bestMetric?.uplift ? `${formatUplift(bestMetric.uplift)} uplift` : 'positive performance';
-    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Verify statistical significance before making decisions.`;
+    const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
+    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Confirm statistical significance before rolling out.`;
   } else {
-    recommendationText.characters = "No clear winner identified. Consider extending the experiment or revising the hypothesis.";
+    recommendationText.characters = "No clear winner. Consider extending the experiment, increasing sample size, or revising the hypothesis.";
   }
   
   section.appendChild(recommendationText);
@@ -911,11 +974,13 @@ export async function createOutcomeCardFromExperimentData(
   }>,
   options?: {
     hypothesis?: string;
+    experimentType?: string;
     startDate?: string;
     endDate?: string;
+    audience?: string;
     totalSampleSize?: number;
     confidenceLevel?: number;
-    status?: 'running' | 'completed' | 'paused' | 'draft';
+    status?: 'running' | 'completed' | 'paused' | 'draft' | 'rolled_out';
     primaryMetric?: string;
   }
 ): Promise<FrameNode> {
@@ -962,9 +1027,11 @@ export async function createOutcomeCardFromExperimentData(
 
   const data: ExperimentOutcomeData = {
     experimentName,
+    experimentType: options?.experimentType,
     hypothesis: options?.hypothesis,
     startDate: options?.startDate,
     endDate: options?.endDate,
+    audience: options?.audience,
     totalSampleSize: options?.totalSampleSize,
     confidenceLevel: options?.confidenceLevel,
     status: options?.status || 'running',
