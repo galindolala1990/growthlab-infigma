@@ -2,7 +2,7 @@
 // Modularized node creation functions for Figma plugin
 
 import { TOKENS } from './design-tokens';
-import { hexToRgb, getFontStyle } from './layout-utils';
+import { hexToRgb, getFontStyle, createBadge } from './layout-utils';
 
 /**
  * Create an icon from SVG string using Figma's importSVGAsync
@@ -101,8 +101,8 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.paddingTop = 16; // 1rem
   card.paddingBottom = 16; // 0.75rem
   card.cornerRadius = 16; // 1rem
-  card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
-  card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
+  card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
+  card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
   card.strokeWeight = 1;
   card.effects = [{
     type: 'DROP_SHADOW',
@@ -261,13 +261,13 @@ export async function createVariantCard(
   card.paddingTop = 16; // 1rem
   card.paddingBottom = 16; // 0.75rem
   card.cornerRadius = 16; // 1rem
-  card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
-  // Use rolled out color border (2px) if this variant was rolled out
+  card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
+  // Use green border (2px) if this variant was rolled out - indicates success/shipped
   if (options?.rolledout) {
-    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
+    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet500) }];
     card.strokeWeight = 2;
   } else {
-    card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
+    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
     card.strokeWeight = 1;
   }
   card.effects = [{
@@ -333,34 +333,9 @@ export async function createVariantCard(
   headerRight.strokes = [];
   headerRight.name = 'Header Badges';
 
-  // Rolled out badge - outlined style (deployment status)
+  // Rolled out badge - micro style (deployment status) using green for success
   if (options?.rolledout) {
-    const rolledoutBadge = figma.createFrame();
-    rolledoutBadge.layoutMode = 'HORIZONTAL';
-    rolledoutBadge.counterAxisSizingMode = 'FIXED';
-    rolledoutBadge.primaryAxisSizingMode = 'AUTO';
-    rolledoutBadge.minHeight = 16;
-    rolledoutBadge.maxHeight = 16;
-    rolledoutBadge.paddingLeft = 4;
-    rolledoutBadge.paddingRight = 4;
-    rolledoutBadge.paddingTop = 2;
-    rolledoutBadge.paddingBottom = 2;
-    rolledoutBadge.cornerRadius = 4;
-    rolledoutBadge.counterAxisAlignItems = 'CENTER';
-    rolledoutBadge.fills = [];
-    rolledoutBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
-    rolledoutBadge.strokeWeight = 1;
-    rolledoutBadge.name = 'Rolled Out Badge';
-    
-    const rolledoutText = figma.createText();
-    rolledoutText.fontName = getFontStyle("Medium");
-    rolledoutText.fontSize = 9;
-    rolledoutText.lineHeight = { unit: 'PIXELS', value: 10 };
-    rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
-    rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
-    rolledoutText.characters = 'Rolled out';
-    rolledoutText.name = 'Rolled Out Text';
-    rolledoutBadge.appendChild(rolledoutText);
+    const rolledoutBadge = createBadge('Rolled out', 'micro', '#FFF420', TOKENS.textPrimary);
     headerRight.appendChild(rolledoutBadge);
   }
 

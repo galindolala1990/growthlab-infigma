@@ -242,9 +242,7 @@ export interface VariantData {
   traffic: number;
   status?: string;
   metrics?: { [key: string]: number };
-  isWinner?: boolean;
   isRolledOut?: boolean;
-  isStatSig?: boolean;
 }
 
 // Status configuration matching the plugin UI dropdown
@@ -258,29 +256,29 @@ interface StatusConfig {
 
 const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
   draft: {
-    label: 'Draft — Not yet running',
-    bgColor: TOKENS.yellow100,
-    textColor: TOKENS.yellow600,
+    label: 'Experiment draft',
+    bgColor: TOKENS.azure50,
+    textColor: TOKENS.azure500,
   },
   running: {
-    label: 'Live — Running now',
-    bgColor: TOKENS.royalBlue100,
-    textColor: TOKENS.royalBlue600,
+    label: 'Experiment running',
+    bgColor: TOKENS.azure100,
+    textColor: TOKENS.azure700,
   },
   paused: {
-    label: 'Paused — Temporarily stopped',
+    label: 'Experiment paused',
     bgColor: TOKENS.azure100,
-    textColor: TOKENS.azure600,
+    textColor: TOKENS.azure700,
   },
   completed: {
-    label: 'Ended — Ready to review',
+    label: 'Experiment ended',
     bgColor: TOKENS.azure100,
-    textColor: TOKENS.azure600,
+    textColor: TOKENS.azure700,
   },
   rolled_out: {
-    label: 'Rolled out — Live for everyone',
-    bgColor: TOKENS.electricViolet100,
-    textColor: TOKENS.electricViolet600,
+    label: 'Rolled out',
+    bgColor: '#FFF420',
+    textColor: TOKENS.textPrimary,
   },
 };
 
@@ -568,7 +566,7 @@ async function createStoryHeaderWithBadges(experimentName: string, description: 
   typeBadge.appendChild(typeText);
   badgeRow.appendChild(typeBadge);
 
-  // Status badge (outlined with contextual label)
+  // Status badge - filled for rolled_out, outlined for others
   const statusBadge = figma.createFrame();
   statusBadge.layoutMode = "HORIZONTAL";
   statusBadge.counterAxisSizingMode = "FIXED";
@@ -579,9 +577,16 @@ async function createStoryHeaderWithBadges(experimentName: string, description: 
   statusBadge.paddingTop = statusBadge.paddingBottom = 2;
   statusBadge.cornerRadius = 4;
   statusBadge.counterAxisAlignItems = "CENTER";
-  statusBadge.fills = [];
-  statusBadge.strokes = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
-  statusBadge.strokeWeight = 1;
+  
+  // Use filled style for rolled_out, outlined for others
+  if (statusConfig.bgColor === '#FFF420') {
+    statusBadge.fills = [{ type: "SOLID", color: hexToRgb(statusConfig.bgColor) }];
+    statusBadge.strokes = [];
+  } else {
+    statusBadge.fills = [];
+    statusBadge.strokes = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
+    statusBadge.strokeWeight = 1;
+  }
   statusBadge.name = "Status Badge";
   
   const statusText = figma.createText();
@@ -880,7 +885,7 @@ async function createStoryOutcome(variantName: string, variantColor?: string): P
 
   const dot = figma.createEllipse();
   dot.resize(10, 10);
-  const color = variantColor || TOKENS.electricViolet600;
+  const color = variantColor || '#FFF420';
   dot.fills = [{ type: "SOLID", color: hexToRgb(color) }];
   dot.strokes = [];
   dot.name = "Variant Dot";
@@ -951,7 +956,7 @@ async function createCardHeader(experimentName: string, description: string, sta
   typeBadge.appendChild(typeText);
   badgeRow.appendChild(typeBadge);
 
-  // Status badge (outlined)
+  // Status badge - filled for rolled_out, outlined for others
   const statusBadge = figma.createFrame();
   statusBadge.layoutMode = "HORIZONTAL";
   statusBadge.counterAxisSizingMode = "FIXED";
@@ -962,9 +967,16 @@ async function createCardHeader(experimentName: string, description: string, sta
   statusBadge.paddingTop = statusBadge.paddingBottom = 2;
   statusBadge.cornerRadius = 4;
   statusBadge.counterAxisAlignItems = "CENTER";
-  statusBadge.fills = [];
-  statusBadge.strokes = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
-  statusBadge.strokeWeight = 1;
+  
+  // Use filled style for rolled_out, outlined for others
+  if (statusConfig.bgColor === '#FFF420') {
+    statusBadge.fills = [{ type: "SOLID", color: hexToRgb(statusConfig.bgColor) }];
+    statusBadge.strokes = [];
+  } else {
+    statusBadge.fills = [];
+    statusBadge.strokes = [{ type: "SOLID", color: hexToRgb(statusConfig.textColor) }];
+    statusBadge.strokeWeight = 1;
+  }
   statusBadge.name = "Status Badge";
   
   const statusText = figma.createText();
@@ -1211,7 +1223,7 @@ async function createOutcomeRow(statusConfig: StatusConfig, variantName: string,
   rolledOutLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   rolledOutLabel.opacity = 0.5;
   rolledOutLabel.textAutoResize = "WIDTH_AND_HEIGHT";
-  rolledOutLabel.characters = "Rolled out";
+  rolledOutLabel.characters = "Variant rolled out";
   rolledOutCol.appendChild(rolledOutLabel);
 
   // Value row with radio button and variant name

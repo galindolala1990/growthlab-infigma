@@ -1,6 +1,6 @@
 /// <reference types="@figma/plugin-typings" />
 import { TOKENS } from "./design-tokens";
-import { hexToRgb, getFontStyle } from "./layout-utils";
+import { hexToRgb, getFontStyle, createBadge } from "./layout-utils";
 import { loadFonts } from "./load-fonts";
 
 /**
@@ -8,10 +8,9 @@ import { loadFonts } from "./load-fonts";
  * 
  * Displays experiment metrics outcomes in a table format following growth experiment best practices:
  * - Clear comparison of variants against control
- * - Statistical significance indicators
  * - Uplift/change percentages
- * - Winner recommendation based on primary metric
- * - Confidence intervals (when available)
+ * - Primary metric highlighting
+ * - Rolled out variant indicator
  */
 
 export interface MetricDefinition {
@@ -36,7 +35,6 @@ export interface VariantOutcome {
       uplift?: number;           // % change vs control (null for control)
     };
   };
-  isWinner?: boolean;    // Recommended winner based on primary metric
   isRolledOut?: boolean; // Has been rolled out to production
 }
 
@@ -64,49 +62,34 @@ interface OutcomeStatusConfig {
 // Experiment status styles - consistent with Info Card and Plugin UI
 const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
   draft: {
-    label: 'Draft — Not yet running',
-    bgColor: TOKENS.yellow100,
-    textColor: TOKENS.yellow600,
+    label: 'Experiment draft',
+    bgColor: TOKENS.azure50,
+    textColor: TOKENS.azure500,
   },
   running: {
-    label: 'Live — Running now',
-    bgColor: TOKENS.royalBlue100,
-    textColor: TOKENS.royalBlue600,
+    label: 'Experiment running',
+    bgColor: TOKENS.azure100,
+    textColor: TOKENS.azure700,
   },
   paused: {
-    label: 'Paused — Temporarily stopped',
+    label: 'Experiment paused',
     bgColor: TOKENS.azure100,
-    textColor: TOKENS.azure600,
+    textColor: TOKENS.azure700,
   },
   completed: {
-    label: 'Ended — Ready to review',
+    label: 'Experiment ended',
     bgColor: TOKENS.azure100,
-    textColor: TOKENS.azure600,
+    textColor: TOKENS.azure700,
   },
   rolled_out: {
-    label: 'Rolled out — Live for everyone',
-    bgColor: TOKENS.electricViolet100,
-    textColor: TOKENS.electricViolet600,
+    label: 'Rolled out',
+    bgColor: '#FFF420',
+    textColor: TOKENS.textPrimary,
   },
 };
 
 // Variant outcome styles (for table rows, not header)
 const VARIANT_OUTCOME_STYLES: Record<string, OutcomeStatusConfig> = {
-  winner: {
-    label: 'Winner',
-    bgColor: TOKENS.malachite100,
-    textColor: TOKENS.malachite800,
-  },
-  loser: {
-    label: 'Underperforming',
-    bgColor: TOKENS.coralRed100,
-    textColor: TOKENS.coralRed600,
-  },
-  inconclusive: {
-    label: 'Inconclusive',
-    bgColor: TOKENS.yellow100,
-    textColor: TOKENS.yellow600,
-  },
   control: {
     label: 'Control',
     bgColor: TOKENS.azure100,
@@ -114,8 +97,8 @@ const VARIANT_OUTCOME_STYLES: Record<string, OutcomeStatusConfig> = {
   },
   rolledOut: {
     label: 'Rolled Out',
-    bgColor: TOKENS.electricViolet100,
-    textColor: TOKENS.electricViolet600,
+    bgColor: '#FFF420',
+    textColor: TOKENS.textPrimary,
   },
 };
 
@@ -222,12 +205,13 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   badgeRow.name = "Badge Row";
 
   // Card type badge (filled)
-  const typeBadge = createBadge('Outcome Report', TOKENS.azure100, TOKENS.azure700);
+  const typeBadge = createBadge('Outcome Report', 'filled', TOKENS.azure100, TOKENS.azure700);
   badgeRow.appendChild(typeBadge);
 
-  // Status badge (outlined with contextual label)
+  // Status badge - filled for rolled_out (yellow), outlined for others
   const statusConfig = EXPERIMENT_STATUS_STYLES[data.status] || EXPERIMENT_STATUS_STYLES.running;
-  const statusBadge = createOutlinedBadge(statusConfig.label, statusConfig.textColor, statusConfig.textColor);
+  const statusStyle = data.status === 'rolled_out' ? 'filled' : 'outlined';
+  const statusBadge = createBadge(statusConfig.label, statusStyle, statusConfig.bgColor, statusConfig.textColor);
   badgeRow.appendChild(statusBadge);
 
   section.appendChild(badgeRow);
@@ -279,65 +263,6 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   return section;
 }
 
-/**
- * Create a filled badge (for primary badges like Card Type)
- */
-function createBadge(label: string, bgColor: string, textColor: string): FrameNode {
-  const badge = figma.createFrame();
-  badge.layoutMode = "HORIZONTAL";
-  badge.counterAxisSizingMode = "FIXED";
-  badge.primaryAxisSizingMode = "AUTO";
-  badge.minHeight = 16;
-  badge.maxHeight = 16;
-  badge.paddingLeft = badge.paddingRight = 4;
-  badge.paddingTop = badge.paddingBottom = 2;
-  badge.cornerRadius = 4;
-  badge.counterAxisAlignItems = "CENTER";
-  badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
-  badge.name = `${label} Badge`;
-
-  const text = figma.createText();
-  text.fontName = getFontStyle("Medium");
-  text.fontSize = 9;
-  text.lineHeight = { unit: "PIXELS", value: 10 };
-  text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
-  text.textAutoResize = "WIDTH_AND_HEIGHT";
-  text.characters = label;
-  badge.appendChild(text);
-
-  return badge;
-}
-
-/**
- * Create an outlined badge (for status badges - softer visual hierarchy)
- */
-function createOutlinedBadge(label: string, borderColor: string, textColor: string): FrameNode {
-  const badge = figma.createFrame();
-  badge.layoutMode = "HORIZONTAL";
-  badge.counterAxisSizingMode = "FIXED";
-  badge.primaryAxisSizingMode = "AUTO";
-  badge.minHeight = 16;
-  badge.maxHeight = 16;
-  badge.paddingLeft = badge.paddingRight = 4;
-  badge.paddingTop = badge.paddingBottom = 2;
-  badge.cornerRadius = 4;
-  badge.counterAxisAlignItems = "CENTER";
-  badge.fills = []; // Transparent background
-  badge.strokes = [{ type: "SOLID", color: hexToRgb(borderColor) }];
-  badge.strokeWeight = 1;
-  badge.name = `${label} Status Badge`;
-
-  const text = figma.createText();
-  text.fontName = getFontStyle("Medium");
-  text.fontSize = 9;
-  text.lineHeight = { unit: "PIXELS", value: 10 };
-  text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
-  text.textAutoResize = "WIDTH_AND_HEIGHT";
-  text.characters = label;
-  badge.appendChild(text);
-
-  return badge;
-}
 
 /**
  * Create the metrics comparison table
@@ -435,7 +360,7 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   nameText.characters = variant.name || `Variant ${variant.key}`;
   cell.appendChild(nameText);
 
-  // Sub-label row (control/winner indicator)
+  // Sub-label row (control/rolled out indicator)
   const subRow = figma.createFrame();
   subRow.layoutMode = "HORIZONTAL";
   subRow.counterAxisSizingMode = "AUTO";
@@ -445,17 +370,12 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   subRow.name = "Sub Labels";
 
   if (variant.isControl) {
-    const controlBadge = createMicroBadge('Control', TOKENS.azure200, TOKENS.azure700);
+    const controlBadge = createBadge('Control', 'micro', TOKENS.azure200, TOKENS.azure700);
     subRow.appendChild(controlBadge);
   }
 
-  if (variant.isWinner) {
-    const winnerBadge = createMicroBadge('Winner', TOKENS.malachite200, TOKENS.malachite800);
-    subRow.appendChild(winnerBadge);
-  }
-
   if (variant.isRolledOut) {
-    const rolledOutBadge = createMicroBadge('Rolled Out', TOKENS.electricViolet200, TOKENS.electricViolet700);
+    const rolledOutBadge = createBadge('Rolled Out', 'micro', '#FFF420', TOKENS.textPrimary);
     subRow.appendChild(rolledOutBadge);
   }
 
@@ -467,32 +387,6 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   }
 
   return cell;
-}
-
-/**
- * Create a micro badge for table cells
- */
-function createMicroBadge(label: string, bgColor: string, textColor: string): FrameNode {
-  const badge = figma.createFrame();
-  badge.layoutMode = "HORIZONTAL";
-  badge.counterAxisSizingMode = "AUTO";
-  badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 4;
-  badge.paddingTop = badge.paddingBottom = 2;
-  badge.cornerRadius = 3;
-  badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
-  badge.name = `${label} Micro Badge`;
-
-  const text = figma.createText();
-  text.fontName = getFontStyle("Medium");
-  text.fontSize = TOKENS.fontSizeLabel;
-  text.lineHeight = { unit: "PIXELS", value: 10 };
-  text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
-  text.textAutoResize = "WIDTH_AND_HEIGHT";
-  text.characters = label;
-  badge.appendChild(text);
-
-  return badge;
 }
 
 /**
@@ -583,7 +477,7 @@ function createMetricNameCell(metric: MetricDefinition, isPrimary: boolean): Fra
   nameRow.appendChild(nameText);
 
   if (isPrimary) {
-    const primaryBadge = createMicroBadge('Primary', TOKENS.electricViolet100, TOKENS.electricViolet600);
+    const primaryBadge = createBadge('Primary', 'micro', TOKENS.azure100, TOKENS.azure700);
     nameRow.appendChild(primaryBadge);
   }
 
@@ -741,8 +635,6 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
   section.name = "Summary Section";
   section.layoutAlign = "STRETCH";
 
-  // Find winner variant
-  const winner = data.variants.find(v => v.isWinner);
   const primaryMetricDef = data.metrics.find(m => 
     getMetricKey(m) === data.primaryMetric || m.isPrimary
   );
@@ -778,13 +670,7 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
     }
   }
 
-  if (winner) {
-    // Explicit winner declared
-    const metricName = primaryMetricDef?.name || 'primary metric';
-    const winnerMetric = winner.metrics[primaryMetricKey || ''];
-    const upliftText = winnerMetric?.uplift ? formatUplift(winnerMetric.uplift) : '';
-    recommendationText.characters = `Roll out "${winner.name}"${upliftText ? ` — ${upliftText} lift on ${metricName}` : ''}. Review data before deploying.`;
-  } else if (data.status === 'running') {
+  if (data.status === 'running') {
     recommendationText.characters = "Experiment is live. Collect more data before making decisions.";
   } else if (data.status === 'paused') {
     recommendationText.characters = "Experiment is paused. Resume data collection or analyze current results to determine next steps.";
@@ -827,7 +713,6 @@ export async function createOutcomeCardFromExperimentData(
     traffic: number;
     status?: string;
     metrics?: { [key: string]: number };
-    isWinner?: boolean;
     isRolledOut?: boolean;
   }>,
   options?: {
@@ -873,7 +758,6 @@ export async function createOutcomeCardFromExperimentData(
       isControl,
       traffic: v.traffic,
       metrics: outcomeMetrics,
-      isWinner: v.isWinner,
       isRolledOut: v.isRolledOut,
     };
   });

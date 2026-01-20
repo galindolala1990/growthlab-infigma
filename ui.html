@@ -2608,10 +2608,10 @@
               <!-- Status Dropdown -->
               <div class="status-field">
                 <div class="SelectField">
-                  <label class="SelectField__label">Status</label>
+                  <label class="SelectField__label">Experiment status</label>
                   <div class="CustomDropdown" id="statusDropdown">
                     <button type="button" class="CustomDropdown__trigger" id="statusTrigger">
-                      <span class="CustomDropdown__text">Live</span>
+                      <span class="CustomDropdown__text">Running</span>
                       <span class="CustomDropdown__icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="m6 9 6 6 6-6"/>
@@ -3509,7 +3509,7 @@
       primaryBtn.className = 'icon-btn primary-metric-btn';
       primaryBtn.type = 'button';
       primaryBtn.innerHTML = metric.isPrimary ? getIcon('star-filled') : getIcon('star');
-      primaryBtn.style.color = 'var(--color-yellow-500)';
+      primaryBtn.style.color = 'var(--color-azure-600)';
       // If primary, always visible; if not, hidden until hover (handled by CSS)
       if (metric.isPrimary) {
         primaryBtn.style.opacity = '1';
@@ -5101,11 +5101,11 @@
 
     // Status dropdown configuration
     const statusOptions = [
-      { value: 'draft', label: 'Draft', color: '#ca8a04' },       // Yellow - needs setup
-      { value: 'running', label: 'Live', color: '#2563eb' },      // Blue - active
-      { value: 'paused', label: 'Paused', color: '#506179' },     // Gray - neutral state
-      { value: 'completed', label: 'Ended', color: '#506179' },   // Gray - neutral completion
-      { value: 'rolled_out', label: 'Rolled out', color: '#7c3aed' }, // Purple - deployed
+      { value: 'draft', label: 'Draft', color: '#94a3b8' },       // Light azure - less prominent
+      { value: 'running', label: 'Running', color: '#506179' },   // Azure - active
+      { value: 'paused', label: 'Paused', color: '#506179' },     // Azure - neutral state
+      { value: 'completed', label: 'Ended', color: '#506179' },   // Azure - neutral completion
+      { value: 'rolled_out', label: 'Rolled out', color: '#FFF420' }, // Yellow - deployed
     ];
 
     /**

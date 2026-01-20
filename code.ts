@@ -2209,7 +2209,6 @@ if (figma.editorType === 'figma') {
       traffic: number;
       status?: string;
       metrics?: { [key: string]: number };
-      isWinner?: boolean;
       isRolledOut?: boolean;
       isStatSig?: boolean;
       color?: string;
@@ -2226,7 +2225,6 @@ if (figma.editorType === 'figma') {
             isControl: index === 0, // First variant is typically control
             traffic: variant.traffic,
             metrics: variant.metrics,
-            isWinner: false, // Can be determined by comparing metrics
             isRolledOut: false,
             isStatSig: (variant as any).isStatSig, // Pass statistical significance from UI
             color: (variant as any).color || variant.style?.variantColor, // Variant color for display
