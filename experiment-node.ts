@@ -262,8 +262,14 @@ export async function createVariantCard(
   card.paddingBottom = 16; // 0.75rem
   card.cornerRadius = 16; // 1rem
   card.fills = [{ type: 'SOLID', color: hexToRgb('#FFFFFF') }];
-  card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
-  card.strokeWeight = 1;
+  // Use rolled out color border (2px) if this variant was rolled out
+  if (options?.rolledout) {
+    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
+    card.strokeWeight = 2;
+  } else {
+    card.strokes = [{ type: 'SOLID', color: hexToRgb('#EDEEF1') }];
+    card.strokeWeight = 1;
+  }
   card.effects = [{
     type: 'DROP_SHADOW',
     color: { r: 0, g: 0, b: 0, a: 0.05 },
@@ -331,13 +337,16 @@ export async function createVariantCard(
   if (options?.rolledout) {
     const rolledoutBadge = figma.createFrame();
     rolledoutBadge.layoutMode = 'HORIZONTAL';
-    rolledoutBadge.counterAxisSizingMode = 'AUTO';
+    rolledoutBadge.counterAxisSizingMode = 'FIXED';
     rolledoutBadge.primaryAxisSizingMode = 'AUTO';
-    rolledoutBadge.paddingLeft = 6;
-    rolledoutBadge.paddingRight = 6;
+    rolledoutBadge.minHeight = 16;
+    rolledoutBadge.maxHeight = 16;
+    rolledoutBadge.paddingLeft = 4;
+    rolledoutBadge.paddingRight = 4;
     rolledoutBadge.paddingTop = 2;
     rolledoutBadge.paddingBottom = 2;
     rolledoutBadge.cornerRadius = 4;
+    rolledoutBadge.counterAxisAlignItems = 'CENTER';
     rolledoutBadge.fills = [];
     rolledoutBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
     rolledoutBadge.strokeWeight = 1;
@@ -345,7 +354,8 @@ export async function createVariantCard(
     
     const rolledoutText = figma.createText();
     rolledoutText.fontName = getFontStyle("Medium");
-    rolledoutText.fontSize = TOKENS.fontSizeBodySm;
+    rolledoutText.fontSize = 9;
+    rolledoutText.lineHeight = { unit: 'PIXELS', value: 10 };
     rolledoutText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet600) }];
     rolledoutText.textAutoResize = 'WIDTH_AND_HEIGHT';
     rolledoutText.characters = 'Rolled out';

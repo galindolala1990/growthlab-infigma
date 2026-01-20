@@ -2212,6 +2212,7 @@ if (figma.editorType === 'figma') {
       isWinner?: boolean;
       isRolledOut?: boolean;
       isStatSig?: boolean;
+      color?: string;
     }> = [];
     
     for (const event of flow.events) {
@@ -2228,6 +2229,7 @@ if (figma.editorType === 'figma') {
             isWinner: false, // Can be determined by comparing metrics
             isRolledOut: false,
             isStatSig: (variant as any).isStatSig, // Pass statistical significance from UI
+            color: (variant as any).color || variant.style?.variantColor, // Variant color for display
           });
         });
       }
@@ -2269,6 +2271,20 @@ if (figma.editorType === 'figma') {
           const primaryMetricDef = metrics?.find(m => m.isPrimary) || (metrics && metrics.length > 0 ? metrics[0] : undefined);
           if (!primaryMetricDef) return undefined;
           return primaryMetricDef.abbreviation?.toLowerCase() || primaryMetricDef.name.replace(/\s+/g, '_').toLowerCase();
+        })(),
+        rolledOutVariantName: (() => {
+          // Find the rolled out variant name from the outcomes
+          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
+          if (!rolledOutId) return undefined;
+          const rolledOutVariant = allVariants.find(v => v.id === rolledOutId);
+          return rolledOutVariant?.name;
+        })(),
+        rolledOutVariantColor: (() => {
+          // Find the rolled out variant color from the outcomes
+          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
+          if (!rolledOutId) return undefined;
+          const rolledOutVariant = allVariants.find(v => v.id === rolledOutId);
+          return rolledOutVariant?.color;
         })(),
       }
     );

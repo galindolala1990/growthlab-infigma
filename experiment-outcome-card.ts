@@ -64,27 +64,27 @@ interface OutcomeStatusConfig {
 // Experiment status styles - consistent with Info Card and Plugin UI
 const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
   draft: {
-    label: 'Draft',
+    label: 'Draft — Not yet running',
     bgColor: TOKENS.yellow100,
     textColor: TOKENS.yellow600,
   },
   running: {
-    label: 'Live',
+    label: 'Live — Running now',
     bgColor: TOKENS.royalBlue100,
     textColor: TOKENS.royalBlue600,
   },
   paused: {
-    label: 'Paused',
-    bgColor: TOKENS.azure100,       // Gray - neutral state
+    label: 'Paused — Temporarily stopped',
+    bgColor: TOKENS.azure100,
     textColor: TOKENS.azure600,
   },
   completed: {
-    label: 'Ended',
-    bgColor: TOKENS.azure100,       // Gray - neutral completion
+    label: 'Ended — Ready to review',
+    bgColor: TOKENS.azure100,
     textColor: TOKENS.azure600,
   },
   rolled_out: {
-    label: 'Rolled out',
+    label: 'Rolled out — Live for everyone',
     bgColor: TOKENS.electricViolet100,
     textColor: TOKENS.electricViolet600,
   },
@@ -212,7 +212,7 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   section.fills = [];
   section.name = "Header Section";
 
-  // Badge row - combined type badge and status badge
+  // Badge row - Card type badge + Status badge
   const badgeRow = figma.createFrame();
   badgeRow.layoutMode = "HORIZONTAL";
   badgeRow.counterAxisSizingMode = "AUTO";
@@ -221,23 +221,21 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   badgeRow.fills = [];
   badgeRow.name = "Badge Row";
 
-  // Combined type badge: "A/B Test • Outcome Report" or just "Outcome Report"
-  const typeLabel = data.experimentType ? getExperimentTypeLabel(data.experimentType) : '';
-  const combinedLabel = typeLabel ? `${typeLabel} • Outcome Report` : 'Outcome Report';
-  const typeBadge = createBadge(combinedLabel, TOKENS.azure100, TOKENS.azure700);
+  // Card type badge (filled)
+  const typeBadge = createBadge('Outcome Report', TOKENS.azure100, TOKENS.azure700);
   badgeRow.appendChild(typeBadge);
 
-  // Experiment status badge (outlined for softer visual hierarchy)
+  // Status badge (outlined with contextual label)
   const statusConfig = EXPERIMENT_STATUS_STYLES[data.status] || EXPERIMENT_STATUS_STYLES.running;
   const statusBadge = createOutlinedBadge(statusConfig.label, statusConfig.textColor, statusConfig.textColor);
   badgeRow.appendChild(statusBadge);
 
   section.appendChild(badgeRow);
 
-  // Experiment name (Bold, 20px - consistent with Info Card)
+  // Experiment name (Bold, 24px)
   const titleText = figma.createText();
   titleText.fontName = getFontStyle("Bold");
-  titleText.fontSize = 20;
+  titleText.fontSize = 24;
   titleText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
   titleText.textAutoResize = "WIDTH_AND_HEIGHT";
   titleText.characters = data.experimentName || 'Untitled Experiment';
@@ -245,6 +243,11 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
 
   // Context row: Timeline + Audience + Sample Size (compact metadata line)
   const contextParts: string[] = [];
+  
+  // Add experiment type
+  if (data.experimentType) {
+    contextParts.push(getExperimentTypeLabel(data.experimentType));
+  }
   
   // Add timeline
   if (data.startDate || data.endDate) {
@@ -259,7 +262,7 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   
   // Add sample size
   if (data.totalSampleSize) {
-    contextParts.push(`n=${data.totalSampleSize.toLocaleString()}`);
+    contextParts.push(`${data.totalSampleSize.toLocaleString()} users`);
   }
   
   // Render context line if we have any parts
@@ -282,18 +285,21 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
 function createBadge(label: string, bgColor: string, textColor: string): FrameNode {
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
-  badge.counterAxisSizingMode = "AUTO";
+  badge.counterAxisSizingMode = "FIXED";
   badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 8;
-  badge.paddingTop = badge.paddingBottom = 4;
+  badge.minHeight = 16;
+  badge.maxHeight = 16;
+  badge.paddingLeft = badge.paddingRight = 4;
+  badge.paddingTop = badge.paddingBottom = 2;
   badge.cornerRadius = 4;
+  badge.counterAxisAlignItems = "CENTER";
   badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
   badge.name = `${label} Badge`;
 
   const text = figma.createText();
   text.fontName = getFontStyle("Medium");
-  text.fontSize = TOKENS.fontSizeBodySm;
-  text.lineHeight = { unit: "PIXELS", value: 13 };
+  text.fontSize = 9;
+  text.lineHeight = { unit: "PIXELS", value: 10 };
   text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
   text.textAutoResize = "WIDTH_AND_HEIGHT";
   text.characters = label;
@@ -308,11 +314,14 @@ function createBadge(label: string, bgColor: string, textColor: string): FrameNo
 function createOutlinedBadge(label: string, borderColor: string, textColor: string): FrameNode {
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
-  badge.counterAxisSizingMode = "AUTO";
+  badge.counterAxisSizingMode = "FIXED";
   badge.primaryAxisSizingMode = "AUTO";
-  badge.paddingLeft = badge.paddingRight = 8;
-  badge.paddingTop = badge.paddingBottom = 4;
+  badge.minHeight = 16;
+  badge.maxHeight = 16;
+  badge.paddingLeft = badge.paddingRight = 4;
+  badge.paddingTop = badge.paddingBottom = 2;
   badge.cornerRadius = 4;
+  badge.counterAxisAlignItems = "CENTER";
   badge.fills = []; // Transparent background
   badge.strokes = [{ type: "SOLID", color: hexToRgb(borderColor) }];
   badge.strokeWeight = 1;
@@ -320,8 +329,8 @@ function createOutlinedBadge(label: string, borderColor: string, textColor: stri
 
   const text = figma.createText();
   text.fontName = getFontStyle("Medium");
-  text.fontSize = TOKENS.fontSizeBodySm;
-  text.lineHeight = { unit: "PIXELS", value: 13 };
+  text.fontSize = 9;
+  text.lineHeight = { unit: "PIXELS", value: 10 };
   text.fills = [{ type: "SOLID", color: hexToRgb(textColor) }];
   text.textAutoResize = "WIDTH_AND_HEIGHT";
   text.characters = label;
