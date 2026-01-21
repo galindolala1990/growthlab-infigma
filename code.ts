@@ -2217,6 +2217,7 @@ if (figma.editorType === 'figma') {
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
+          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
           allVariants.push({
             id: variant.id,
             key: variant.key,
@@ -2225,7 +2226,7 @@ if (figma.editorType === 'figma') {
             isControl: index === 0, // First variant is typically control
             traffic: variant.traffic,
             metrics: variant.metrics,
-            isRolledOut: false,
+            isRolledOut: rolledOutId === variant.id, // Check if this variant is the rolled out one
             isStatSig: (variant as any).isStatSig, // Pass statistical significance from UI
             color: (variant as any).color || variant.style?.variantColor, // Variant color for display
           });

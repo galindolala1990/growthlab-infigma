@@ -307,7 +307,7 @@ async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: n
   row.counterAxisAlignItems = "CENTER";
   row.minHeight = 40;
   row.resize(row.width, 40);
-  row.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
+  row.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure50) }];
   row.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   row.strokeWeight = 1;
   row.strokeTopWeight = 0;
@@ -318,7 +318,7 @@ async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: n
   // First column: Metric label (fixed width)
   const metricHeader = createTableCell('Metric', 140, true, false);
   metricHeader.layoutGrow = 0; // Don't grow
-  metricHeader.minWidth = 140;
+  metricHeader.minWidth = 150;
   row.appendChild(metricHeader);
 
   // Each variant header: grows to fill space
@@ -348,6 +348,11 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   cell.itemSpacing = 2;
   cell.paddingLeft = cell.paddingRight = 8;
   cell.fills = [];
+  cell.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.borderDark) }];
+  cell.strokeWeight = .5;
+  cell.strokeTopWeight = 0;
+  cell.strokeRightWeight = 0;
+  cell.strokeBottomWeight = 0;
   cell.name = `Header: ${variant.name}`;
 
   // Variant name
@@ -370,7 +375,7 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   subRow.name = "Sub Labels";
 
   if (variant.isControl) {
-    const controlBadge = createBadge('Control', 'micro', TOKENS.azure200, TOKENS.azure700);
+    const controlBadge = createBadge('Control', 'micro', TOKENS.azure100, TOKENS.azure700);
     subRow.appendChild(controlBadge);
   }
 
@@ -448,7 +453,8 @@ function createMetricNameCell(metric: MetricDefinition, isPrimary: boolean): Fra
   cell.layoutMode = "VERTICAL";
   cell.counterAxisSizingMode = "FIXED"; // Fixed width
   cell.primaryAxisSizingMode = "FIXED"; // Fixed height
-  cell.minWidth = 140;
+  cell.layoutAlign = "STRETCH";
+  cell.minWidth = 150;
   cell.resize(140, 48);
   cell.counterAxisAlignItems = "MIN";
   cell.primaryAxisAlignItems = "CENTER";
@@ -529,7 +535,14 @@ function createMetricValueCell(
   cell.primaryAxisAlignItems = "CENTER";
   cell.itemSpacing = 2;
   cell.paddingLeft = cell.paddingRight = 8;
-  cell.fills = [];
+  
+  // Add light background color based on uplift direction (only for non-control)
+  if (!isControl && metricData?.uplift !== undefined) {
+    const isPositive = metricData.uplift >= 0;
+    cell.fills = [{ type: "SOLID", color: hexToRgb(isPositive ? TOKENS.malachite50 : TOKENS.coralRed50) }];
+  } else {
+    cell.fills = [];
+  }
   cell.name = "Value Cell";
 
   // Main value
@@ -631,7 +644,7 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
   section.paddingTop = section.paddingBottom = 12;
   section.paddingLeft = section.paddingRight = 12;
   section.cornerRadius = 8;
-  section.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
+  section.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure50) }];
   section.name = "Summary Section";
   section.layoutAlign = "STRETCH";
 
@@ -671,23 +684,26 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
   }
 
   if (data.status === 'running') {
-    recommendationText.characters = "Experiment is live. Collect more data before making decisions.";
+    recommendationText.characters = "Experiment is running. Continue collecting data before making decisions.";
   } else if (data.status === 'paused') {
-    recommendationText.characters = "Experiment is paused. Resume data collection or analyze current results to determine next steps.";
+    recommendationText.characters = "Experiment is paused. Resume to collect more data, or analyze current results.";
   } else if (data.status === 'rolled_out') {
     // Find the rolled out variant
     const rolledOutVariant = data.variants.find(v => v.isRolledOut);
     if (rolledOutVariant) {
-      recommendationText.characters = `"${rolledOutVariant.name}" has been rolled out to all users. Monitor production metrics for any regressions.`;
+      const metricName = primaryMetricDef?.name || 'primary metric';
+      const rolledOutMetric = primaryMetricKey ? rolledOutVariant.metrics[primaryMetricKey] : undefined;
+      const upliftText = rolledOutMetric?.uplift ? ` with ${formatUplift(rolledOutMetric.uplift)} on ${metricName}` : '';
+      recommendationText.characters = `"${rolledOutVariant.name}" is now live for all users${upliftText}. Monitor for regressions.`;
     } else {
-      recommendationText.characters = "A variant has been rolled out. Monitor production metrics for any regressions.";
+      recommendationText.characters = "A variant is now live for all users. Monitor for regressions.";
     }
   } else if (bestVariant) {
-    // Has a best performer
+    // Has a best performer (ended/completed status)
     const metricName = primaryMetricDef?.name || 'primary metric';
     const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
     const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
-    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Review data and mark as winner to roll out.`;
+    recommendationText.characters = `"${bestVariant.name}" shows ${upliftText} on ${metricName}. Consider rolling out this variant.`;
   } else {
     recommendationText.characters = "No clear winner yet. Consider extending the experiment or revising the hypothesis.";
   }

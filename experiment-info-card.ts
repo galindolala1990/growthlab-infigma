@@ -367,32 +367,53 @@ export async function createExperimentInfoCard(
   // === DIVIDER ===
   card.appendChild(createDivider());
 
-  // === SECTION 3: DETAILS (Type + Owner) ===
-  if (options?.experimentType || options?.owner) {
-    const detailsRow = await createStoryDetailsRow(
-      options?.experimentType,
-      options?.owner
-    );
-    card.appendChild(detailsRow);
+  // === SECTION 3: EXPERIMENT DETAILS (Table layout - Eppo inspired) ===
+  // Collect row data first
+  const detailsData: Array<{ label: string; value: string; valueColor?: string; valueDot?: string }> = [];
+  
+  if (options?.experimentType) {
+    detailsData.push({ label: 'Type', value: getExperimentTypeLabel(options.experimentType) });
   }
-
-  // === CHAPTER 4: WHO ARE WE TESTING? (Audience + Sample) ===
-  if (options?.audience || options?.totalSampleSize) {
-    const targetRow = await createStoryTargetRow(options.audience, options.totalSampleSize);
-    card.appendChild(targetRow);
+  if (options?.owner) {
+    detailsData.push({ label: 'Owner', value: options.owner });
   }
-
-  // === CHAPTER 5: WHEN? (Timeline - full row for prominence) ===
+  if (options?.audience) {
+    detailsData.push({ label: 'Audience', value: options.audience });
+  }
+  if (options?.totalSampleSize) {
+    detailsData.push({ label: 'Sample size', value: options.totalSampleSize.toLocaleString() + ' users' });
+  }
   if (options?.startDate || options?.endDate) {
-    const timelineSection = await createStoryTimeline(options.startDate, options.endDate);
-    card.appendChild(timelineSection);
+    const startDate = options?.startDate ? new Date(options.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+    const endDate = options?.endDate ? new Date(options.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing';
+    detailsData.push({ label: 'Timeline', value: `${startDate} → ${endDate}` });
+  }
+  
+  if (detailsData.length > 0) {
+    try {
+      await appendDetailsSection(card, 'Experiment Details', detailsData);
+    } catch (e) {
+      console.error('Error creating details section:', e);
+    }
   }
 
-  // === CHAPTER 6: WHAT HAPPENED? (Outcome - only if concluded) ===
+  // === SECTION 4: OUTCOME (Only if rolled out) ===
   if (status === 'rolled_out' && options?.rolledOutVariantName) {
-    card.appendChild(createDivider());
-    const outcomeSection = await createStoryOutcome(options.rolledOutVariantName, options.rolledOutVariantColor);
-    card.appendChild(outcomeSection);
+    const outcomeData: Array<{ label: string; value: string; valueColor?: string; valueDot?: string }> = [
+      { 
+        label: 'Shipped variant', 
+        value: options.rolledOutVariantName, 
+        valueColor: TOKENS.textPrimary, 
+        valueDot: options.rolledOutVariantColor || '#FFF420' 
+      },
+      { label: 'Status', value: 'Rolled out to 100% of users' }
+    ];
+    
+    try {
+      await appendDetailsSection(card, 'Outcome', outcomeData);
+    } catch (e) {
+      console.error('Error creating outcome section:', e);
+    }
   }
 
   // === CHAPTER 7: WHERE TO LEARN MORE? (Resources) ===
@@ -518,6 +539,97 @@ function createDivider(): FrameNode {
   return divider;
 }
 
+// ============================================
+// TABLE-STYLE LAYOUT HELPERS (Eppo-inspired)
+// ============================================
+
+/**
+ * Create experiment details as simple label:value pairs directly in the card
+ * Uses the same styling pattern as existing working sections
+ */
+async function appendDetailsSection(
+  parent: FrameNode,
+  title: string,
+  rowsData: Array<{ label: string; value: string; valueColor?: string; valueDot?: string }>
+): Promise<void> {
+  await loadFonts();
+  
+  // Create a simple vertical section similar to existing working sections
+  const section = figma.createFrame();
+  section.layoutMode = "VERTICAL";
+  section.counterAxisSizingMode = "AUTO";
+  section.primaryAxisSizingMode = "AUTO";
+  section.layoutAlign = 'STRETCH';
+  section.itemSpacing = 8;
+  section.fills = [];
+  section.name = `Section: ${title}`;
+  
+  // Section title label
+  const titleLabel = figma.createText();
+  titleLabel.fontName = { family: "Figtree", style: "Medium" };
+  titleLabel.fontSize = TOKENS.fontSizeLabel;
+  titleLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  titleLabel.opacity = 0.5;
+  titleLabel.textAutoResize = "WIDTH_AND_HEIGHT";
+  titleLabel.characters = title;
+  section.appendChild(titleLabel);
+  
+  // Details container with background
+  const detailsContainer = figma.createFrame();
+  detailsContainer.layoutMode = "VERTICAL";
+  detailsContainer.counterAxisSizingMode = "AUTO";
+  detailsContainer.primaryAxisSizingMode = "AUTO";
+  detailsContainer.layoutAlign = 'STRETCH';
+  detailsContainer.itemSpacing = 4;
+  detailsContainer.paddingLeft = detailsContainer.paddingRight = 12;
+  detailsContainer.paddingTop = detailsContainer.paddingBottom = 12;
+  detailsContainer.cornerRadius = 8;
+  detailsContainer.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure50) }];
+  detailsContainer.name = "Details Container";
+  section.appendChild(detailsContainer);
+  
+  // Create each row
+  for (const { label, value, valueColor, valueDot } of rowsData) {
+    const row = figma.createFrame();
+    row.layoutMode = "HORIZONTAL";
+    row.counterAxisSizingMode = "AUTO";
+    row.primaryAxisSizingMode = "AUTO";
+    row.layoutAlign = 'STRETCH';
+    row.counterAxisAlignItems = "CENTER";
+    row.itemSpacing = 12;
+    row.fills = [];
+    row.name = `Row: ${label}`;
+    detailsContainer.appendChild(row);
+    
+    // Label
+    const labelNode = figma.createText();
+    labelNode.fontName = { family: "Figtree", style: "Regular" };
+    labelNode.fontSize = TOKENS.fontSizeBodySm;
+    labelNode.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+    labelNode.textAutoResize = "WIDTH_AND_HEIGHT";
+    labelNode.characters = label;
+    row.appendChild(labelNode);
+    
+    // Value with optional dot
+    if (valueDot) {
+      const dot = figma.createEllipse();
+      dot.resize(8, 8);
+      dot.fills = [{ type: "SOLID", color: hexToRgb(valueDot) }];
+      row.appendChild(dot);
+    }
+    
+    const valueNode = figma.createText();
+    valueNode.fontName = { family: "Figtree", style: "Medium" };
+    valueNode.fontSize = TOKENS.fontSizeBodySm;
+    valueNode.fills = [{ type: "SOLID", color: hexToRgb(valueColor || TOKENS.textPrimary) }];
+    valueNode.textAutoResize = "WIDTH_AND_HEIGHT";
+    valueNode.characters = value || "—";
+    row.appendChild(valueNode);
+  }
+  
+  parent.appendChild(section);
+}
+
 // SECTION 1: Header with badge row (card type + status) + title + description
 async function createStoryHeaderWithBadges(experimentName: string, description: string, statusConfig: StatusConfig): Promise<FrameNode> {
   await loadFonts();
@@ -638,7 +750,7 @@ async function createStoryHypothesis(hypothesis: string): Promise<FrameNode> {
   section.paddingTop = section.paddingBottom = 16;
   section.paddingLeft = section.paddingRight = 16;
   section.cornerRadius = 8;
-  section.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
+  section.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure50) }];
   section.strokes = [];
   section.name = "Hypothesis Section";
 
@@ -660,246 +772,6 @@ async function createStoryHypothesis(hypothesis: string): Promise<FrameNode> {
   hypothesisText.textAutoResize = "WIDTH_AND_HEIGHT";
   hypothesisText.characters = `"${hypothesis}"`;
   section.appendChild(hypothesisText);
-
-  return section;
-}
-
-// CHAPTER 3: Context row - Status + Type + Owner
-// SECTION 3: Details row - Type + Owner (status is in header badge)
-async function createStoryDetailsRow(
-  experimentType?: string,
-  owner?: string
-): Promise<FrameNode> {
-  await loadFonts();
-  const row = figma.createFrame();
-  row.layoutMode = "HORIZONTAL";
-  row.counterAxisSizingMode = "AUTO";
-  row.primaryAxisSizingMode = "AUTO";
-  row.primaryAxisAlignItems = "MIN";
-  row.counterAxisAlignItems = "MIN";
-  row.layoutAlign = 'STRETCH';
-  row.itemSpacing = 32;
-  row.fills = [];
-  row.strokes = [];
-  row.name = "Details Row";
-
-  // Helper to create a simple column
-  const createColumn = (label: string, value: string): FrameNode => {
-    const col = figma.createFrame();
-    col.layoutMode = "VERTICAL";
-    col.counterAxisSizingMode = "AUTO";
-    col.primaryAxisSizingMode = "AUTO";
-    col.itemSpacing = 4;
-    col.fills = [];
-    col.strokes = [];
-    col.name = `${label} Column`;
-
-    const labelText = figma.createText();
-    labelText.fontName = { family: "Figtree", style: "Medium" };
-    labelText.fontSize = TOKENS.fontSizeLabel;
-    labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-    labelText.opacity = 0.5;
-    labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-    labelText.characters = label;
-    col.appendChild(labelText);
-
-    const valueText = figma.createText();
-    valueText.fontName = { family: "Figtree", style: "Regular" };
-    valueText.fontSize = TOKENS.fontSizeBodyMd;
-    valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-    valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-    valueText.characters = value;
-    col.appendChild(valueText);
-
-    return col;
-  };
-
-  // Type column
-  if (experimentType) {
-    row.appendChild(createColumn("Type", getExperimentTypeLabel(experimentType)));
-  }
-
-  // Owner column
-  if (owner) {
-    row.appendChild(createColumn("Owner", owner));
-  }
-
-  return row;
-}
-
-// CHAPTER 4: Target row - Audience + Sample size
-async function createStoryTargetRow(audience?: string, sampleSize?: number): Promise<FrameNode> {
-  await loadFonts();
-  const row = figma.createFrame();
-  row.layoutMode = "HORIZONTAL";
-  row.counterAxisSizingMode = "AUTO";
-  row.primaryAxisSizingMode = "AUTO";
-  row.primaryAxisAlignItems = "MIN";
-  row.counterAxisAlignItems = "MIN";
-  row.layoutAlign = 'STRETCH';
-  row.itemSpacing = 32;
-  row.fills = [];
-  row.strokes = [];
-  row.name = "Target Row";
-
-  const createColumn = (label: string, value: string): FrameNode => {
-    const col = figma.createFrame();
-    col.layoutMode = "VERTICAL";
-    col.counterAxisSizingMode = "AUTO";
-    col.primaryAxisSizingMode = "AUTO";
-    col.itemSpacing = 4;
-    col.fills = [];
-    col.strokes = [];
-    col.name = `${label} Column`;
-
-    const labelText = figma.createText();
-    labelText.fontName = { family: "Figtree", style: "Medium" };
-    labelText.fontSize = TOKENS.fontSizeLabel;
-    labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-    labelText.opacity = 0.5;
-    labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-    labelText.characters = label;
-    col.appendChild(labelText);
-
-    const valueText = figma.createText();
-    valueText.fontName = { family: "Figtree", style: "Regular" };
-    valueText.fontSize = TOKENS.fontSizeBodyMd;
-    valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-    valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-    valueText.characters = value;
-    col.appendChild(valueText);
-
-    return col;
-  };
-
-  if (audience) {
-    row.appendChild(createColumn("Audience", audience));
-  }
-
-  if (sampleSize !== undefined && sampleSize > 0) {
-    row.appendChild(createColumn("Sample size", `${sampleSize.toLocaleString()} users`));
-  }
-
-  return row;
-}
-
-// CHAPTER 5: Timeline - full section with duration context
-async function createStoryTimeline(startDate?: string, endDate?: string): Promise<FrameNode> {
-  await loadFonts();
-  const section = figma.createFrame();
-  section.layoutMode = "VERTICAL";
-  section.counterAxisSizingMode = "AUTO";
-  section.primaryAxisSizingMode = "AUTO";
-  section.primaryAxisAlignItems = "MIN";
-  section.counterAxisAlignItems = "MIN";
-  section.layoutAlign = 'STRETCH';
-  section.itemSpacing = 4;
-  section.fills = [];
-  section.strokes = [];
-  section.name = "Timeline Section";
-
-  const labelText = figma.createText();
-  labelText.fontName = { family: "Figtree", style: "Medium" };
-  labelText.fontSize = TOKENS.fontSizeLabel;
-  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  labelText.opacity = 0.5;
-  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-  labelText.characters = "Timeline";
-  section.appendChild(labelText);
-
-  // Format dates
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  let timelineStr = '';
-  if (startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffMs = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    const weeks = Math.floor(diffDays / 7);
-    const days = diffDays % 7;
-    let durationStr = '';
-    if (weeks > 0 && days > 0) {
-      durationStr = `${weeks} week${weeks > 1 ? 's' : ''}, ${days} day${days > 1 ? 's' : ''}`;
-    } else if (weeks > 0) {
-      durationStr = `${weeks} week${weeks > 1 ? 's' : ''}`;
-    } else {
-      durationStr = `${days} day${days > 1 ? 's' : ''}`;
-    }
-    timelineStr = `${formatDate(startDate)} → ${formatDate(endDate)} (${durationStr})`;
-  } else if (startDate) {
-    timelineStr = `Started ${formatDate(startDate)}`;
-  } else if (endDate) {
-    timelineStr = `Ends ${formatDate(endDate)}`;
-  }
-
-  const valueText = figma.createText();
-  valueText.fontName = { family: "Figtree", style: "Regular" };
-  valueText.fontSize = TOKENS.fontSizeBodyMd;
-  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-  valueText.characters = timelineStr;
-  section.appendChild(valueText);
-
-  return section;
-}
-
-// CHAPTER 6: Outcome - narrative style for what happened
-async function createStoryOutcome(variantName: string, variantColor?: string): Promise<FrameNode> {
-  await loadFonts();
-  const section = figma.createFrame();
-  section.layoutMode = "VERTICAL";
-  section.counterAxisSizingMode = "AUTO";
-  section.primaryAxisSizingMode = "AUTO";
-  section.primaryAxisAlignItems = "MIN";
-  section.counterAxisAlignItems = "MIN";
-  section.layoutAlign = 'STRETCH';
-  section.itemSpacing = 4;
-  section.fills = [];
-  section.strokes = [];
-  section.name = "Outcome Section";
-
-  const labelText = figma.createText();
-  labelText.fontName = { family: "Figtree", style: "Medium" };
-  labelText.fontSize = TOKENS.fontSizeLabel;
-  labelText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  labelText.opacity = 0.5;
-  labelText.textAutoResize = "WIDTH_AND_HEIGHT";
-  labelText.characters = "Result";
-  section.appendChild(labelText);
-
-  // Narrative outcome with dot indicator
-  const valueRow = figma.createFrame();
-  valueRow.layoutMode = "HORIZONTAL";
-  valueRow.counterAxisSizingMode = "AUTO";
-  valueRow.primaryAxisSizingMode = "AUTO";
-  valueRow.itemSpacing = 6;
-  valueRow.counterAxisAlignItems = "CENTER";
-  valueRow.fills = [];
-  valueRow.strokes = [];
-  valueRow.name = "Value Row";
-
-  const dot = figma.createEllipse();
-  dot.resize(10, 10);
-  const color = variantColor || '#FFF420';
-  dot.fills = [{ type: "SOLID", color: hexToRgb(color) }];
-  dot.strokes = [];
-  dot.name = "Variant Dot";
-  valueRow.appendChild(dot);
-
-  // Narrative text
-  const valueText = figma.createText();
-  valueText.fontName = { family: "Figtree", style: "Medium" };
-  valueText.fontSize = TOKENS.fontSizeBodyMd;
-  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
-  valueText.characters = `${variantName} is now live for everyone`;
-  section.appendChild(valueRow);
-  valueRow.appendChild(valueText);
 
   return section;
 }
