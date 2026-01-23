@@ -2189,7 +2189,7 @@ if (figma.editorType === 'figma') {
 
     // Remove any existing flow frames with the same name/id
     const flowFrameName = `Experiment Flow — ${experiment.name}`;
-    const infoCardName = `Experiment Info — ${experiment.name}`;
+    const infoCardName = `Experiment Overview — ${experiment.name}`;
     const cardsContainerName = `Experiment Cards — ${experiment.name}`;
     const existingFlow = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === flowFrameName);
     if (existingFlow) existingFlow.remove();

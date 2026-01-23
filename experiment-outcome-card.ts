@@ -4,7 +4,7 @@ import { hexToRgb, getFontStyle, createBadge } from "./layout-utils";
 import { loadFonts } from "./load-fonts";
 
 /**
- * Experiment Outcome Card
+ * Experiment Metrics Card
  * 
  * Displays experiment metrics outcomes in a table format following growth experiment best practices:
  * - Clear comparison of variants against control
@@ -50,6 +50,25 @@ export interface ExperimentOutcomeData {
   primaryMetric?: string;  // Key of the primary decision metric
   metrics: MetricDefinition[];
   variants: VariantOutcome[];
+  dateCreated?: string; // Date when experiment was created (ISO format, auto-populated if not provided)
+}
+
+// Format date for display (e.g., "Jan 15, 2024")
+function formatDateForDisplay(dateString?: string): string {
+  if (!dateString) {
+    // Use current date if not provided
+    dateString = new Date().toISOString().split('T')[0];
+  }
+  try {
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  } catch {
+    return dateString; // Return original string if parsing fails
+  }
 }
 
 // Outcome status configuration
@@ -62,22 +81,22 @@ interface OutcomeStatusConfig {
 // Experiment status styles - consistent with Info Card and Plugin UI
 const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
   draft: {
-    label: 'Experiment draft',
+    label: 'Draft',
     bgColor: TOKENS.azure50,
     textColor: TOKENS.azure500,
   },
   running: {
-    label: 'Experiment running',
+    label: 'Running',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
   paused: {
-    label: 'Experiment paused',
+    label: 'Paused',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
   completed: {
-    label: 'Experiment ended',
+    label: 'Concluded',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
@@ -154,7 +173,7 @@ export async function createExperimentOutcomeCard(
   await loadFonts();
 
   const card = figma.createFrame();
-  card.name = `Experiment Outcome — ${data.experimentName}`;
+  card.name = `Experiment Metrics — ${data.experimentName}`;
   card.layoutMode = "VERTICAL";
   card.counterAxisSizingMode = "AUTO";
   card.primaryAxisSizingMode = "AUTO";
@@ -195,26 +214,25 @@ async function createHeaderSection(data: ExperimentOutcomeData): Promise<FrameNo
   section.fills = [];
   section.name = "Header Section";
 
-  // Badge row - Card type badge + Status badge
-  const badgeRow = figma.createFrame();
-  badgeRow.layoutMode = "HORIZONTAL";
-  badgeRow.counterAxisSizingMode = "AUTO";
-  badgeRow.primaryAxisSizingMode = "AUTO";
-  badgeRow.itemSpacing = 8;
-  badgeRow.fills = [];
-  badgeRow.name = "Badge Row";
-
-  // Card type badge (filled)
-  const typeBadge = createBadge('Outcome Report', 'filled', TOKENS.azure100, TOKENS.azure700);
-  badgeRow.appendChild(typeBadge);
+  // Date created label - auto-populated (above badge row)
+  const dateCreated = data.dateCreated || new Date().toISOString().split('T')[0];
+  const dateFormatted = formatDateForDisplay(dateCreated);
+  const dateLabel = figma.createText();
+  dateLabel.fontName = { family: "Figtree", style: "Regular" };
+  dateLabel.fontSize = TOKENS.fontSizeLabel;
+  dateLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary), opacity: 0.5 }];
+  dateLabel.textAutoResize = "WIDTH_AND_HEIGHT";
+  dateLabel.characters = dateFormatted;
+  dateLabel.name = "Date Created Label";
+  section.appendChild(dateLabel);
 
   // Status badge - filled for rolled_out (yellow), outlined for others
   const statusConfig = EXPERIMENT_STATUS_STYLES[data.status] || EXPERIMENT_STATUS_STYLES.running;
   const statusStyle = data.status === 'rolled_out' ? 'filled' : 'outlined';
-  const statusBadge = createBadge(statusConfig.label, statusStyle, statusConfig.bgColor, statusConfig.textColor);
-  badgeRow.appendChild(statusBadge);
-
-  section.appendChild(badgeRow);
+  // For outlined badges, use textColor for stroke to match info-card; for filled, use bgColor
+  const strokeOrFillColor = statusStyle === 'outlined' ? statusConfig.textColor : statusConfig.bgColor;
+  const statusBadge = createBadge(statusConfig.label, statusStyle, strokeOrFillColor, statusConfig.textColor);
+  section.appendChild(statusBadge);
 
   // Experiment name (Bold, 24px)
   const titleText = figma.createText();
@@ -699,7 +717,7 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
       recommendationText.characters = "A variant is now live for all users. Monitor for regressions.";
     }
   } else if (bestVariant) {
-    // Has a best performer (ended/completed status)
+    // Has a best performer (concluded/completed status)
     const metricName = primaryMetricDef?.name || 'primary metric';
     const bestMetric = primaryMetricKey ? bestVariant.metrics[primaryMetricKey] : undefined;
     const upliftText = bestMetric?.uplift ? formatUplift(bestMetric.uplift) : '';
@@ -740,6 +758,7 @@ export async function createOutcomeCardFromExperimentData(
     totalSampleSize?: number;
     status?: 'running' | 'completed' | 'paused' | 'draft' | 'rolled_out';
     primaryMetric?: string;
+    dateCreated?: string;
   }
 ): Promise<FrameNode> {
   // Find control variant (first variant or one marked as control)
@@ -790,6 +809,7 @@ export async function createOutcomeCardFromExperimentData(
     primaryMetric: options?.primaryMetric,
     metrics,
     variants: variantOutcomes,
+    dateCreated: options?.dateCreated,
   };
 
   return createExperimentOutcomeCard(data);

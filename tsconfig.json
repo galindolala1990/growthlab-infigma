@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["es6", "dom", "es2016", "esnext"],
+    "lib": ["es6", "es2016", "esnext"],
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@figma"
     ]
   },
-  "include": ["code.ts", "experiment-info-card.ts", "load-fonts.ts"],
+  "include": ["code.ts", "experiment-info-card.ts", "experiment-outcome-card.ts", "experiment-node.ts", "layout-utils.ts", "load-fonts.ts", "design-tokens.ts"],
   "exclude": ["node_modules", "build", "ui.tsx", "components", "setupTests.ts"]
 }

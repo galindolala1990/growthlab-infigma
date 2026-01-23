@@ -2624,7 +2624,7 @@
                 </div>
               </div>
 
-              <!-- Arrow indicator (shown when rolled_out is selected) -->
+              <!-- Arrow indicator (shown when Concluded is selected) -->
               <div class="status-arrow hidden" id="statusArrow">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12h14"/>
@@ -2632,10 +2632,10 @@
                 </svg>
               </div>
 
-              <!-- Rolled-out Variant Dropdown (shown only when status is "rolled_out") -->
+              <!-- Rolled-out Variant Dropdown (shown only when status is "Concluded") -->
               <div class="rolledout-field hidden" id="rolledoutField">
                 <div class="SelectField">
-                  <label class="SelectField__label">Variant</label>
+                  <label class="SelectField__label">Rolled out variant</label>
                   <div class="CustomDropdown" id="rolledoutVariantDropdown">
                     <button type="button" class="CustomDropdown__trigger placeholder" id="rolledoutVariantTrigger">
                       <span class="CustomDropdown__text">Add variants first</span>
@@ -3747,7 +3747,7 @@
         onChange: (value) => {
           variant.name = value;
           const statusInput = document.getElementById('experimentStatus');
-          if (statusInput && statusInput.value === 'rolled_out') {
+          if (statusInput && statusInput.value === 'completed') {
             updateRolledoutOptions();
           }
         }
@@ -4735,7 +4735,7 @@
           // Include all generic links as an array
           generic: relatedLinks.filter(l => l.provider === 'generic').map(l => l.url)
         },
-        outcomes: experimentStatus === 'rolled_out' && rolledoutVariant ? {
+        outcomes: experimentStatus === 'completed' && rolledoutVariant ? {
           winningPaths: [], // Could be filled if you want
           notes: '', // Could be filled if you want
           rolledoutVariantId: rolledoutVariant // Save the rolled-out variant ID
@@ -5104,8 +5104,7 @@
       { value: 'draft', label: 'Draft', color: '#94a3b8' },       // Light azure - less prominent
       { value: 'running', label: 'Running', color: '#506179' },   // Azure - active
       { value: 'paused', label: 'Paused', color: '#506179' },     // Azure - neutral state
-      { value: 'completed', label: 'Ended', color: '#506179' },   // Azure - neutral completion
-      { value: 'rolled_out', label: 'Rolled out', color: '#FFF420' }, // Yellow - deployed
+      { value: 'completed', label: 'Concluded', color: '#506179' },   // Azure - neutral completion
     ];
 
     /**
@@ -5191,7 +5190,7 @@
       const rolledoutField = document.getElementById('rolledoutField');
       const statusArrow = document.getElementById('statusArrow');
       
-      if (statusInput.value === 'rolled_out') {
+      if (statusInput.value === 'completed') {
         statusArrow.classList.remove('hidden');
         rolledoutField.classList.remove('hidden');
         updateRolledoutOptions();
@@ -5216,7 +5215,7 @@
       originalRenderEvents(eventsList);
       // Update rolled-out dropdown if it's visible
       const statusInput = document.getElementById('experimentStatus');
-      if (statusInput.value === 'rolled_out') {
+      if (statusInput.value === 'completed') {
         updateRolledoutOptions();
       }
     };

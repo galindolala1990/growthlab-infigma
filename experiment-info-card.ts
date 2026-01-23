@@ -248,6 +248,24 @@ export interface VariantData {
 // Status configuration matching the plugin UI dropdown
 export type ExperimentStatus = 'draft' | 'running' | 'paused' | 'completed' | 'rolled_out';
 
+// Format date for display (e.g., "Jan 15, 2024")
+function formatDateForDisplay(dateString?: string): string {
+  if (!dateString) {
+    // Use current date if not provided
+    dateString = new Date().toISOString().split('T')[0];
+  }
+  try {
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  } catch {
+    return dateString; // Return original string if parsing fails
+  }
+}
+
 interface StatusConfig {
   label: string;
   bgColor: string;
@@ -256,22 +274,22 @@ interface StatusConfig {
 
 const STATUS_STYLES: Record<ExperimentStatus, StatusConfig> = {
   draft: {
-    label: 'Experiment draft',
+    label: 'Draft',
     bgColor: TOKENS.azure50,
     textColor: TOKENS.azure500,
   },
   running: {
-    label: 'Experiment running',
+    label: 'Running',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
   paused: {
-    label: 'Experiment paused',
+    label: 'Paused',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
   completed: {
-    label: 'Experiment ended',
+    label: 'Concluded',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
@@ -309,6 +327,7 @@ export interface ExperimentCardOptions {
   primaryMetric?: string;
   rolledOutVariantName?: string;  // Name of the rolled out variant (if status is rolled_out)
   rolledOutVariantColor?: string; // Color of the rolled out variant
+  dateCreated?: string; // Date when experiment was created (ISO format, auto-populated if not provided)
 }
 
 export async function createExperimentInfoCard(
@@ -337,7 +356,7 @@ export async function createExperimentInfoCard(
   await loadFonts();
   // Container
   const card = figma.createFrame();
-  card.name = `Experiment Info — ${experimentName}`;
+  card.name = `Experiment Overview — ${experimentName}`;
   card.layoutMode = "VERTICAL";
   card.counterAxisSizingMode = "AUTO";
   card.primaryAxisSizingMode = "AUTO";
@@ -355,7 +374,7 @@ export async function createExperimentInfoCard(
   const statusConfig = STATUS_STYLES[status] || STATUS_STYLES.running;
 
   // === SECTION 1: HEADER (Badge row + Name + Description) ===
-  const headerSection = await createStoryHeaderWithBadges(experimentName, description || "", statusConfig);
+  const headerSection = await createStoryHeaderWithBadges(experimentName, description || "", statusConfig, options);
   card.appendChild(headerSection);
 
   // === SECTION 2: HYPOTHESIS (The key question) ===
@@ -486,7 +505,7 @@ export async function createExperimentInfoCard(
   if (options?.showOutcomeCard && options?.variants && options.variants.length > 0 && metrics && metrics.length > 0) {
     // Create container frame for both cards
     const container = figma.createFrame();
-    container.name = `Experiment Info — ${experimentName}`;
+    container.name = `Experiment Overview — ${experimentName}`;
     container.layoutMode = "VERTICAL";
     container.counterAxisSizingMode = "AUTO";
     container.primaryAxisSizingMode = "AUTO";
@@ -509,6 +528,7 @@ export async function createExperimentInfoCard(
         endDate: options.endDate,
         audience: options.audience,
         totalSampleSize: options.totalSampleSize,
+        dateCreated: options.dateCreated,
         status: status,
         primaryMetric: options.primaryMetric,
       }
@@ -631,7 +651,7 @@ async function appendDetailsSection(
 }
 
 // SECTION 1: Header with badge row (card type + status) + title + description
-async function createStoryHeaderWithBadges(experimentName: string, description: string, statusConfig: StatusConfig): Promise<FrameNode> {
+async function createStoryHeaderWithBadges(experimentName: string, description: string, statusConfig: StatusConfig, options?: ExperimentCardOptions): Promise<FrameNode> {
   await loadFonts();
   const section = figma.createFrame();
   section.layoutMode = "VERTICAL";
@@ -645,38 +665,17 @@ async function createStoryHeaderWithBadges(experimentName: string, description: 
   section.strokes = [];
   section.name = "Header Section";
 
-  // Badge row - Card type badge + Status badge
-  const badgeRow = figma.createFrame();
-  badgeRow.layoutMode = "HORIZONTAL";
-  badgeRow.counterAxisSizingMode = "AUTO";
-  badgeRow.primaryAxisSizingMode = "AUTO";
-  badgeRow.itemSpacing = 8;
-  badgeRow.fills = [];
-  badgeRow.name = "Badge Row";
-
-  // Card type badge (filled)
-  const typeBadge = figma.createFrame();
-  typeBadge.layoutMode = "HORIZONTAL";
-  typeBadge.counterAxisSizingMode = "FIXED";
-  typeBadge.primaryAxisSizingMode = "AUTO";
-  typeBadge.minHeight = 16;
-  typeBadge.maxHeight = 16;
-  typeBadge.paddingLeft = typeBadge.paddingRight = 4;
-  typeBadge.paddingTop = typeBadge.paddingBottom = 2;
-  typeBadge.cornerRadius = 4;
-  typeBadge.counterAxisAlignItems = "CENTER";
-  typeBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure100) }];
-  typeBadge.name = "Card Type Badge";
-  
-  const typeText = figma.createText();
-  typeText.fontName = { family: "Figtree", style: "Medium" };
-  typeText.fontSize = 9;
-  typeText.lineHeight = { unit: "PIXELS", value: 10 };
-  typeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure700) }];
-  typeText.textAutoResize = "WIDTH_AND_HEIGHT";
-  typeText.characters = "Experiment Info";
-  typeBadge.appendChild(typeText);
-  badgeRow.appendChild(typeBadge);
+  // Date created label - auto-populated (above badge row)
+  const dateCreated = options?.dateCreated || new Date().toISOString().split('T')[0];
+  const dateFormatted = formatDateForDisplay(dateCreated);
+  const dateLabel = figma.createText();
+  dateLabel.fontName = { family: "Figtree", style: "Regular" };
+  dateLabel.fontSize = TOKENS.fontSizeLabel;
+  dateLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary), opacity: 0.5 }];
+  dateLabel.textAutoResize = "WIDTH_AND_HEIGHT";
+  dateLabel.characters = dateFormatted;
+  dateLabel.name = "Date Created Label";
+  section.appendChild(dateLabel);
 
   // Status badge - filled for rolled_out, outlined for others
   const statusBadge = figma.createFrame();
@@ -709,9 +708,7 @@ async function createStoryHeaderWithBadges(experimentName: string, description: 
   statusText.textAutoResize = "WIDTH_AND_HEIGHT";
   statusText.characters = statusConfig.label;
   statusBadge.appendChild(statusText);
-  badgeRow.appendChild(statusBadge);
-
-  section.appendChild(badgeRow);
+  section.appendChild(statusBadge);
 
   // Title (Bold, 24px)
   const titleText = figma.createText();
@@ -781,7 +778,7 @@ async function createStoryHypothesis(hypothesis: string): Promise<FrameNode> {
 // ============================================
 
 // Card header with badges, title, and description
-async function createCardHeader(experimentName: string, description: string, statusConfig: StatusConfig): Promise<FrameNode> {
+async function createCardHeader(experimentName: string, description: string, statusConfig: StatusConfig, options?: ExperimentCardOptions): Promise<FrameNode> {
   await loadFonts();
   const section = figma.createFrame();
   section.layoutMode = "VERTICAL";
@@ -795,38 +792,17 @@ async function createCardHeader(experimentName: string, description: string, sta
   section.strokes = [];
   section.name = "Header Section";
 
-  // Badge row - Card type badge + Status badge
-  const badgeRow = figma.createFrame();
-  badgeRow.layoutMode = "HORIZONTAL";
-  badgeRow.counterAxisSizingMode = "AUTO";
-  badgeRow.primaryAxisSizingMode = "AUTO";
-  badgeRow.itemSpacing = 8;
-  badgeRow.fills = [];
-  badgeRow.name = "Badge Row";
-
-  // Card type badge (filled)
-  const typeBadge = figma.createFrame();
-  typeBadge.layoutMode = "HORIZONTAL";
-  typeBadge.counterAxisSizingMode = "FIXED";
-  typeBadge.primaryAxisSizingMode = "AUTO";
-  typeBadge.minHeight = 16;
-  typeBadge.maxHeight = 16;
-  typeBadge.paddingLeft = typeBadge.paddingRight = 4;
-  typeBadge.paddingTop = typeBadge.paddingBottom = 2;
-  typeBadge.cornerRadius = 4;
-  typeBadge.counterAxisAlignItems = "CENTER";
-  typeBadge.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure100) }];
-  typeBadge.name = "Card Type Badge";
-  
-  const typeText = figma.createText();
-  typeText.fontName = { family: "Figtree", style: "Medium" };
-  typeText.fontSize = 9;
-  typeText.lineHeight = { unit: "PIXELS", value: 10 };
-  typeText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.azure700) }];
-  typeText.textAutoResize = "WIDTH_AND_HEIGHT";
-  typeText.characters = "Experiment Info";
-  typeBadge.appendChild(typeText);
-  badgeRow.appendChild(typeBadge);
+  // Date created label - auto-populated (above badge row)
+  const dateCreatedCompact = options?.dateCreated || new Date().toISOString().split('T')[0];
+  const dateFormattedCompact = formatDateForDisplay(dateCreatedCompact);
+  const dateLabelCompact = figma.createText();
+  dateLabelCompact.fontName = { family: "Figtree", style: "Regular" };
+  dateLabelCompact.fontSize = TOKENS.fontSizeLabel;
+  dateLabelCompact.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary), opacity: 0.5 }];
+  dateLabelCompact.textAutoResize = "WIDTH_AND_HEIGHT";
+  dateLabelCompact.characters = dateFormattedCompact;
+  dateLabelCompact.name = "Date Created Label";
+  section.appendChild(dateLabelCompact);
 
   // Status badge - filled for rolled_out, outlined for others
   const statusBadge = figma.createFrame();
@@ -859,9 +835,7 @@ async function createCardHeader(experimentName: string, description: string, sta
   statusText.textAutoResize = "WIDTH_AND_HEIGHT";
   statusText.characters = statusConfig.label;
   statusBadge.appendChild(statusText);
-  badgeRow.appendChild(statusBadge);
-
-  section.appendChild(badgeRow);
+  section.appendChild(statusBadge);
 
   // Title (Bold, 24px)
   const titleText = figma.createText();

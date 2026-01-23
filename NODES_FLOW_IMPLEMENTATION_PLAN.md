@@ -54,8 +54,8 @@ Three connector types are defined in the schema:
 
 ### 1.3 Current Layout Structure
 
-```
-[Experiment Info Card]  [Entry] → [Event 1] → [Event 2] → [Exit]
+```text
+[Experiment Overview Card]  [Entry] → [Event 1] → [Event 2] → [Exit]
                               ↓         ↓
                           [Var A]   [Var A]
                           [Var B]   [Var B]
@@ -64,6 +64,7 @@ Three connector types are defined in the schema:
 ```
 
 **Layout Properties:**
+
 - Main flow: Horizontal auto-layout
 - Event groups: Vertical auto-layout
 - Variants: Vertical stack within event group
@@ -99,6 +100,7 @@ interface EntryNodeCard {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Enhance `createNodeCard()` to support entry-specific styling
 - [ ] Add note/description support
 - [ ] Implement proper spacing and alignment
@@ -132,6 +134,7 @@ interface EventNodeCard {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Verify thumbnail placeholder pattern
 - [ ] Ensure variant count updates dynamically
 - [ ] Add hover states (if interactive)
@@ -170,6 +173,7 @@ interface VariantNodeCard {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Add status badges (winner/running)
 - [ ] Add traffic percentage display
 - [ ] Support variant-specific color accents
@@ -197,6 +201,7 @@ interface ExitNodeCard {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Create dedicated exit node styling
 - [ ] Add visual distinction from entry node
 - [ ] Support outcome annotations
@@ -211,6 +216,7 @@ interface ExitNodeCard {
 **Status:** ✅ Functional but needs enhancement
 
 **Current Approach:**
+
 - Uses VectorNode with custom path drawing
 - Calculates edge-to-edge connection points
 - Supports horizontal and vertical elbow connectors
@@ -247,6 +253,7 @@ interface ConnectorSystem {
 **Implementation Tasks:**
 
 1. **Enhanced Connector Function**
+
    - [ ] Create `createConnectorV2()` function
    - [ ] Support all three connector types
    - [ ] Implement type-specific styling
@@ -254,24 +261,28 @@ interface ConnectorSystem {
    - [ ] Support curved/bezier paths (optional)
 
 2. **Connection Point Calculation**
+
    - [ ] Improve edge-to-edge point detection
    - [ ] Support magnet points (LEFT, RIGHT, TOP, BOTTOM)
    - [ ] Handle auto-layout position changes
    - [ ] Calculate optimal routing paths
 
 3. **Arrowhead Rendering**
+
    - [ ] Unified arrowhead creation function
    - [ ] Support different arrowhead styles
    - [ ] Proper sizing relative to stroke weight
    - [ ] Color matching with connector
 
 4. **Label Support**
+
    - [ ] Traffic percentage labels on branch lines
    - [ ] Metric labels on merge lines
    - [ ] Optional text annotations
    - [ ] Proper positioning relative to connector
 
 5. **Refresh/Update System**
+
    - [ ] Connector refresh on node movement
    - [ ] Dynamic connector updates
    - [ ] Cleanup of orphaned connectors
@@ -303,6 +314,7 @@ interface RoutingStrategy {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Implement smart routing algorithm
 - [ ] Support for complex branching patterns
 - [ ] Avoid overlapping connectors
@@ -339,6 +351,7 @@ interface FlowFrame {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Ensure proper spacing configuration
 - [ ] Support vertical layout option
 - [ ] Add background styling options
@@ -363,6 +376,7 @@ interface EventGroup {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Optimize spacing for variant branches
 - [ ] Support horizontal variant layout option
 - [ ] Ensure proper alignment
@@ -386,6 +400,7 @@ interface VariantsContainer {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Support both vertical and horizontal layouts
 - [ ] Optimize for many variants (scrolling/wrapping)
 - [ ] Ensure consistent spacing
@@ -452,6 +467,7 @@ interface UIEnhancements {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Improve form layout and styling
 - [ ] Add validation and error handling
 - [ ] Implement drag-and-drop for events
@@ -470,7 +486,7 @@ interface UIEnhancements {
 
 **Enhanced Flow:**
 
-```
+```text
 1. Plugin Opens
    ↓
 2. Welcome/Quick Start Screen (optional)
@@ -499,6 +515,7 @@ interface UIEnhancements {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Design welcome/onboarding screen
 - [ ] Create preview panel component
 - [ ] Implement edit/update flow functionality
@@ -588,6 +605,7 @@ interface StateManagement {
 ```
 
 **Implementation Tasks:**
+
 - [ ] Create state management system
 - [ ] Implement undo/redo functionality
 - [ ] Add state persistence (localStorage)
@@ -598,6 +616,7 @@ interface StateManagement {
 ## 3. Implementation Phases
 
 ### Phase 1: Core Node Cards (Week 1-2)
+
 **Priority: High**
 
 - [ ] Enhance entry node card
@@ -613,6 +632,7 @@ interface StateManagement {
 - Proper metadata for node identification
 
 ### Phase 2: Connector System (Week 2-3)
+
 **Priority: High**
 
 - [ ] Create `createConnectorV2()` function
@@ -630,6 +650,7 @@ interface StateManagement {
 - Connectors update on node movement
 
 ### Phase 3: Layout System (Week 3-4)
+
 **Priority: Medium**
 
 - [ ] Optimize flow frame layout
@@ -645,6 +666,7 @@ interface StateManagement {
 - Proper spacing and alignment
 
 ### Phase 4: UI/UX Enhancements (Week 4-5)
+
 **Priority: Medium**
 
 - [ ] Improve plugin UI styling
@@ -660,6 +682,7 @@ interface StateManagement {
 - Helpful guidance for users
 
 ### Phase 5: Advanced Features (Week 5-6)
+
 **Priority: Low**
 
 - [ ] Save/load flow templates
@@ -830,24 +853,29 @@ interface StateManagement {
 ### 7.1 Technical Risks
 
 1. **Figma Auto-Layout Quirks**
+
    - Risk: Positioning issues with absolute connectors
    - Mitigation: Use absoluteTransform, add delays, test thoroughly
 
 2. **Performance with Many Nodes**
+
    - Risk: Slow rendering with 10+ events/variants
    - Mitigation: Optimize rendering, consider virtualization
 
 3. **Connector Routing Complexity**
+
    - Risk: Overlapping or confusing connectors
    - Mitigation: Smart routing algorithm, user feedback
 
 ### 7.2 UX Risks
 
 1. **Complex Flow Creation**
+
    - Risk: Users find it difficult to create flows
    - Mitigation: Better UI, tutorials, templates
 
 2. **Connector Confusion**
+
    - Risk: Users don't understand connector types
    - Mitigation: Visual distinction, labels, tooltips
 
@@ -881,21 +909,25 @@ interface StateManagement {
 ## 9. Next Steps
 
 1. **Review and Approve Plan**
+
    - Review this document with stakeholders
    - Get feedback on priorities
    - Adjust timeline if needed
 
 2. **Set Up Development Environment**
+
    - Ensure all dependencies are installed
    - Set up testing framework
    - Configure build tools
 
 3. **Begin Phase 1 Implementation**
+
    - Start with node card enhancements
    - Create detailed task breakdown
    - Set up project tracking
 
 4. **Regular Reviews**
+
    - Weekly progress reviews
    - Adjust plan based on learnings
    - Update documentation
