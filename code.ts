@@ -2218,14 +2218,14 @@ if (figma.editorType === 'figma') {
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
           const rolledOutId = experiment.outcomes?.rolledoutVariantId;
-          // Use isControl from variant data (set by checkbox in ui.html), only show baseline badge when explicitly true
+          // Use isControl from variant data (single-select baseline in ui.html), only show baseline badge when explicitly true
           const finalIsControl = (variant as any).isControl === true ? true : false;
           allVariants.push({
             id: variant.id,
             key: variant.key,
             name: variant.name || `Variant ${variant.key}`,
             description: variant.description,
-            // Use isControl from variant data (set by checkbox in ui.html), only show baseline badge when explicitly true
+            // Use isControl from variant data (single-select baseline in ui.html), only show baseline badge when explicitly true
             isControl: finalIsControl,
             traffic: variant.traffic,
             metrics: variant.metrics,
@@ -2235,6 +2235,16 @@ if (figma.editorType === 'figma') {
           });
         });
       }
+    }
+
+    // Safety: enforce AT MOST one baseline/control for the outcome card data.
+    // If none is explicitly set, keep none (outcome card will fall back to first variant for comparison).
+    if (allVariants.length > 0) {
+      const firstControlIndex = allVariants.findIndex(v => v.isControl === true);
+      const resolvedControlIndex = firstControlIndex >= 0 ? firstControlIndex : -1;
+      allVariants.forEach((v, i) => {
+        v.isControl = resolvedControlIndex >= 0 ? i === resolvedControlIndex : false;
+      });
     }
 
     // Create experiment info card with two-panel structure (content + resources)

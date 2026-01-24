@@ -369,7 +369,7 @@ async function createMetricsTable(data: ExperimentOutcomeData): Promise<FrameNod
 }
 
 /**
- * Create table header row with Goal, Baseline, and variant names
+ * Create table header row with Goal and variant names (in variant order)
  */
 async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: number): Promise<FrameNode> {
   const row = figma.createFrame();
@@ -400,68 +400,20 @@ async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: n
   goalHeader.minWidth = 100;
   row.appendChild(goalHeader);
 
-  // Third column: Control/Baseline variant header (flexible width, same as variants)
-  // Always show baseline column with first variant or explicitly marked control variant
-  // The baseline badge only appears if the variant is explicitly marked as control (checkbox checked)
-  const trueControlVariant = data.variants.find(v => v.isControl === true);
-  const baselineVariant = trueControlVariant || data.variants[0];
-  
-  if (baselineVariant) {
-    const variantName = baselineVariant.name || `Variant ${baselineVariant.key}`;
-    // STRICT CHECK: Only show badge if isControl is explicitly boolean true
-    // Check both that it equals true AND that it's actually a boolean (not truthy string, number, etc.)
-    const isExplicitlyControl = baselineVariant.isControl === true && typeof baselineVariant.isControl === 'boolean';
-    
-    // Create a custom header cell with variant name and optional baseline badge
-    const baselineHeader = figma.createFrame();
-    baselineHeader.layoutMode = "HORIZONTAL";
-    baselineHeader.counterAxisSizingMode = "FIXED";
-    baselineHeader.primaryAxisSizingMode = "FIXED";
-    baselineHeader.resize(100, 40);
-    baselineHeader.minWidth = 80;
-    baselineHeader.counterAxisAlignItems = "CENTER";
-    baselineHeader.primaryAxisAlignItems = "CENTER";
-    baselineHeader.itemSpacing = 6;
-    baselineHeader.paddingLeft = 12;
-    baselineHeader.paddingRight = 8;
-    baselineHeader.fills = [];
-    baselineHeader.layoutGrow = 1; // Grow to fill available space (flexible)
-    baselineHeader.name = `Baseline Header: ${variantName}`;
-    
-    // Variant name text (always shown)
-    const nameText = figma.createText();
-    nameText.fontName = getFontStyle("Medium");
-    nameText.fontSize = TOKENS.fontSizeBodySm;
-    nameText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
-    nameText.textAutoResize = "WIDTH_AND_HEIGHT";
-    nameText.characters = variantName;
-    baselineHeader.appendChild(nameText);
-    
-    // Baseline badge (ONLY if explicitly marked as control - checkbox checked)
-    // STRICT CHECK: must be boolean true, not just truthy
-    // Only show badge if isControl is EXACTLY boolean true
-    if (isExplicitlyControl) {
-      const baselineBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
-      baselineHeader.appendChild(baselineBadge);
+  // Variant headers: render in the SAME order as provided (do not move columns around).
+  // If a variant is explicitly marked as baseline/control, it will show the badge in its own header.
+  if (data.variants.length > 0) {
+    for (const variant of data.variants) {
+      const variantHeader = createVariantHeaderCell(variant);
+      variantHeader.layoutGrow = 1; // Grow to fill available space
+      variantHeader.minWidth = 80;
+      row.appendChild(variantHeader);
     }
-    
-    row.appendChild(baselineHeader);
   } else {
-    // No variants at all - show just "Baseline" as column name
-    const baselineHeader = createTableCell('Baseline', 100, true, true);
-    baselineHeader.layoutGrow = 1; // Grow to fill available space (flexible)
-    baselineHeader.minWidth = 80; // Same min width as variants
-    row.appendChild(baselineHeader);
-  }
-
-  // Variant headers: only variants that are NOT in the baseline column (grow to fill space)
-  // Exclude the baseline variant (explicitly marked control or first variant)
-  const baselineVariantId = baselineVariant?.id;
-  const nonBaselineVariants = data.variants.filter(v => v.id !== baselineVariantId);
-  for (const variant of nonBaselineVariants) {
-    const variantHeader = createVariantHeaderCell(variant);
-    variantHeader.layoutGrow = 1; // Grow to fill available space
-    variantHeader.minWidth = 80; // Same min width as baseline
+    // No variants at all - show a generic "Variant" column name
+    const variantHeader = createTableCell('Variant', 100, true, true);
+    variantHeader.layoutGrow = 1; // Grow to fill available space (flexible)
+    variantHeader.minWidth = 80;
     row.appendChild(variantHeader);
   }
 
@@ -472,8 +424,13 @@ async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: n
  * Create a variant header cell with name and optional badges
  */
 function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
+  const variantName = variant.name || `Variant ${variant.key}`;
+  // STRICT CHECK: Only show badge if isControl is explicitly boolean true (checkbox checked)
+  // Must be boolean true, not just truthy
+  const isExplicitlyControl = variant.isControl === true && typeof variant.isControl === 'boolean';
+
   const cell = figma.createFrame();
-  cell.layoutMode = "VERTICAL";
+  cell.layoutMode = "HORIZONTAL";
   cell.counterAxisSizingMode = "FIXED"; // Fixed height
   cell.primaryAxisSizingMode = "FIXED"; // Fixed width (will be overridden by layoutGrow)
   cell.layoutAlign = "STRETCH";
@@ -481,15 +438,11 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   cell.resize(100, 40);
   cell.counterAxisAlignItems = "CENTER";
   cell.primaryAxisAlignItems = "CENTER";
-  cell.itemSpacing = 2;
-  cell.paddingLeft = cell.paddingRight = 8;
+  cell.itemSpacing = 6;
+  cell.paddingLeft = 12;
+  cell.paddingRight = 8;
   cell.fills = [];
-  cell.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.borderDark) }];
-  cell.strokeWeight = .5;
-  cell.strokeTopWeight = 0;
-  cell.strokeRightWeight = 0;
-  cell.strokeBottomWeight = 0;
-  cell.name = `Header: ${variant.name}`;
+  cell.name = `Variant Header: ${variantName}`;
 
   // Variant name
   const nameText = figma.createText();
@@ -497,38 +450,17 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   nameText.fontSize = TOKENS.fontSizeBodySm;
   nameText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
   nameText.textAutoResize = "WIDTH_AND_HEIGHT";
-  nameText.textAlignHorizontal = "CENTER";
-  nameText.characters = variant.name || `Variant ${variant.key}`;
+  nameText.characters = variantName;
   cell.appendChild(nameText);
 
-  // Sub-label row (control/rolled out indicator)
-  const subRow = figma.createFrame();
-  subRow.layoutMode = "HORIZONTAL";
-  subRow.counterAxisSizingMode = "AUTO";
-  subRow.primaryAxisSizingMode = "AUTO";
-  subRow.itemSpacing = 4;
-  subRow.fills = [];
-  subRow.name = "Sub Labels";
-
-  // STRICT CHECK: Only show badge if isControl is explicitly boolean true (checkbox checked)
-  // Must be boolean true, not just truthy
-  const isExplicitlyControl = variant.isControl === true && typeof variant.isControl === 'boolean';
-  
   if (isExplicitlyControl) {
     const controlBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
-    subRow.appendChild(controlBadge);
+    cell.appendChild(controlBadge);
   }
 
   if (variant.isRolledOut) {
     const rolledOutBadge = createBadge('Rolled Out', 'micro', '#FFF420', TOKENS.textPrimary);
-    subRow.appendChild(rolledOutBadge);
-  }
-
-  if (subRow.children.length > 0) {
-    cell.appendChild(subRow);
-  } else {
-    // Remove unused frame to prevent floating empty frames
-    subRow.remove();
+    cell.appendChild(rolledOutBadge);
   }
 
   return cell;
@@ -655,34 +587,24 @@ async function createMetricRow(
   goalCell.layoutGrow = 0; // Don't grow
   row.appendChild(goalCell);
 
-  // Find control variant for baseline column (first variant or explicitly marked control)
-  // The baseline column always shows, but badge only appears if checkbox is checked
-  const controlVariant = variants.find(v => v.isControl === true) || variants[0];
-  
-  // Baseline cell (flexible width, same as variants) - shows control variant value
-  // Always create this cell (baseline column always exists)
-  if (controlVariant) {
-    const baselineMetricData = controlVariant.metrics[metricKey];
-    const baselineCell = createBaselineCell(baselineMetricData, controlVariant, isPrimary);
-    baselineCell.layoutGrow = 1; // Grow to fill available space (flexible)
-    row.appendChild(baselineCell);
-  } else {
-    // Empty baseline cell if no variants at all
-    const emptyBaselineCell = createTableCell('--', 100, false, true);
-    emptyBaselineCell.layoutGrow = 1; // Grow to fill available space (flexible)
-    emptyBaselineCell.minWidth = 80; // Same min width as variants
-    row.appendChild(emptyBaselineCell);
-  }
+  // Render variant value cells in the SAME order as provided.
+  // Treat the comparison variant (explicit baseline/control if set, otherwise first variant)
+  // as the "no-uplift" column, but do NOT move it.
+  const comparisonVariant = variants.find(v => v.isControl === true) || variants[0];
 
-  // Value cells for variants that are NOT in the baseline column (grow to fill space)
-  // Exclude the baseline variant (explicitly marked control or first variant) from variant columns
-  const baselineVariantId = controlVariant?.id;
-  const nonBaselineVariants = variants.filter(v => v.id !== baselineVariantId);
-  for (const variant of nonBaselineVariants) {
-    const metricData = variant.metrics[metricKey];
-    const valueCell = createMetricValueCell(metricData, false, isPrimary, metric);
-    valueCell.layoutGrow = 1; // Grow to fill available space
-    row.appendChild(valueCell);
+  if (variants.length > 0) {
+    for (const variant of variants) {
+      const metricData = variant.metrics[metricKey];
+      const isComparison = !!comparisonVariant && variant.id === comparisonVariant.id;
+      const valueCell = createMetricValueCell(metricData, isComparison, isPrimary, metric);
+      valueCell.layoutGrow = 1; // Grow to fill available space
+      row.appendChild(valueCell);
+    }
+  } else {
+    // No variants at all - still render one placeholder value cell to match header.
+    const emptyValueCell = createMetricValueCell(undefined, true, isPrimary, metric);
+    emptyValueCell.layoutGrow = 1;
+    row.appendChild(emptyValueCell);
   }
 
   return row;

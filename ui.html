@@ -1521,7 +1521,7 @@
       min-width: auto;
     }
 
-    /* Variant significance checkbox */
+    /* Variant baseline checkbox (0 or 1 selected) */
     .variant-significance-row {
       display: flex;
       align-items: center;
@@ -3902,7 +3902,7 @@
       optionsRow.style.gap = '16px';
       optionsRow.style.flexWrap = 'wrap';
 
-      // Control checkbox - allows marking this variant as the baseline
+      // Baseline checkbox (0 or 1 selected) - marks which variant is the baseline/control
       const controlRow = document.createElement('div');
       controlRow.className = 'variant-significance-row';
       
@@ -3910,25 +3910,49 @@
       controlCheckbox.type = 'checkbox';
       controlCheckbox.className = 'variant-significance-checkbox';
       controlCheckbox.id = `variant-control-${eventIndex}-${variantIndex}`;
-      // Default first variant as control, or use stored value
-      // Only check if isControl is explicitly true, or if undefined and it's the first variant
-      controlCheckbox.checked = variant.isControl === true || (variant.isControl === undefined && variantIndex === 0);
-      // Explicitly set isControl based on checkbox state (true or false, not undefined)
+      // Enforce AT MOST one baseline per event.
+      // If multiple are true (bad state), keep the first and clear the rest.
+      const firstControlIndex = events[eventIndex].variants.findIndex(v => v.isControl === true);
+      if (firstControlIndex >= 0 && variantIndex !== firstControlIndex) {
+        variant.isControl = false;
+      }
+      controlCheckbox.checked = variant.isControl === true;
+      // Explicitly set isControl based on checkbox state (true/false, never undefined)
       variant.isControl = controlCheckbox.checked === true;
       
       const controlLabel = document.createElement('label');
       controlLabel.className = 'variant-significance-label';
       controlLabel.htmlFor = `variant-control-${eventIndex}-${variantIndex}`;
-      controlLabel.textContent = 'Control (baseline)';
+      controlLabel.textContent = 'Baseline';
       
       controlRow.appendChild(controlCheckbox);
       controlRow.appendChild(controlLabel);
       optionsRow.appendChild(controlRow);
 
-      // Control checkbox change handler
+      // Baseline checkbox change handler (0 or 1 selected)
       controlCheckbox.addEventListener('change', () => {
-        // Explicitly set to true or false (not undefined) based on checkbox state
-        variant.isControl = controlCheckbox.checked === true;
+        if (controlCheckbox.checked) {
+          // Clear any existing baseline and set this one
+          events[eventIndex].variants.forEach((v, i) => {
+            v.isControl = i === variantIndex;
+          });
+        } else {
+          // Allow no baseline
+          variant.isControl = false;
+        }
+
+        // Sync UI so selecting one baseline unchecks the others immediately
+        const baselineInputs = document.querySelectorAll(`input[id^="variant-control-${eventIndex}-"]`);
+        baselineInputs.forEach((el) => {
+          if (!el || typeof el.id !== 'string') return;
+          const match = el.id.match(new RegExp(`^variant-control-${eventIndex}-(\\d+)$`));
+          if (!match) return;
+          const idx = parseInt(match[1], 10);
+          if (Number.isNaN(idx)) return;
+          if (!events[eventIndex]?.variants?.[idx]) return;
+          // Ensure only the data-backed baseline stays checked
+          el.checked = events[eventIndex].variants[idx].isControl === true;
+        });
       });
 
       metricsSection.appendChild(optionsRow);
@@ -4128,8 +4152,8 @@
           label: String.fromCharCode(65 + variantIndex),
           trafficPercent: 50,
           color: defaultColor,
-          // Only set isControl to true for first variant, explicitly false for others
-          isControl: variantIndex === 0 ? true : false,
+          // Default to no baseline; user can optionally select one (at most one)
+          isControl: false,
           metrics: {}
         });
         renderEvents(events);
