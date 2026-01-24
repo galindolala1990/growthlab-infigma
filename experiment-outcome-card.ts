@@ -3,6 +3,60 @@ import { TOKENS } from "./design-tokens";
 import { hexToRgb, getFontStyle, createBadge } from "./layout-utils";
 import { loadFonts } from "./load-fonts";
 
+// Baseline label constant - only used when variant is explicitly marked as control
+const BASELINE_LABEL = "(Baseline)";
+
+// Lucide star-filled icon SVG markup (complete SVG for figma.createNodeFromSvg)
+const LUCIDE_STAR_FILLED_SVG = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>
+</svg>`;
+
+/**
+ * Create lucide-star-filled icon as a Figma frame from SVG
+ * @param size - Icon size in pixels (default 12)
+ * @param color - RGB color for the icon (default azure700)
+ * @returns FrameNode containing the vector icon
+ */
+function createLucideStarFilledIcon(size: number = 12, color: RGB = hexToRgb(TOKENS.azure700)): FrameNode {
+  try {
+    // Create node from SVG - this returns a FrameNode with vectors inside
+    const svgNode = figma.createNodeFromSvg(LUCIDE_STAR_FILLED_SVG);
+    svgNode.name = 'Star Icon';
+    
+    // Update fill color to match the desired color
+    function updateFillColors(node: SceneNode) {
+      if (node.type === 'VECTOR' || node.type === 'ELLIPSE' || node.type === 'POLYGON' || node.type === 'STAR' || node.type === 'RECTANGLE') {
+        const fills = (node as any).fills;
+        if (Array.isArray(fills) && fills.length > 0) {
+          (node as any).fills = [{ type: 'SOLID', color }];
+        }
+      } else if ('children' in node) {
+        for (const child of node.children) {
+          updateFillColors(child);
+        }
+      }
+    }
+    updateFillColors(svgNode);
+    
+    // Scale to target size (SVG viewBox is 24x24)
+    svgNode.resize(size, size);
+    
+    // Flatten to clean up the structure
+    svgNode.fills = [];
+    
+    return svgNode;
+  } catch (e) {
+    console.error('Failed to create star icon:', e);
+    
+    // Fallback: create empty frame
+    const fallback = figma.createFrame();
+    fallback.name = 'Star Icon (fallback)';
+    fallback.resize(size, size);
+    fallback.fills = [];
+    return fallback;
+  }
+}
+
 /**
  * Experiment Metrics Card
  * 
@@ -110,7 +164,7 @@ const EXPERIMENT_STATUS_STYLES: Record<string, OutcomeStatusConfig> = {
 // Variant outcome styles (for table rows, not header)
 const VARIANT_OUTCOME_STYLES: Record<string, OutcomeStatusConfig> = {
   control: {
-    label: 'Control',
+    label: 'Baseline',
     bgColor: TOKENS.azure100,
     textColor: TOKENS.azure700,
   },
@@ -184,7 +238,8 @@ export async function createExperimentOutcomeCard(
   card.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsSurface) }];
   card.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   card.strokeWeight = 1;
-  card.minWidth = 480;
+  card.minWidth = 792;
+  card.minHeight = 612;
 
   // Header section
   const headerSection = await createHeaderSection(data);
@@ -314,7 +369,7 @@ async function createMetricsTable(data: ExperimentOutcomeData): Promise<FrameNod
 }
 
 /**
- * Create table header row with variant names
+ * Create table header row with Goal, Baseline, and variant names
  */
 async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: number): Promise<FrameNode> {
   const row = figma.createFrame();
@@ -336,14 +391,77 @@ async function createTableHeaderRow(data: ExperimentOutcomeData, variantCount: n
   // First column: Metric label (fixed width)
   const metricHeader = createTableCell('Metric', 140, true, false);
   metricHeader.layoutGrow = 0; // Don't grow
-  metricHeader.minWidth = 150;
+  metricHeader.minWidth = 200;
   row.appendChild(metricHeader);
 
-  // Each variant header: grows to fill space
-  for (const variant of data.variants) {
+  // Second column: Goal label (fixed width)
+  const goalHeader = createTableCell('Goal', 100, true, true);
+  goalHeader.layoutGrow = 0; // Don't grow
+  goalHeader.minWidth = 100;
+  row.appendChild(goalHeader);
+
+  // Third column: Control/Baseline variant header (flexible width, same as variants)
+  // Always show baseline column with first variant or explicitly marked control variant
+  // The baseline badge only appears if the variant is explicitly marked as control (checkbox checked)
+  const trueControlVariant = data.variants.find(v => v.isControl === true);
+  const baselineVariant = trueControlVariant || data.variants[0];
+  
+  if (baselineVariant) {
+    const variantName = baselineVariant.name || `Variant ${baselineVariant.key}`;
+    // STRICT CHECK: Only show badge if isControl is explicitly boolean true
+    // Check both that it equals true AND that it's actually a boolean (not truthy string, number, etc.)
+    const isExplicitlyControl = baselineVariant.isControl === true && typeof baselineVariant.isControl === 'boolean';
+    
+    // Create a custom header cell with variant name and optional baseline badge
+    const baselineHeader = figma.createFrame();
+    baselineHeader.layoutMode = "HORIZONTAL";
+    baselineHeader.counterAxisSizingMode = "FIXED";
+    baselineHeader.primaryAxisSizingMode = "FIXED";
+    baselineHeader.resize(100, 40);
+    baselineHeader.minWidth = 80;
+    baselineHeader.counterAxisAlignItems = "CENTER";
+    baselineHeader.primaryAxisAlignItems = "CENTER";
+    baselineHeader.itemSpacing = 6;
+    baselineHeader.paddingLeft = 12;
+    baselineHeader.paddingRight = 8;
+    baselineHeader.fills = [];
+    baselineHeader.layoutGrow = 1; // Grow to fill available space (flexible)
+    baselineHeader.name = `Baseline Header: ${variantName}`;
+    
+    // Variant name text (always shown)
+    const nameText = figma.createText();
+    nameText.fontName = getFontStyle("Medium");
+    nameText.fontSize = TOKENS.fontSizeBodySm;
+    nameText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+    nameText.textAutoResize = "WIDTH_AND_HEIGHT";
+    nameText.characters = variantName;
+    baselineHeader.appendChild(nameText);
+    
+    // Baseline badge (ONLY if explicitly marked as control - checkbox checked)
+    // STRICT CHECK: must be boolean true, not just truthy
+    // Only show badge if isControl is EXACTLY boolean true
+    if (isExplicitlyControl) {
+      const baselineBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
+      baselineHeader.appendChild(baselineBadge);
+    }
+    
+    row.appendChild(baselineHeader);
+  } else {
+    // No variants at all - show just "Baseline" as column name
+    const baselineHeader = createTableCell('Baseline', 100, true, true);
+    baselineHeader.layoutGrow = 1; // Grow to fill available space (flexible)
+    baselineHeader.minWidth = 80; // Same min width as variants
+    row.appendChild(baselineHeader);
+  }
+
+  // Variant headers: only variants that are NOT in the baseline column (grow to fill space)
+  // Exclude the baseline variant (explicitly marked control or first variant)
+  const baselineVariantId = baselineVariant?.id;
+  const nonBaselineVariants = data.variants.filter(v => v.id !== baselineVariantId);
+  for (const variant of nonBaselineVariants) {
     const variantHeader = createVariantHeaderCell(variant);
     variantHeader.layoutGrow = 1; // Grow to fill available space
-    variantHeader.minWidth = 80;
+    variantHeader.minWidth = 80; // Same min width as baseline
     row.appendChild(variantHeader);
   }
 
@@ -377,7 +495,7 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   const nameText = figma.createText();
   nameText.fontName = getFontStyle("Medium");
   nameText.fontSize = TOKENS.fontSizeBodySm;
-  nameText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  nameText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
   nameText.textAutoResize = "WIDTH_AND_HEIGHT";
   nameText.textAlignHorizontal = "CENTER";
   nameText.characters = variant.name || `Variant ${variant.key}`;
@@ -392,8 +510,12 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
   subRow.fills = [];
   subRow.name = "Sub Labels";
 
-  if (variant.isControl) {
-    const controlBadge = createBadge('Control', 'micro', TOKENS.azure100, TOKENS.azure700);
+  // STRICT CHECK: Only show badge if isControl is explicitly boolean true (checkbox checked)
+  // Must be boolean true, not just truthy
+  const isExplicitlyControl = variant.isControl === true && typeof variant.isControl === 'boolean';
+  
+  if (isExplicitlyControl) {
+    const controlBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
     subRow.appendChild(controlBadge);
   }
 
@@ -408,6 +530,85 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
     // Remove unused frame to prevent floating empty frames
     subRow.remove();
   }
+
+  return cell;
+}
+
+/**
+ * Create a goal cell showing the target range (min-max)
+ */
+function createGoalCell(metric: MetricDefinition, isPrimary: boolean = false): FrameNode {
+  const cell = figma.createFrame();
+  cell.layoutMode = "VERTICAL";
+  cell.counterAxisSizingMode = "FIXED"; // Fixed height
+  cell.primaryAxisSizingMode = "FIXED"; // Fixed width
+  cell.layoutAlign = "STRETCH";
+  cell.minWidth = 80; 
+  cell.resize(100, 48);
+  cell.counterAxisAlignItems = "CENTER";
+  cell.primaryAxisAlignItems = "CENTER";
+  cell.itemSpacing = 2;
+  cell.paddingLeft = cell.paddingRight = 8;
+  cell.fills = [];
+  cell.name = "Goal Cell";
+
+  if (metric.min !== undefined && metric.max !== undefined) {
+    const goalText = figma.createText();
+    goalText.fontName = getFontStyle(isPrimary ? "Bold" : "Medium");
+    goalText.fontSize = TOKENS.fontSizeBodyMd;
+    goalText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+    goalText.textAutoResize = "WIDTH_AND_HEIGHT";
+    goalText.textAlignHorizontal = "CENTER";
+    goalText.characters = `${metric.min} - ${metric.max}`;
+    cell.appendChild(goalText);
+  } else {
+    const noGoalText = figma.createText();
+    noGoalText.fontName = getFontStyle("Regular");
+    noGoalText.fontSize = TOKENS.fontSizeLabel;
+    noGoalText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
+    noGoalText.textAutoResize = "WIDTH_AND_HEIGHT";
+    noGoalText.textAlignHorizontal = "CENTER";
+    noGoalText.characters = '--';
+    cell.appendChild(noGoalText);
+  }
+
+  return cell;
+}
+
+/**
+ * Create a baseline cell showing just the control variant value
+ * (Name and badge are shown in the header, so we don't repeat them here)
+ */
+function createBaselineCell(
+  metricData: VariantOutcome['metrics'][string] | undefined,
+  variant: VariantOutcome,
+  isPrimary: boolean = false
+): FrameNode {
+  const cell = figma.createFrame();
+  cell.layoutMode = "VERTICAL";
+  cell.counterAxisSizingMode = "FIXED"; // Fixed height
+  cell.primaryAxisSizingMode = "FIXED"; // Fixed width
+  cell.layoutAlign = "STRETCH";
+  cell.minWidth = 80;
+  cell.resize(100, 48);
+  cell.counterAxisAlignItems = "CENTER";
+  cell.primaryAxisAlignItems = "CENTER";
+  cell.itemSpacing = 2;
+  cell.paddingLeft = cell.paddingRight = 8;
+  cell.fills = [];
+  cell.name = "Baseline Cell";
+
+  // Main value only (name and badge are in header)
+  const valueText = figma.createText();
+  valueText.fontName = getFontStyle(isPrimary ? "Bold" : "Medium");
+  valueText.fontSize = TOKENS.fontSizeBodyMd;
+  valueText.textAutoResize = "WIDTH_AND_HEIGHT";
+  valueText.textAlignHorizontal = "CENTER";
+  
+  const value = metricData?.value;
+  valueText.characters = formatMetricValue(value);
+  valueText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  cell.appendChild(valueText);
 
   return cell;
 }
@@ -449,13 +650,37 @@ async function createMetricRow(
   metricCell.layoutGrow = 0; // Don't grow
   row.appendChild(metricCell);
 
-  // Find control variant for comparison
-  const controlVariant = variants.find(v => v.isControl);
+  // Goal cell (fixed width) - shows min-max range
+  const goalCell = createGoalCell(metric, isPrimary);
+  goalCell.layoutGrow = 0; // Don't grow
+  row.appendChild(goalCell);
 
-  // Value cells for each variant (grow to fill space)
-  for (const variant of variants) {
+  // Find control variant for baseline column (first variant or explicitly marked control)
+  // The baseline column always shows, but badge only appears if checkbox is checked
+  const controlVariant = variants.find(v => v.isControl === true) || variants[0];
+  
+  // Baseline cell (flexible width, same as variants) - shows control variant value
+  // Always create this cell (baseline column always exists)
+  if (controlVariant) {
+    const baselineMetricData = controlVariant.metrics[metricKey];
+    const baselineCell = createBaselineCell(baselineMetricData, controlVariant, isPrimary);
+    baselineCell.layoutGrow = 1; // Grow to fill available space (flexible)
+    row.appendChild(baselineCell);
+  } else {
+    // Empty baseline cell if no variants at all
+    const emptyBaselineCell = createTableCell('--', 100, false, true);
+    emptyBaselineCell.layoutGrow = 1; // Grow to fill available space (flexible)
+    emptyBaselineCell.minWidth = 80; // Same min width as variants
+    row.appendChild(emptyBaselineCell);
+  }
+
+  // Value cells for variants that are NOT in the baseline column (grow to fill space)
+  // Exclude the baseline variant (explicitly marked control or first variant) from variant columns
+  const baselineVariantId = controlVariant?.id;
+  const nonBaselineVariants = variants.filter(v => v.id !== baselineVariantId);
+  for (const variant of nonBaselineVariants) {
     const metricData = variant.metrics[metricKey];
-    const valueCell = createMetricValueCell(metricData, variant.isControl === true, isPrimary);
+    const valueCell = createMetricValueCell(metricData, false, isPrimary, metric);
     valueCell.layoutGrow = 1; // Grow to fill available space
     row.appendChild(valueCell);
   }
@@ -472,7 +697,7 @@ function createMetricNameCell(metric: MetricDefinition, isPrimary: boolean): Fra
   cell.counterAxisSizingMode = "FIXED"; // Fixed width
   cell.primaryAxisSizingMode = "FIXED"; // Fixed height
   cell.layoutAlign = "STRETCH";
-  cell.minWidth = 150;
+  cell.minWidth = 200;
   cell.resize(140, 48);
   cell.counterAxisAlignItems = "MIN";
   cell.primaryAxisAlignItems = "CENTER";
@@ -501,33 +726,23 @@ function createMetricNameCell(metric: MetricDefinition, isPrimary: boolean): Fra
   nameRow.appendChild(nameText);
 
   if (isPrimary) {
-    const primaryBadge = createBadge('Primary', 'micro', TOKENS.azure100, TOKENS.azure700);
-    nameRow.appendChild(primaryBadge);
+    // Match info-card behavior: star icon only (no "Primary" pill badge)
+    const starIcon = createLucideStarFilledIcon(12, hexToRgb(TOKENS.azure700));
+    nameRow.appendChild(starIcon);
   }
 
   cell.appendChild(nameRow);
 
-  // Sub-info row: abbreviation and/or expected range
+  // Sub-info row: abbreviation only (range moved to value cell)
   const hasAbbrev = metric.abbreviation && metric.abbreviation !== metric.name;
-  const hasRange = metric.min !== undefined && metric.max !== undefined;
   
-  if (hasAbbrev || hasRange) {
+  if (hasAbbrev) {
     const subText = figma.createText();
     subText.fontName = getFontStyle("Regular");
     subText.fontSize = TOKENS.fontSizeLabel;
     subText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
     subText.textAutoResize = "WIDTH_AND_HEIGHT";
-    
-    // Build sub-info string
-    let subInfo = '';
-    if (hasAbbrev) {
-      subInfo = metric.abbreviation!;
-    }
-    if (hasRange) {
-      const rangeStr = `${metric.min} - ${metric.max}`;
-      subInfo = subInfo ? `${subInfo} · ${rangeStr}` : rangeStr;
-    }
-    subText.characters = subInfo;
+    subText.characters = metric.abbreviation!;
     cell.appendChild(subText);
   }
 
@@ -540,7 +755,8 @@ function createMetricNameCell(metric: MetricDefinition, isPrimary: boolean): Fra
 function createMetricValueCell(
   metricData: VariantOutcome['metrics'][string] | undefined,
   isControl: boolean = false,
-  isPrimary: boolean = false
+  isPrimary: boolean = false,
+  metric?: MetricDefinition
 ): FrameNode {
   const cell = figma.createFrame();
   cell.layoutMode = "VERTICAL";
@@ -600,18 +816,6 @@ function createMetricValueCell(
     upliftRow.appendChild(upliftText);
 
     cell.appendChild(upliftRow);
-  }
-
-  // Baseline indicator for control
-  if (isControl) {
-    const baselineText = figma.createText();
-    baselineText.fontName = getFontStyle("Regular");
-    baselineText.fontSize = TOKENS.fontSizeLabel;
-    baselineText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textTertiary) }];
-    baselineText.textAutoResize = "WIDTH_AND_HEIGHT";
-    baselineText.textAlignHorizontal = "CENTER";
-    baselineText.characters = 'baseline';
-    cell.appendChild(baselineText);
   }
 
   return cell;
@@ -761,12 +965,15 @@ export async function createOutcomeCardFromExperimentData(
     dateCreated?: string;
   }
 ): Promise<FrameNode> {
-  // Find control variant (first variant or one marked as control)
-  const controlVariant = variants.find(v => v.isControl) || variants[0];
+  // Find control variant (only if explicitly marked as control, otherwise use first variant for comparison)
+  const trueControlVariant = variants.find(v => v.isControl === true);
+  const controlVariant = trueControlVariant || variants[0];
   
   // Convert variants to outcome format with uplift calculations
   const variantOutcomes: VariantOutcome[] = variants.map((v, index) => {
-    const isControl = v === controlVariant || v.isControl;
+    // Only set isControl to true if explicitly marked as control (isControl === true)
+    // Don't set it to true just because it's the first variant
+    const isControl = v.isControl === true;
     const outcomeMetrics: VariantOutcome['metrics'] = {};
 
     for (const metric of metrics) {

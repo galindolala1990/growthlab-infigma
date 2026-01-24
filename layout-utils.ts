@@ -40,17 +40,20 @@ export type BadgeStyle = 'filled' | 'outlined' | 'micro';
  * @param style - 'filled' (card type), 'outlined' (status), or 'micro' (table cells)
  * @param bgColor - Background color (for filled/micro) or border color (for outlined)
  * @param textColor - Text color
+ * @param icon - Optional icon node to display before the text
  */
 export function createBadge(
   label: string,
   style: BadgeStyle,
   bgColor: string,
-  textColor: string
+  textColor: string,
+  icon?: SceneNode
 ): FrameNode {
   const badge = figma.createFrame();
   badge.layoutMode = "HORIZONTAL";
   badge.primaryAxisSizingMode = "AUTO";
   badge.counterAxisAlignItems = "CENTER";
+  badge.itemSpacing = icon ? 4 : 0;
   badge.name = `${label} Badge`;
 
   if (style === 'micro') {
@@ -80,6 +83,35 @@ export function createBadge(
     badge.paddingTop = badge.paddingBottom = 2;
     badge.cornerRadius = 4;
     badge.fills = [{ type: "SOLID", color: hexToRgb(bgColor) }];
+  }
+
+  // Add icon if provided
+  if (icon) {
+    // Clone the icon to avoid issues if it's already in the document
+    const iconClone = icon.clone();
+    // Resize icon to fit badge (typically 10-12px for micro badges)
+    const iconSize = style === 'micro' ? 10 : 12;
+    // Check if the cloned node has resize method (FrameNode, RectangleNode, etc.)
+    if ('resize' in iconClone && typeof iconClone.resize === 'function') {
+      if (iconClone.width > 0 && iconClone.height > 0) {
+        const scale = iconSize / Math.max(iconClone.width, iconClone.height);
+        iconClone.resize(iconClone.width * scale, iconClone.height * scale);
+      } else {
+        iconClone.resize(iconSize, iconSize);
+      }
+    } else if ('children' in iconClone && iconClone.children.length > 0) {
+      // If it's a group/frame, try to resize the first child
+      const firstChild = iconClone.children[0];
+      if ('resize' in firstChild && typeof firstChild.resize === 'function') {
+        if (firstChild.width > 0 && firstChild.height > 0) {
+          const scale = iconSize / Math.max(firstChild.width, firstChild.height);
+          firstChild.resize(firstChild.width * scale, firstChild.height * scale);
+        } else {
+          firstChild.resize(iconSize, iconSize);
+        }
+      }
+    }
+    badge.appendChild(iconClone);
   }
 
   const text = figma.createText();

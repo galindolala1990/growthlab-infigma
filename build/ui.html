@@ -3911,10 +3911,10 @@
       controlCheckbox.className = 'variant-significance-checkbox';
       controlCheckbox.id = `variant-control-${eventIndex}-${variantIndex}`;
       // Default first variant as control, or use stored value
+      // Only check if isControl is explicitly true, or if undefined and it's the first variant
       controlCheckbox.checked = variant.isControl === true || (variant.isControl === undefined && variantIndex === 0);
-      if (controlCheckbox.checked) {
-        variant.isControl = true;
-      }
+      // Explicitly set isControl based on checkbox state (true or false, not undefined)
+      variant.isControl = controlCheckbox.checked === true;
       
       const controlLabel = document.createElement('label');
       controlLabel.className = 'variant-significance-label';
@@ -3927,7 +3927,8 @@
 
       // Control checkbox change handler
       controlCheckbox.addEventListener('change', () => {
-        variant.isControl = controlCheckbox.checked;
+        // Explicitly set to true or false (not undefined) based on checkbox state
+        variant.isControl = controlCheckbox.checked === true;
       });
 
       metricsSection.appendChild(optionsRow);
@@ -4127,7 +4128,8 @@
           label: String.fromCharCode(65 + variantIndex),
           trafficPercent: 50,
           color: defaultColor,
-          isControl: variantIndex === 0,
+          // Only set isControl to true for first variant, explicitly false for others
+          isControl: variantIndex === 0 ? true : false,
           metrics: {}
         });
         renderEvents(events);
@@ -4784,7 +4786,8 @@
             traffic: Number(variant.traffic) || 0,
             metrics: variant.metrics || {},
             style: variant.color ? { variantColor: variant.color } : undefined,
-            isControl: variant.isControl === true // Use explicit control flag
+            // STRICT: Only pass true if explicitly true, otherwise pass false (never undefined)
+            isControl: variant.isControl === true ? true : false
           };
         });
         let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0

@@ -2218,12 +2218,15 @@ if (figma.editorType === 'figma') {
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
           const rolledOutId = experiment.outcomes?.rolledoutVariantId;
+          // Use isControl from variant data (set by checkbox in ui.html), only show baseline badge when explicitly true
+          const finalIsControl = (variant as any).isControl === true ? true : false;
           allVariants.push({
             id: variant.id,
             key: variant.key,
             name: variant.name || `Variant ${variant.key}`,
             description: variant.description,
-            isControl: index === 0, // First variant is typically control
+            // Use isControl from variant data (set by checkbox in ui.html), only show baseline badge when explicitly true
+            isControl: finalIsControl,
             traffic: variant.traffic,
             metrics: variant.metrics,
             isRolledOut: rolledOutId === variant.id, // Check if this variant is the rolled out one
@@ -2234,7 +2237,7 @@ if (figma.editorType === 'figma') {
       }
     }
 
-    // Create experiment info card with outcome card below it
+    // Create experiment info card with two-panel structure (content + resources)
     infoCard = await createExperimentInfoCard(
       experiment.name,
       experiment.description || 'e.g., Testing if new CTA increases conversions.',
@@ -2543,10 +2546,22 @@ if (figma.editorType === 'figma') {
     }
     
     // InfoCard positioning (if it exists)
-    if (infoCard && infoCard.parent === null) {
-      infoCard.x = 100;
-      infoCard.y = center.y;
-      figma.currentPage.appendChild(infoCard);
+    if (infoCard) {
+      if (infoCard.parent === null) {
+        infoCard.x = 100;
+        infoCard.y = center.y;
+        figma.currentPage.appendChild(infoCard);
+      }
+      console.log('Info card created:', {
+        name: infoCard.name,
+        width: infoCard.width,
+        height: infoCard.height,
+        x: infoCard.x,
+        y: infoCard.y,
+        hasParent: infoCard.parent !== null
+      });
+    } else {
+      console.error('Info card was not created!');
     }
     
     // Wait for layout to settle before drawing connectors
