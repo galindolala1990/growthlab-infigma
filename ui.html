@@ -538,23 +538,29 @@
       user-select: none;
     }
 
-    .goal-caret-btn {
-      width: 24px;
-      height: 24px;
+    .goal-caret {
+      width: 16px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: none;
-      background: none;
       color: var(--text-secondary);
       border-radius: var(--radius-xs);
       flex-shrink: 0;
-      transition: background 0.15s, color 0.15s, transform 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .goal-caret-btn:hover {
+    .goal-caret:hover {
       background: var(--button-secondary-hover-bg);
       color: var(--text-primary);
+    }
+
+    /* Match "More options" chevron sizing + rotation animation */
+    .goal-caret .chevron-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+      transform-origin: 50% 50%;
     }
 
     .goal-title {
@@ -571,7 +577,7 @@
     .goal-actions {
       display: flex;
       align-items: center;
-      gap: var(--space-8);
+      gap: var(--space-16);
       flex-shrink: 0;
     }
 
@@ -613,11 +619,16 @@
     }
 
     .goal-field.direction {
-      width: 140px;
+      width: 100px;
     }
 
     .goal-field.threshold {
-      width: 140px;
+      width: 70px;
+    }
+
+    /* Threshold field: tighten input + % + stepper spacing */
+    .goal-field.threshold .InputField__wrapper {
+      gap: 0;
     }
 
     .metric-row {
@@ -2320,12 +2331,61 @@
       opacity: var(--input-field-suffix-opacity);
       letter-spacing: 0.175px;
       flex-shrink: 0;
-      width: 22px;
+      width: 16px;
       text-align: right
     }
 
     .InputField__suffix.hidden {
       display: none;
+    }
+
+    /* Optional custom number stepper (placed after suffix) */
+    .InputField__input.no-native-spinner::-webkit-outer-spin-button,
+    .InputField__input.no-native-spinner::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .InputField__input.no-native-spinner {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    .InputField__stepper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0px;
+      flex-shrink: 0;
+      padding-left: 4px;
+    }
+
+    .InputField__stepper-btn {
+      width: 14px;
+      height: 10px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .InputField__stepper-btn:hover {
+      background: var(--button-secondary-hover-bg);
+      color: var(--text-primary);
+    }
+
+    .InputField__stepper-btn svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .InputField__stepper-btn.stepper-up svg {
+      transform: rotate(180deg);
     }
 
     /* Right icon (dropdown arrow) */
@@ -2879,7 +2939,7 @@
             </svg>
           </button>
         </div>
-        <div class="metrics-helper">Pick what success means.</div>
+        <div class="metrics-helper">Set clear success metrics to track your experiment.</div>
         <div class="metrics-list" id="metricsList">
           <!-- Metric rows inserted by JS -->
         </div>
@@ -3192,6 +3252,7 @@
         help = 'Enter input',
         text = '',
         suffix = '',
+        showNumberStepper = false,
         state = 'default',
         variant = 'vertical',
         multiline = false,
@@ -3263,6 +3324,55 @@
       suffixEl.className = `InputField__suffix${showRText ? '' : ' hidden'}`;
       suffixEl.textContent = suffix;
 
+      // Optional number stepper (after suffix)
+      let stepperEl = null;
+      if (showNumberStepper && !multiline && inputType === 'number') {
+        inputEl.classList.add('no-native-spinner');
+
+        stepperEl = document.createElement('div');
+        stepperEl.className = 'InputField__stepper';
+
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.className = 'InputField__stepper-btn stepper-up';
+        upBtn.setAttribute('aria-label', 'Increase value');
+        upBtn.innerHTML = getIcon('chevron-down', { size: 12 });
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.className = 'InputField__stepper-btn stepper-down';
+        downBtn.setAttribute('aria-label', 'Decrease value');
+        downBtn.innerHTML = getIcon('chevron-down', { size: 12 });
+
+        const bump = (dir) => {
+          try {
+            if (dir === 'up') inputEl.stepUp();
+            else inputEl.stepDown();
+          } catch (_) {
+            // stepUp/stepDown can throw if value is invalid; fallback to 0
+            inputEl.value = '0';
+            if (dir === 'up') inputEl.stepUp();
+            else inputEl.stepDown();
+          }
+          inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        upBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          bump('up');
+        });
+        downBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          bump('down');
+        });
+
+        stepperEl.appendChild(upBtn);
+        stepperEl.appendChild(downBtn);
+      }
+
       // Create icon (Lucide: chevron-down)
       const icon = document.createElement('span');
       icon.className = `InputField__icon${showRIcon ? '' : ' hidden'}`;
@@ -3288,6 +3398,7 @@
       // Assemble
       wrapper.appendChild(inputEl);
       wrapper.appendChild(suffixEl);
+      if (stepperEl) wrapper.appendChild(stepperEl);
       wrapper.appendChild(icon);
       container.appendChild(labelEl);
       container.appendChild(wrapper);
@@ -3519,10 +3630,10 @@
       }
     });
 
-    // Sample data for metrics (matching Figma design)
+    // Sample data for goals (stored in metrics array for compatibility)
     const defaultMetrics = [
-      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', min: 0.695, max: 0.925, isPrimary: true },
-      { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', min: 0.695, max: 0.925 },
+      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', direction: 'increase', thresholdPct: 2, isPrimary: true, collapsed: true },
+      { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', direction: 'increase', thresholdPct: 2, collapsed: true },
     ];
 
     // Variant badge colors
@@ -3567,155 +3678,207 @@
     ];
 
     /**
-     * Creates a metric row matching the Figma design
-     * Layout: [Metric name input (with abbreviation)] [Min] [-] [Max] [Delete]
-     * Only the first row shows labels to save vertical space
+     * Creates a goal row (collapsible).
+     * Row title auto-generated: "<Metric> will <Increase/Decrease> by ≥ <X>%"
+     *
+     * NOTE: This is still named createMetricRow for compatibility with existing renderMetrics().
      */
     function createMetricRow(metric, index) {
       const row = document.createElement('div');
-      row.className = 'metric-row';
+      row.className = 'goal-row';
       row.id = metric.id || `metric-${index}`;
 
-      // Show labels only for the first metric row (index 0)
-      const isFirstRow = index === 0;
+      // Ensure defaults
+      if (!metric.direction) metric.direction = 'increase';
+      if (metric.thresholdPct === undefined || metric.thresholdPct === null || metric.thresholdPct === '') metric.thresholdPct = 2;
+      if (metric.collapsed === undefined) metric.collapsed = true;
 
-      // Metric name input field (flex: 1)
-      const nameFieldDiv = document.createElement('div');
-      nameFieldDiv.className = 'metric-name-field';
-      const nameField = createInputField({
+      const header = document.createElement('div');
+      header.className = 'goal-row-header';
+
+      // Chevron is plain SVG (not an icon button). Header click toggles.
+      const caretEl = document.createElement('div');
+      caretEl.className = 'goal-caret';
+      // Match the "More options" chevron markup + styling
+      caretEl.innerHTML = `
+        <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"></path>
+        </svg>
+      `;
+      const caretSvg = caretEl.querySelector('.chevron-icon');
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'goal-title';
+
+      const actions = document.createElement('div');
+      actions.className = 'goal-actions';
+
+      const primaryLabel = document.createElement('label');
+      primaryLabel.className = 'goal-primary';
+      const primaryRadio = document.createElement('input');
+      primaryRadio.type = 'radio';
+      primaryRadio.name = 'primary-goal';
+      primaryRadio.checked = metric.isPrimary === true;
+      const primaryText = document.createElement('span');
+      primaryText.textContent = 'Primary';
+      primaryLabel.appendChild(primaryRadio);
+      primaryLabel.appendChild(primaryText);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'icon-btn';
+      deleteBtn.type = 'button';
+      deleteBtn.innerHTML = getIcon('x');
+      deleteBtn.setAttribute('data-tooltip', 'Remove goal');
+      deleteBtn.setAttribute('data-tooltip-position', 'bottom');
+      deleteBtn.setAttribute('data-tooltip-align', 'end');
+      deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
+
+      actions.appendChild(primaryLabel);
+      actions.appendChild(deleteBtn);
+
+      header.appendChild(caretEl);
+      header.appendChild(titleEl);
+      header.appendChild(actions);
+
+      const body = document.createElement('div');
+      body.className = 'goal-row-body';
+      body.classList.toggle('hidden', metric.collapsed === true);
+
+      const updateTitle = () => {
+        const metricName = (typeof metric.name === 'string' && metric.name.trim().length > 0) ? metric.name.trim() : 'Metric';
+        const dir = metric.direction === 'decrease' ? 'decrease' : 'increase';
+        const pct = (metric.thresholdPct !== undefined && metric.thresholdPct !== null && metric.thresholdPct !== '') ? metric.thresholdPct : 0;
+        titleEl.textContent = `${metricName} will ${dir} by ≥ ${pct}%`;
+        // Collapsed: points right. Expanded: points down (like More options).
+        if (caretSvg) caretSvg.style.transform = metric.collapsed ? 'rotate(0deg)' : 'rotate(90deg)';
+      };
+
+      // Metric field
+      const metricFieldWrap = document.createElement('div');
+      metricFieldWrap.className = 'goal-field metric';
+      const metricField = createInputField({
         id: `metric-name-${index}`,
         label: 'Metric',
-        showLabel: isFirstRow,
+        showLabel: true,
         showLText: true,
         smallText: metric.abbreviation || 'CTR',
         help: 'e.g., Click through rate',
         text: metric.name || '',
         variant: 'vertical'
       });
-      nameFieldDiv.appendChild(nameField);
+      metricFieldWrap.appendChild(metricField);
 
-      // Min/Max range container
-      const rangeContainer = document.createElement('div');
-      rangeContainer.className = 'metric-range-container';
-
-      // Min field
-      const minFieldDiv = document.createElement('div');
-      minFieldDiv.className = 'metric-range-field';
-      const minField = createInputField({
-        id: `metric-min-${index}`,
-        label: 'Min',
-        showLabel: isFirstRow,
-        help: '0.00',
-        text: metric.min !== undefined ? String(metric.min) : '',
-        variant: 'vertical'
+      // Direction field
+      const directionWrap = document.createElement('div');
+      directionWrap.className = 'goal-field direction';
+      const directionField = createSelectField({
+        id: `metric-direction-${index}`,
+        label: 'Direction',
+        showLabel: true,
+        showPlaceholder: false,
+        options: [
+          { value: 'increase', label: 'Increase' },
+          { value: 'decrease', label: 'Decrease' },
+        ],
+        value: metric.direction || 'increase',
+        size: 'md',
+        variant: 'vertical',
+        onChange: (value) => {
+          metric.direction = value;
+          updateTitle();
+        }
       });
-      minFieldDiv.appendChild(minField);
+      directionWrap.appendChild(directionField);
 
-      // Separator (-)
-      const separator = document.createElement('div');
-      separator.className = 'metric-range-separator';
-      separator.innerHTML = '<span>-</span>';
-
-      // Max field
-      const maxFieldDiv = document.createElement('div');
-      maxFieldDiv.className = 'metric-range-field';
-      const maxField = createInputField({
-        id: `metric-max-${index}`,
-        label: 'Max',
-        showLabel: isFirstRow,
-        help: '1.00',
-        text: metric.max !== undefined ? String(metric.max) : '',
-        variant: 'vertical'
+      // Threshold field
+      const thresholdWrap = document.createElement('div');
+      thresholdWrap.className = 'goal-field threshold';
+      const thresholdField = createInputField({
+        id: `metric-threshold-${index}`,
+        label: 'Min. goal',
+        showLabel: true,
+        showRText: true,
+        suffix: '%',
+        showNumberStepper: true,
+        help: '2',
+        text: metric.thresholdPct !== undefined ? String(metric.thresholdPct) : '',
+        variant: 'vertical',
+        inputType: 'number',
+        onChange: (value) => {
+          const num = parseFloat(String(value));
+          metric.thresholdPct = Number.isFinite(num) ? num : 0;
+          updateTitle();
+        }
       });
-      maxFieldDiv.appendChild(maxField);
+      thresholdWrap.appendChild(thresholdField);
 
-      rangeContainer.appendChild(minFieldDiv);
-      rangeContainer.appendChild(separator);
-      rangeContainer.appendChild(maxFieldDiv);
+      body.appendChild(metricFieldWrap);
+      body.appendChild(directionWrap);
+      body.appendChild(thresholdWrap);
 
-      // Primary metric toggle button (star icon)
-      const primaryBtn = document.createElement('button');
-      primaryBtn.className = 'icon-btn primary-metric-btn';
-      primaryBtn.type = 'button';
-      primaryBtn.innerHTML = metric.isPrimary ? getIcon('star-filled') : getIcon('star');
-      primaryBtn.style.color = 'var(--text-primary)';
-      // If primary, always visible; if not, hidden until hover (handled by CSS)
-      if (metric.isPrimary) {
-        primaryBtn.style.opacity = '1';
-        primaryBtn.classList.add('is-primary');
-      }
-      primaryBtn.setAttribute('data-tooltip', metric.isPrimary ? 'Set as primary metric' : 'Set as primary metric');
-      primaryBtn.setAttribute('data-tooltip-position', 'bottom');
-      primaryBtn.setAttribute('data-tooltip-align', 'center');
-      primaryBtn.setAttribute('data-tooltip-cursor', 'pointer');
-      primaryBtn.onclick = (e) => {
+      const toggleCollapsed = (e) => {
         e.preventDefault();
-        // Clear isPrimary from all other metrics
-        metrics.forEach(m => { m.isPrimary = false; });
-        // Set this one as primary
-        metric.isPrimary = true;
-        // Re-render to update all star buttons, but do not hide button
-        renderMetrics(metrics);
+        metric.collapsed = !metric.collapsed;
+        body.classList.toggle('hidden', metric.collapsed === true);
+        updateTitle();
       };
 
-      // Delete button (Lucide: x)
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'icon-btn';
-      deleteBtn.type = 'button';
-      deleteBtn.innerHTML = getIcon('x');
-      deleteBtn.setAttribute('data-tooltip', 'Remove metric');
-      deleteBtn.setAttribute('data-tooltip-position', 'bottom');
-      deleteBtn.setAttribute('data-tooltip-align', 'end');
-      deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
-      deleteBtn.onclick = (e) => {
+      caretEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCollapsed(e);
+      });
+      header.addEventListener('click', (e) => {
+        // Avoid toggling when clicking controls in actions
+        if (e.target && (e.target.closest('.goal-actions') || e.target.closest('.icon-btn') || e.target.closest('input'))) return;
+        toggleCollapsed(e);
+      });
+
+      // Primary radio behavior
+      primaryRadio.addEventListener('change', (e) => {
+        e.stopPropagation();
+        metrics.forEach(m => { m.isPrimary = false; });
+        metric.isPrimary = true;
+        renderMetrics(metrics);
+      });
+
+      // Delete
+      deleteBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         metrics.splice(metrics.indexOf(metric), 1);
         renderMetrics(metrics);
-      };
+      });
 
-      // Assemble row
-      row.appendChild(nameFieldDiv);
-      row.appendChild(rangeContainer);
-      row.appendChild(primaryBtn);
-      row.appendChild(deleteBtn);
+      // Sync metric name + abbreviation on commit (avoid rerendering events on every keystroke)
+      const nameInput = metricField.querySelector('.InputField__input');
+      const prefixEl = metricField.querySelector('.InputField__prefix');
+      if (nameInput) {
+        nameInput.addEventListener('input', () => {
+          metric.name = nameInput.value.trim();
+          updateTitle();
+        });
+        nameInput.addEventListener('change', () => {
+          metric.name = nameInput.value.trim();
+          // Auto-generate abbreviation from name (max 3 characters) only if missing
+          if (metric.name && !metric.abbreviation) {
+            const words = metric.name.split(' ');
+            metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
+          }
+          if (prefixEl) {
+            prefixEl.textContent = metric.abbreviation || '';
+            prefixEl.classList.toggle('hidden', !(metric.abbreviation && metric.abbreviation.trim().length > 0));
+          }
+          updateMetricsCount();
+          if (typeof events !== 'undefined') {
+            renderEvents(events);
+          }
+        });
+      }
 
-      // Store references for data sync
-      const nameInput = nameField.querySelector('.InputField__input');
-      const minInput = minField.querySelector('.InputField__input');
-      const maxInput = maxField.querySelector('.InputField__input');
-      const prefixEl = nameField.querySelector('.InputField__prefix');
+      updateTitle();
 
-      // Sync inputs to metric data
-      const syncData = () => {
-        const previousName = metric.name;
-        metric.name = nameInput.value.trim();
-        metric.min = parseFloat(minInput.value) || '';
-        metric.max = parseFloat(maxInput.value) || '';
-        // Auto-generate abbreviation from name (max 3 characters)
-        if (metric.name && !metric.abbreviation) {
-          const words = metric.name.split(' ');
-          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
-          prefixEl.textContent = metric.abbreviation;
-          prefixEl.classList.remove('hidden');
-        }
-        // Update abbreviation if name changed (max 3 characters)
-        if (metric.name && previousName !== metric.name) {
-          const words = metric.name.split(' ');
-          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
-          prefixEl.textContent = metric.abbreviation;
-          prefixEl.classList.remove('hidden');
-        }
-        updateMetricsCount();
-        // Re-render events to update variant metric fields
-        if (typeof events !== 'undefined') {
-          renderEvents(events);
-        }
-      };
-
-      nameInput.addEventListener('change', syncData);
-      minInput.addEventListener('change', syncData);
-      maxInput.addEventListener('change', syncData);
-
+      row.appendChild(header);
+      row.appendChild(body);
       return row;
     }
 
@@ -3730,11 +3893,17 @@
       const emptyState = document.getElementById('metricsEmptyState');
       list.innerHTML = '';
 
-      // Always hide the old empty state - we use inline add row instead
-      emptyState.classList.add('hidden');
+      // Show empty state only when there are no goals
+      const hasGoals = !!(metricsArray && metricsArray.length > 0);
+      emptyState.classList.toggle('hidden', hasGoals);
       list.style.display = 'flex';
 
-      // Render existing metrics
+      // Ensure there is exactly one primary goal when there are goals
+      if (metrics.length > 0 && !metrics.some(m => m.isPrimary === true)) {
+        metrics[0].isPrimary = true;
+      }
+
+      // Render existing goals
       if (metricsArray && metricsArray.length > 0) {
         metricsArray.forEach((m, i) => {
           const row = createMetricRow(m, i);
@@ -3742,14 +3911,14 @@
         });
       }
 
-      // Add inline "Add metric" row
+      // Add inline "Add goal" row
       const addRow = document.createElement('div');
       addRow.className = 'inline-add-row';
       addRow.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add metric...</span>
+        <span>Add goal...</span>
       `;
       addRow.onclick = () => {
         const isFirstMetric = metrics.length === 0;
@@ -3757,8 +3926,9 @@
           id: `metric-${Date.now()}`,
           name: '',
           abbreviation: '',
-          min: undefined,
-          max: undefined,
+          direction: 'increase',
+          thresholdPct: 2,
+          collapsed: true,
           isPrimary: isFirstMetric
         });
         renderMetrics(metrics);
@@ -4010,7 +4180,7 @@
           showLabel: false,
           showLText: true,
         smallText: metric.abbreviation || '',
-          help: metric.min !== undefined && metric.max !== undefined ? `${metric.min}-${metric.max}` : '0.00',
+          help: '0.00',
           text: variant.metrics?.[metricKey] !== undefined ? String(variant.metrics[metricKey]) : '',
           variant: 'vertical',
           onChange: (value) => {
@@ -4904,8 +5074,8 @@
           id: m.id || `metric-${Math.random().toString(36).slice(2)}`,
           name: m.name,
           abbreviation: m.abbreviation,
-          min: m.min,
-          max: m.max,
+          direction: m.direction || 'increase',
+          thresholdPct: Number(m.thresholdPct) || 0,
           isPrimary: m.isPrimary === true
         }));
 
@@ -5042,14 +5212,15 @@
       if (addMetricBtn) {
         addMetricBtn.onclick = (e) => {
           e.preventDefault();
-          // If this is the first metric, make it primary by default
+          // If this is the first goal, make it primary by default
           const isFirstMetric = metrics.length === 0;
           metrics.push({ 
             id: `metric-${Date.now()}`,
             name: '',
             abbreviation: '',
-            min: '',
-            max: '',
+            direction: 'increase',
+            thresholdPct: 2,
+            collapsed: true,
             isPrimary: isFirstMetric
           });
           renderMetrics(metrics);

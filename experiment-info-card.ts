@@ -843,6 +843,7 @@ function createResourcesSection(
   linksContainer.primaryAxisAlignItems = "MIN";
   linksContainer.counterAxisAlignItems = "MIN";
   linksContainer.layoutAlign = 'STRETCH';
+  linksContainer.maxWidth = 282;
   linksContainer.itemSpacing = 8;
   linksContainer.counterAxisSpacing = 8;
   linksContainer.fills = [];
@@ -2116,8 +2117,8 @@ function createLinkChip(label: string, url?: string): FrameNode {
   chip.primaryAxisAlignItems = "MIN";
   chip.counterAxisAlignItems = "CENTER";
   chip.layoutAlign = 'STRETCH';
-  chip.minWidth = 336; // 21rem
-  chip.maxWidth = 336; // 21rem
+  chip.minWidth = 137; // 21rem
+  chip.maxWidth = 137; // 21rem
   chip.itemSpacing = 8;
   chip.paddingLeft = chip.paddingRight = 8;
   chip.paddingTop = chip.paddingBottom = 8;
@@ -2174,28 +2175,6 @@ function createLinkChip(label: string, url?: string): FrameNode {
     title.setRangeHyperlink(0, titleText.length, { type: 'URL', value: url });
   }
   textContainer.appendChild(title);
-  
-  // URL - smaller, secondary color with hyperlink
-  if (url) {
-    const urlText = figma.createText();
-    urlText.fontName = { family: "Figtree", style: "Regular" };
-    urlText.fontSize = TOKENS.fontSizeLabel;
-    urlText.lineHeight = { unit: "PIXELS", value: 10 };
-    urlText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-    urlText.opacity = 0.5;
-    urlText.textAutoResize = "WIDTH_AND_HEIGHT";
-    urlText.name = "Link URL";
-    // Truncate long URLs for display
-    const maxLength = 58;
-    const displayUrl = url.length > maxLength 
-      ? url.substring(0, maxLength) + '...' 
-      : url;
-    urlText.characters = displayUrl;
-    
-    // Add hyperlink to the URL text (full URL, not truncated)
-    urlText.setRangeHyperlink(0, displayUrl.length, { type: 'URL', value: url });
-    textContainer.appendChild(urlText);
-  }
   
   chip.appendChild(textContainer);
   return chip;
