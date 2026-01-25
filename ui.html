@@ -117,8 +117,31 @@
       --color-yellow-900: #7a340d;
       --color-yellow-950: #461a02;
 
+       /* --- Royal Blue (Info/Link) --- */
       --color-royal-blue-50: #eff7ff;
+      --color-royal-blue-100: #dbecfe;
+      --color-royal-blue-200: #bfdffe;
+      --color-royal-blue-300: #93ccfd;
+      --color-royal-blue-400: #60b0fa;
+      --color-royal-blue-500: #3b8ff6;
       --color-royal-blue-600: #2563eb;
+      --color-royal-blue-700: #1d5bd8;
+      --color-royal-blue-800: #1e4aaf;
+      --color-royal-blue-900: #1e418a;
+      --color-royal-blue-950: #172954;
+
+      /* Royal Blue Alpha */
+      --color-royal-blue-alpha-50: #2470eb0c;
+      --color-royal-blue-alpha-100: #2470eb19;
+      --color-royal-blue-alpha-200: #2470eb33;
+      --color-royal-blue-alpha-300: #2470eb4c;
+      --color-royal-blue-alpha-400: #2470eb66;
+      --color-royal-blue-alpha-500: #2470eb7f;
+      --color-royal-blue-alpha-600: #2470eb99;
+      --color-royal-blue-alpha-700: #2470ebb2;
+      --color-royal-blue-alpha-800: #2470ebcc;
+      --color-royal-blue-alpha-900: #2470ebe5;
+     
       --color-transparent: #ffffff00;
       /* --- Malachite (Success Green) --- */
       --color-malachite-50: #effef4;
@@ -133,6 +156,18 @@
       --color-malachite-900: #10572a;
       --color-malachite-950: #033015;   
 
+      /* --- Lochinvar (Teal) --- */
+      --color-lochinvar-50: #eefffb;
+      --color-lochinvar-100: #c6fff4;
+      --color-lochinvar-200: #8effec;
+      --color-lochinvar-300: #4efae0;
+      --color-lochinvar-400: #19e8d0;
+      --color-lochinvar-500: #01cbb7;
+      --color-lochinvar-600: #00a496;
+      --color-lochinvar-700: #03857c;
+      --color-lochinvar-800: #086762;
+      --color-lochinvar-900: #0c5551;
+      --color-lochinvar-950: #003433;
 
   /* === Color Core === */
       --brand: var(--color-electric-violet-500);
@@ -483,6 +518,225 @@
       color: var(--danger);
     }
 
+    /* ============================================
+     * CHIP BUTTON (labeled toggle/action)
+     * Use for: Primary metric, Control variant
+     * Semantics: <button aria-pressed="true|false">
+     * ============================================ */
+    .Chip {
+      height: 24px;
+      padding: 0 var(--space-8);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--color-transparent);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start; /* keep label left-aligned within reserved width */
+      gap: var(--space-4);
+      font-size: var(--body-sm-size);
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      user-select: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .Chip:hover {
+      background: var(--button-secondary-hover-bg);
+      border-color: var(--border-dark);
+      color: var(--text-primary);
+    }
+
+    .Chip:active {
+      background: var(--button-secondary-selected-bg);
+    }
+
+    .Chip:focus-visible {
+      outline: 2px solid var(--input-field-focus-border);
+      outline-offset: 2px;
+    }
+
+    .Chip__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .Chip__icon svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Hide left icons in chips (temporary) */
+    .Chip--noIcon .Chip__icon {
+      display: none;
+    }
+
+    /* ============================================
+     * TOGGLE BUTTON (rectangular)
+     * Used to test an alternative to Chip UI
+     * ============================================ */
+    .ToggleBtn {
+      height: 26px;
+      padding: 0 var(--space-12);
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--border);
+      background: var(--background-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--body-sm-size);
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      user-select: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .ToggleBtn:hover {
+      background: var(--button-secondary-hover-bg);
+      border-color: var(--border-dark);
+      color: var(--text-primary);
+    }
+
+    .ToggleBtn:active {
+      background: var(--button-secondary-selected-bg);
+    }
+
+    .ToggleBtn:focus-visible {
+      outline: 2px solid var(--input-field-focus-border);
+      outline-offset: 2px;
+    }
+
+    .ToggleBtn[aria-pressed="true"] {
+      background: var(--accent-primary-dark);
+      border-color: var(--accent-primary-dark);
+      color: var(--text-primary-inverse);
+    }
+
+    .ToggleBtn[aria-pressed="true"]:hover {
+      background: var(--accent-primary-dark);
+      border-color: var(--accent-primary-dark);
+      color: var(--text-primary-inverse);
+    }
+
+    /* Stable-width label/icon stacks: width becomes max of variants */
+    .Chip__labelStack,
+    .Chip__iconStack {
+      display: inline-grid;
+      align-items: center;
+      justify-items: start; /* left-align overlaid variants */
+    }
+
+    .Chip__labelStack > span,
+    .Chip__iconStack > span {
+      grid-area: 1 / 1;
+      justify-self: start; /* left-align text within the stack */
+    }
+
+    /* Show/hide variants based on aria-pressed */
+    .Chip[aria-pressed="true"] .Chip__label--off,
+    .Chip[aria-pressed="true"] .Chip__icon--off {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .Chip[aria-pressed="false"] .Chip__label--on,
+    .Chip[aria-pressed="false"] .Chip__icon--on {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Selected state */
+    .Chip[aria-pressed="true"] {
+      background: var(--accent-primary-dark);
+      border-color: var(--accent-primary-dark);
+      color: var(--text-primary-inverse);
+    }
+
+    .Chip[aria-pressed="true"]:hover {
+      background: var(--accent-primary-dark);
+      border-color: var(--accent-primary-dark);
+      color: var(--text-primary-inverse);
+    }
+
+    /* Optional: disable interaction but keep visibility */
+    .Chip[aria-disabled="true"] {
+      opacity: 0.7;
+      cursor: default;
+    }
+
+    /* ============================================
+     * SEGMENTED TOGGLE (2-option)
+     * Use for: increase/Decrease
+     * Semantics: <button aria-pressed="true|false">
+     * ============================================ */
+    .Segmented {
+      display: inline-flex;
+      align-items: center;
+      height: 26px; /* match goal-title inline field height */
+      padding: 2px;
+      gap: 2px; /* makes it read as segmented (not a toggle) */
+      background: var(--input-field-bg);
+      border: var(--input-field-border);
+      border-color: var(--input-field-border-no-color);
+      border-radius: var(--input-field-radius);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .Segmented:hover {
+      background: var(--input-field-hover-bg);
+      border: var(--input-field-border);
+      border-color: var(--input-field-hover-border);
+    }
+
+    .Segmented:focus-within {
+      border-color: var(--input-field-focus-border);
+      box-shadow: var(--input-field-focus-shadow);
+    }
+
+    .Segmented__btn {
+      flex: 1 1 0; /* equal-width segments */
+      height: 24px;
+      padding: 0 6px;
+      border: none;
+      border-radius: calc(var(--input-field-radius) - 2px);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--body-sm-size);
+      font-weight: 500;
+      line-height: 1;
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .Segmented__btn:hover {
+      background: var(--button-secondary-hover-bg);
+      color: var(--text-primary);
+    }
+
+    .Segmented__btn[aria-pressed="true"] {
+      background: var(--background-surface);
+      color: var(--text-primary);
+    }
+
+    .Segmented__btn[aria-pressed="true"]:hover {
+      background: var(--background-surface);
+      color: var(--text-primary);
+    }
+
     /* Add Event Button */
     .btn-add-event {
       border-radius: var(--radius-xs);
@@ -599,16 +853,53 @@
     }
 
     .goal-title-field--direction {
-      width: 80px;
       flex-shrink: 0;
     }
 
-    /* Override base dropdown widths so it can't expand */
+    /* Override base widths so it can't expand */
     .goal-title-field--direction.SelectField,
-    .goal-title-field--direction.CustomDropdown {
-      width: 80px;
-      max-width: 80px;
-      flex: 0 0 80px;
+    .goal-title-field--direction.CustomDropdown,
+    .goal-title-field--direction.Segmented {
+      width: 96px;
+      max-width: 96px;
+      flex: 0 0 96px;
+    }
+
+    /* Direction chip: match inline field height + styling */
+    .Chip.Chip--direction {
+      height: 26px;
+      padding: 0 var(--space-8);
+      border-radius: var(--input-field-radius);
+      background: var(--input-field-bg);
+      border: var(--input-field-border);
+      border-color: var(--input-field-border-no-color);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .Chip.Chip--direction:hover {
+      background: var(--input-field-hover-bg);
+      border-color: var(--input-field-hover-border);
+      color: var(--text-primary);
+    }
+
+    .Chip.Chip--direction:focus-visible {
+      outline: none;
+      border-color: var(--input-field-focus-border);
+      box-shadow: var(--input-field-focus-shadow);
+    }
+
+    /* Override selected styling so Decrease doesn't look like \"Primary\" */
+    .Chip.Chip--direction[aria-pressed="true"] {
+      background: var(--background-surface);
+      border-color: var(--input-field-hover-border);
+      color: var(--text-primary);
+    }
+
+    .Chip.Chip--direction[aria-pressed="true"]:hover {
+      background: var(--background-surface);
+      border-color: var(--input-field-hover-border);
+      color: var(--text-primary);
     }
 
     /* Tighten right padding for the goal direction dropdown only */
@@ -623,9 +914,9 @@
 
     /* Override InputField horizontal wrapper flex:1 so it doesn't stretch */
     .goal-title-field--threshold.InputField {
-      width: 50px;
-      max-width: 50px;
-      flex: 0 0 50px;
+      width: 58px;
+      max-width: 58px;
+      flex: 0 0 58px;
     }
 
     .goal-title-field--threshold.InputField.horizontal .InputField__wrapper {
@@ -636,6 +927,31 @@
     /* Match old "Min. goal" threshold styling (tighter suffix/stepper spacing) */
     .goal-title-field--threshold .InputField__wrapper {
       gap: 0;
+      /* Keep the whole control compact (50px container) */
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+
+    /* Goal threshold: mimic variant metric number + % styling (scaled to fit 50px field) */
+    .goal-title-field--threshold .InputField__input.no-native-spinner {
+      flex: 0 0 38px;
+    width: 38px;
+    min-width: 38px;
+    height: 100%;
+    align-self: stretch;
+    padding-left: 8px;
+    }
+
+    .goal-title-field--threshold .InputField__suffix {
+      flex: 0 0 14px;
+      min-width: 14px;
+      width: 14px;
+      text-align: right;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      /*justify-content: flex-end;*/
+      align-content: center;
     }
 
     /* Make the inline fields a bit tighter than regular form fields */
@@ -656,6 +972,13 @@
       flex-shrink: 0;
       opacity: 0;
       transition: opacity 0.15s;
+    }
+
+    /* Always-visible slot for Primary chip (keep delete hover-only) */
+    .goal-primary-slot {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
     }
 
     /* Match Steps: show actions on hover */
@@ -1731,6 +2054,12 @@
       width: 100%;
     }
 
+    .variant-baseline-slot {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
     /* Variant subtree toggle button */
     .variant-tree-toggle {
       display: flex;
@@ -1840,7 +2169,7 @@
     /* Variant metrics row - 3-column grid */
     .variant-metrics-row {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--space-8) var(--space-16);
       align-items: end;
     }
@@ -1853,12 +2182,44 @@
 
     /* Match Goals threshold: tight % suffix spacing */
     .variant-metric-field .InputField__wrapper {
-      gap: 2px;
+      gap: var(--space-0);
     }
 
     .variant-metric-field .InputField,
     .variant-metric-field .InputField__wrapper {
       width: 100%;
+    }
+
+    /* Let the prefix take remaining space (flex), keep value + % fixed */
+    .variant-metric-field .InputField__prefix {
+      flex: 1 1 auto;
+      width: auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Variant metrics: compact numeric input + % suffix */
+    .variant-metric-field .InputField__input.no-native-spinner {
+      flex: 0 0 38px;
+      width: 38px;
+      min-width: 38px;
+      height: 100%;
+      align-self: stretch;
+      padding-left: 8px;
+    }
+
+    .variant-metric-field .InputField__suffix {
+      flex: 0 0 14px;
+      min-width: 14px;
+      width: 14px;
+      text-align: right;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      align-content: center;
     }
 
     /* Variant baseline checkbox (0 or 1 selected) */
@@ -2406,6 +2767,51 @@
       background: var(--button-secondary-hover-bg);
     }
 
+    /* Compact toggle-sized button (for inline controls like Primary) */
+    .Button.Button--toggle {
+      height: 26px;
+      padding: 0 var(--space-8);
+      border-radius: var(--radius-xs);
+      font-size: var(--body-sm-size);
+      font-weight: 500;
+      border: 1px solid var(--color-transparent);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+    }
+
+    /* Ensure secondary toggle looks like an inline control */
+    .Button.secondary.Button--toggle {
+      background: var(--color-transparent); /* quiet/ghost by default */
+      color: var(--text-primary);
+    }
+
+    .Button.secondary.Button--toggle:hover {
+      background: var(--button-secondary-hover-bg);
+      border-color: var(--color-transparent);
+      color: var(--text-primary);
+    }
+
+    .Button.secondary.Button--toggle[aria-pressed="true"] {
+      background: var(--color-royal-blue-alpha-50); /* subtle selected tint */
+      border-color: var(--color-transparent);
+      color: var(--text-link); /* selected state uses link color (text + icon) */
+    }
+
+    .Button.secondary.Button--toggle[aria-pressed="true"]:hover {
+      color: var(--text-link);
+    }
+
+    .Button__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .Button__icon svg {
+      width: 14px;
+      height: 14px;
+    }
+
     /* ============================================
      * INPUT FIELD COMPONENT (from Figma 353-7322)
      * Props: label, showLabel, showRText, showRIcon, showLText, smallText, help, text
@@ -2487,8 +2893,12 @@
       opacity: var(--input-field-suffix-opacity);
       letter-spacing: 0.175px;
       flex-shrink: 0;
-      width: 22px;
+      width: 30px;
       text-align: left;
+      border-right: 1px solid var(--color-white-100);
+      padding-right: var(--space-8);
+      height: 100%;
+      align-content: center;
 
     }
 
@@ -3612,6 +4022,78 @@
       return container;
     }
 
+    /**
+     * Percent input behavior: keep a trailing '%' in the input value (when non-empty),
+     * while preserving a numeric editing experience.
+     */
+    function attachPercentInputBehavior(inputEl) {
+      if (!inputEl) return;
+
+      const normalize = (raw) => {
+        const s = String(raw ?? '');
+        // Remove percent signs and whitespace
+        let cleaned = s.replace(/%/g, '').trim().replace(/,/g, '.');
+        // Keep digits and at most one dot
+        cleaned = cleaned.replace(/[^\d.]/g, '');
+        const dotIndex = cleaned.indexOf('.');
+        if (dotIndex !== -1) {
+          cleaned = cleaned.slice(0, dotIndex + 1) + cleaned.slice(dotIndex + 1).replace(/\./g, '');
+        }
+        // If there's no digit at all (e.g. "."), treat as empty
+        if (!/\d/.test(cleaned)) return '';
+        return cleaned;
+      };
+
+      const format = (raw) => {
+        const cleaned = normalize(raw);
+        return cleaned ? `${cleaned}%` : '';
+      };
+
+      const snapCaretBeforePercent = () => {
+        try {
+          const v = String(inputEl.value || '');
+          if (!v.endsWith('%')) return;
+          const caret = Math.max(0, v.length - 1);
+          inputEl.setSelectionRange(caret, caret);
+        } catch (_) {
+          // ignore selection errors
+        }
+      };
+
+      // Ensure initial formatting
+      inputEl.value = format(inputEl.value);
+
+      // Run before createInputField's bubble handler so onChange sees formatted value.
+      inputEl.addEventListener('input', () => {
+        const oldVal = String(inputEl.value || '');
+        const oldStart = inputEl.selectionStart ?? oldVal.length;
+        const oldEnd = inputEl.selectionEnd ?? oldVal.length;
+
+        const newVal = format(oldVal);
+        if (newVal === oldVal) {
+          // Keep caret out of the '%' position if needed
+          if (document.activeElement === inputEl) snapCaretBeforePercent();
+          return;
+        }
+
+        inputEl.value = newVal;
+
+        if (document.activeElement === inputEl) {
+          const maxCaret = newVal.endsWith('%') ? newVal.length - 1 : newVal.length;
+          const nextCaret = Math.min(oldStart, maxCaret);
+          const nextEnd = Math.min(oldEnd, maxCaret);
+          try {
+            inputEl.setSelectionRange(nextCaret, nextEnd);
+          } catch (_) {
+            // ignore selection errors
+          }
+        }
+      }, true);
+
+      inputEl.addEventListener('focus', snapCaretBeforePercent);
+      inputEl.addEventListener('click', snapCaretBeforePercent);
+    }
+
     // Initialize existing InputFields to handle state changes
     document.querySelectorAll('.InputField').forEach(field => {
       const input = field.querySelector('.InputField__input');
@@ -3885,7 +4367,7 @@
 
     /**
      * Creates a goal row.
-     * Header is a compact inline editor: "<Metric> will <Increase/Decrease> by <X>%"
+     * Header is a compact inline editor: "<Metric> will <increase/Decrease> by <X>%"
      *
      * NOTE: This is still named createMetricRow for compatibility with existing renderMetrics().
      */
@@ -3905,7 +4387,7 @@
       titleEl.className = 'goal-title';
 
       // Inline, compact "sentence editor" in the header:
-      // [Metric name input] will [Increase/Decrease select] by [threshold input]%
+      // [Metric name input] will [increase/Decrease select] by [threshold input]%
       const titleEditor = document.createElement('div');
       titleEditor.className = 'goal-title-editor';
 
@@ -3929,61 +4411,37 @@
       willText.className = 'goal-title-static';
       willText.textContent = 'will';
 
-      // Direction: use CustomDropdown styling (matches Status dropdown)
+      // Direction: inline chip toggle (increase/Decrease)
       const directionInline = document.createElement('div');
-      directionInline.className = 'goal-title-field goal-title-field--direction CustomDropdown';
+      directionInline.className = 'goal-title-field goal-title-field--direction';
 
-      const directionTrigger = document.createElement('button');
-      directionTrigger.type = 'button';
-      directionTrigger.className = 'CustomDropdown__trigger';
-
-      const directionTextEl = document.createElement('span');
-      directionTextEl.className = 'CustomDropdown__text';
-      const directionIconEl = document.createElement('span');
-      directionIconEl.className = 'CustomDropdown__icon';
-      directionIconEl.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m6 9 6 6 6-6"/>
-        </svg>
+      const directionChip = document.createElement('button');
+      directionChip.type = 'button';
+      directionChip.className = 'Chip Chip--direction Chip--noIcon';
+      directionChip.setAttribute('aria-pressed', 'false');
+      directionChip.setAttribute('data-tooltip-position', 'bottom');
+      directionChip.setAttribute('data-tooltip-cursor', 'pointer');
+      directionChip.setAttribute('aria-label', 'Increase');
+      directionChip.innerHTML = `
+        <span class="Chip__labelStack" aria-hidden="true">
+          <span class="Chip__label--on">Decrease</span>
+          <span class="Chip__label--off">Increase</span>
+        </span>
       `;
-      directionTrigger.appendChild(directionTextEl);
-      directionTrigger.appendChild(directionIconEl);
 
-      const directionMenu = document.createElement('div');
-      directionMenu.className = 'CustomDropdown__menu';
+      const toggleDirection = () => {
+        const current = metric.direction === 'decrease' ? 'decrease' : 'increase';
+        metric.direction = current === 'decrease' ? 'increase' : 'decrease';
+        updateTitle();
+      };
 
-      const directionOptions = [
-        { value: 'increase', label: 'Increase' },
-        { value: 'decrease', label: 'Decrease' },
-      ];
-
-      directionOptions.forEach(opt => {
-        const optionBtn = document.createElement('button');
-        optionBtn.type = 'button';
-        optionBtn.className = 'CustomDropdown__option';
-        optionBtn.dataset.value = opt.value;
-        optionBtn.dataset.label = opt.label;
-        optionBtn.innerHTML = `<span class="CustomDropdown__option-text">${opt.label}</span>`;
-        optionBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          metric.direction = opt.value;
-          directionInline.classList.remove('open');
-          updateTitle();
-        });
-        directionMenu.appendChild(optionBtn);
-      });
-
-      directionTrigger.addEventListener('click', (e) => {
+      directionChip.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        document.querySelectorAll('.CustomDropdown.open').forEach(d => {
-          if (d !== directionInline) d.classList.remove('open');
-        });
-        directionInline.classList.toggle('open');
+        toggleDirection();
       });
 
-      directionInline.appendChild(directionTrigger);
-      directionInline.appendChild(directionMenu);
+      directionInline.appendChild(directionChip);
 
       const byText = document.createElement('span');
       byText.className = 'goal-title-static';
@@ -4024,17 +4482,28 @@
       titleEditor.appendChild(thresholdInline);
       titleEl.appendChild(titleEditor);
 
+      const primarySlot = document.createElement('div');
+      primarySlot.className = 'goal-primary-slot';
+
       const actions = document.createElement('div');
       actions.className = 'goal-actions';
 
-      const primaryBtn = document.createElement('button');
-      primaryBtn.type = 'button';
-      primaryBtn.className = `icon-btn goal-primary-btn${metric.isPrimary === true ? ' is-primary' : ''}`;
-      primaryBtn.setAttribute('data-tooltip', 'Set as primary metric');
-      primaryBtn.setAttribute('data-tooltip-position', 'bottom');
-      primaryBtn.setAttribute('data-tooltip-align', 'end');
-      primaryBtn.setAttribute('data-tooltip-cursor', 'pointer');
-      primaryBtn.innerHTML = metric.isPrimary === true ? getIcon('star-filled') : getIcon('star');
+      const primaryChip = document.createElement('button');
+      primaryChip.type = 'button';
+      // Test alternative UI: secondary button (compact toggle size)
+      primaryChip.className = 'Button secondary Button--toggle goal-primary-chip';
+      primaryChip.setAttribute('aria-pressed', metric.isPrimary === true ? 'true' : 'false');
+      primaryChip.setAttribute('aria-label', metric.isPrimary === true ? 'Primary' : 'Set as primary');
+      primaryChip.setAttribute('data-tooltip', metric.isPrimary === true ? 'Primary' : 'Set as primary');
+      primaryChip.setAttribute('data-tooltip-position', 'bottom');
+      primaryChip.setAttribute('data-tooltip-align', 'end');
+      primaryChip.setAttribute('data-tooltip-cursor', 'pointer');
+      primaryChip.innerHTML = `
+        <span class="Button__icon" aria-hidden="true">
+          ${metric.isPrimary === true ? getIcon('star-filled', { size: 14, strokeWidth: 2 }) : getIcon('star', { size: 14, strokeWidth: 2 })}
+        </span>
+        <span>Primary</span>
+      `;
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn';
@@ -4045,10 +4514,11 @@
       deleteBtn.setAttribute('data-tooltip-align', 'end');
       deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
 
-      actions.appendChild(primaryBtn);
+      primarySlot.appendChild(primaryChip);
       actions.appendChild(deleteBtn);
 
       header.appendChild(titleEl);
+      header.appendChild(primarySlot);
       header.appendChild(actions);
 
       const updateTitle = () => {
@@ -4068,11 +4538,12 @@
         metricInlinePrefix.textContent = abbr;
         metricInlinePrefix.classList.toggle('hidden', abbr.length === 0);
 
-        const dirLabel = dir === 'decrease' ? 'Decrease' : 'Increase';
-        directionTextEl.textContent = dirLabel;
-        directionMenu.querySelectorAll('.CustomDropdown__option').forEach(opt => {
-          opt.classList.toggle('selected', opt.dataset.value === dir);
-        });
+        // Direction chip state (pressed = Decrease)
+        const isDecrease = dir === 'decrease';
+        directionChip.setAttribute('aria-pressed', isDecrease ? 'true' : 'false');
+        // Tooltip copy: action-oriented + consistent with other chips
+        directionChip.setAttribute('data-tooltip', isDecrease ? 'Set direction to Increase' : 'Set direction to Decrease');
+        directionChip.setAttribute('aria-label', isDecrease ? 'Decrease' : 'Increase');
 
         if (document.activeElement !== thresholdInlineInput) {
           thresholdInlineInput.value = pct === '' ? '' : String(pct);
@@ -4082,7 +4553,7 @@
       };
 
       // Primary toggle behavior (exactly one primary)
-      primaryBtn.addEventListener('click', (e) => {
+      primaryChip.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (metric.isPrimary === true) return; // keep one selected (no unselect)
@@ -4344,6 +4815,71 @@
       row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
 
+      // Baseline chip (move to top row; baseline optional; at most one per event)
+      const baselineSlot = document.createElement('div');
+      baselineSlot.className = 'variant-baseline-slot';
+
+      const baselineChip = document.createElement('button');
+      baselineChip.type = 'button';
+      baselineChip.className = 'Chip Chip--baseline Chip--noIcon variant-baseline-chip';
+      baselineChip.id = `variant-baseline-${eventIndex}-${variantIndex}`;
+      baselineChip.setAttribute('data-tooltip-position', 'bottom');
+      baselineChip.setAttribute('data-tooltip-cursor', 'pointer');
+      baselineChip.innerHTML = `
+        <span class="Chip__icon Chip__iconStack" aria-hidden="true">
+          <span class="Chip__icon--on">${getIcon('check', { size: 14, strokeWidth: 2.5 })}</span>
+          <span class="Chip__icon--off">${getIcon('check', { size: 14, strokeWidth: 2 })}</span>
+        </span>
+        <span aria-hidden="true">Control</span>
+      `;
+
+      // Enforce AT MOST one baseline per event.
+      // If multiple are true (bad state), keep the first and clear the rest.
+      const firstControlIndex = events[eventIndex].variants.findIndex(v => v.isControl === true);
+      if (firstControlIndex >= 0 && variantIndex !== firstControlIndex) {
+        variant.isControl = false;
+      }
+      // Explicitly store boolean (never undefined)
+      variant.isControl = variant.isControl === true;
+
+      const renderBaselineChip = (btn, isPressed) => {
+        btn.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+        btn.setAttribute('data-tooltip', isPressed ? 'Control variant' : 'Set as control variant');
+        btn.setAttribute('aria-label', isPressed ? 'Control variant' : 'Set as control variant');
+      };
+
+      renderBaselineChip(baselineChip, variant.isControl === true);
+
+      baselineChip.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (variant.isControl === true) {
+          // Allow no baseline
+          variant.isControl = false;
+        } else {
+          // Clear any existing baseline and set this one
+          events[eventIndex].variants.forEach((v, i) => {
+            v.isControl = i === variantIndex;
+          });
+        }
+
+        // Sync UI so selecting one baseline updates the others immediately
+        const baselineBtns = document.querySelectorAll(`button[id^="variant-baseline-${eventIndex}-"]`);
+        baselineBtns.forEach((el) => {
+          if (!el || typeof el.id !== 'string') return;
+          const match = el.id.match(new RegExp(`^variant-baseline-${eventIndex}-(\\d+)$`));
+          if (!match) return;
+          const idx = parseInt(match[1], 10);
+          if (Number.isNaN(idx)) return;
+          if (!events[eventIndex]?.variants?.[idx]) return;
+          renderBaselineChip(el, events[eventIndex].variants[idx].isControl === true);
+        });
+      });
+
+      baselineSlot.appendChild(baselineChip);
+      row1.appendChild(baselineSlot);
+
       // Actions (remove variant)
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'variant-actions';
@@ -4463,68 +4999,6 @@
       });
 
       metricsSection.appendChild(row3);
-
-      // Variant options row (Control + Significance checkboxes)
-      const optionsRow = document.createElement('div');
-      optionsRow.className = 'variant-options-row';
-      optionsRow.style.display = 'flex';
-      optionsRow.style.gap = '16px';
-      optionsRow.style.flexWrap = 'wrap';
-
-      // Baseline checkbox (0 or 1 selected) - marks which variant is the baseline/control
-      const controlRow = document.createElement('div');
-      controlRow.className = 'variant-significance-row';
-      
-      const controlCheckbox = document.createElement('input');
-      controlCheckbox.type = 'checkbox';
-      controlCheckbox.className = 'variant-significance-checkbox';
-      controlCheckbox.id = `variant-control-${eventIndex}-${variantIndex}`;
-      // Enforce AT MOST one baseline per event.
-      // If multiple are true (bad state), keep the first and clear the rest.
-      const firstControlIndex = events[eventIndex].variants.findIndex(v => v.isControl === true);
-      if (firstControlIndex >= 0 && variantIndex !== firstControlIndex) {
-        variant.isControl = false;
-      }
-      controlCheckbox.checked = variant.isControl === true;
-      // Explicitly set isControl based on checkbox state (true/false, never undefined)
-      variant.isControl = controlCheckbox.checked === true;
-      
-      const controlLabel = document.createElement('label');
-      controlLabel.className = 'variant-significance-label';
-      controlLabel.htmlFor = `variant-control-${eventIndex}-${variantIndex}`;
-      controlLabel.textContent = 'Set as baseline';
-      
-      controlRow.appendChild(controlCheckbox);
-      controlRow.appendChild(controlLabel);
-      optionsRow.appendChild(controlRow);
-
-      // Baseline checkbox change handler (0 or 1 selected)
-      controlCheckbox.addEventListener('change', () => {
-        if (controlCheckbox.checked) {
-          // Clear any existing baseline and set this one
-          events[eventIndex].variants.forEach((v, i) => {
-            v.isControl = i === variantIndex;
-          });
-        } else {
-          // Allow no baseline
-          variant.isControl = false;
-        }
-
-        // Sync UI so selecting one baseline unchecks the others immediately
-        const baselineInputs = document.querySelectorAll(`input[id^="variant-control-${eventIndex}-"]`);
-        baselineInputs.forEach((el) => {
-          if (!el || typeof el.id !== 'string') return;
-          const match = el.id.match(new RegExp(`^variant-control-${eventIndex}-(\\d+)$`));
-          if (!match) return;
-          const idx = parseInt(match[1], 10);
-          if (Number.isNaN(idx)) return;
-          if (!events[eventIndex]?.variants?.[idx]) return;
-          // Ensure only the data-backed baseline stays checked
-          el.checked = events[eventIndex].variants[idx].isControl === true;
-        });
-      });
-
-      metricsSection.appendChild(optionsRow);
 
       // Add description and metrics to subtree
       subtree.appendChild(row2);
