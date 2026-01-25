@@ -2411,11 +2411,11 @@ if (figma.editorType === 'figma') {
     for (const [eventIdx, event] of flow.events.entries()) {
       const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
         ? event.name
-        : `Event ${eventIdx + 1}`;
+        : `Step ${eventIdx + 1}`;
       
       // Create event card
       const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
-      eventCard.name = `Event: ${safeEventName}`;
+      eventCard.name = `Step: ${safeEventName}`;
       attachNodeMeta(eventCard, {
         name: safeEventName,
         type: 'frame' as CanvasNodeType,

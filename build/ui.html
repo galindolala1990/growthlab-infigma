@@ -432,6 +432,19 @@
       padding: 4px 0;
     }
 
+    .events-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .events-note {
+      font-size: var(--body-sm-size);
+      font-weight: var(--body-sm-weight);
+      line-height: var(--body-sm-line-height);
+      color: var(--text-secondary);
+    }
+
     /* ============================================
      * ICON BUTTON BASE CLASS
      * Shared styles for all icon buttons
@@ -2763,14 +2776,17 @@
         </div>
       </section>
 
-      <!-- Flow Section (Events + Variants) -->
+      <!-- Journey Section (Steps + Variants) -->
       <section class="section-events">
         <div class="events-header">
           <div class="events-header-left">
-            <h2>Flow</h2>
-            <span class="events-count" id="eventsCount">0 events • 0 variants</span>
+            <div class="events-title-wrap">
+              <h2>Journey</h2>
+              <div class="events-note">Entry and Exit are added automatically.</div>
+            </div>
+            <span class="events-count" id="eventsCount">0 steps • 0 variants</span>
           </div>
-          <button class="icon-btn btn-add-event" type="button" aria-label="Add event" data-tooltip="Add event" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
+          <button class="icon-btn btn-add-event" type="button" aria-label="Add step" data-tooltip="Add step" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -2783,7 +2799,7 @@
         </div>
         <!-- Empty state placeholder -->
         <div class="empty-state" id="eventsEmptyState">
-          <p>No events yet. Click the + button to add your first event.</p>
+          <p>No steps yet. Click the + button to add your first step.</p>
         </div>
       </section>
       </div><!-- /.form-content -->
@@ -3509,13 +3525,13 @@
       primaryBtn.className = 'icon-btn primary-metric-btn';
       primaryBtn.type = 'button';
       primaryBtn.innerHTML = metric.isPrimary ? getIcon('star-filled') : getIcon('star');
-      primaryBtn.style.color = 'var(--color-azure-600)';
+      primaryBtn.style.color = 'var(--text-primary)';
       // If primary, always visible; if not, hidden until hover (handled by CSS)
       if (metric.isPrimary) {
         primaryBtn.style.opacity = '1';
         primaryBtn.classList.add('is-primary');
       }
-      primaryBtn.setAttribute('data-tooltip', metric.isPrimary ? 'Primary metric' : 'Set as primary');
+      primaryBtn.setAttribute('data-tooltip', metric.isPrimary ? 'Set as primary metric' : 'Set as primary metric');
       primaryBtn.setAttribute('data-tooltip-position', 'bottom');
       primaryBtn.setAttribute('data-tooltip-align', 'center');
       primaryBtn.setAttribute('data-tooltip-cursor', 'pointer');
@@ -3529,11 +3545,11 @@
         renderMetrics(metrics);
       };
 
-      // Delete button (Lucide: minus)
+      // Delete button (Lucide: x)
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn';
       deleteBtn.type = 'button';
-      deleteBtn.innerHTML = getIcon('minus');
+      deleteBtn.innerHTML = getIcon('x');
       deleteBtn.setAttribute('data-tooltip', 'Remove metric');
       deleteBtn.setAttribute('data-tooltip-position', 'bottom');
       deleteBtn.setAttribute('data-tooltip-align', 'end');
@@ -3803,7 +3819,7 @@
       const removeBtnEl = document.createElement('button');
       removeBtnEl.type = 'button';
       removeBtnEl.className = 'icon-btn';
-      removeBtnEl.innerHTML = getIcon('minus');
+      removeBtnEl.innerHTML = getIcon('x');
       removeBtnEl.setAttribute('data-tooltip', 'Remove variant');
       removeBtnEl.setAttribute('data-tooltip-position', 'left');
       removeBtnEl.setAttribute('data-tooltip-align', 'end');
@@ -3923,7 +3939,7 @@
       const controlLabel = document.createElement('label');
       controlLabel.className = 'variant-significance-label';
       controlLabel.htmlFor = `variant-control-${eventIndex}-${variantIndex}`;
-      controlLabel.textContent = 'Baseline';
+      controlLabel.textContent = 'Set as baseline';
       
       controlRow.appendChild(controlCheckbox);
       controlRow.appendChild(controlLabel);
@@ -3972,7 +3988,7 @@
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'icon-btn';
-      removeBtn.innerHTML = getIcon('minus');
+      removeBtn.innerHTML = getIcon('x');
       removeBtn.setAttribute('data-tooltip', 'Remove variant');
       removeBtn.setAttribute('data-tooltip-position', 'left');
       removeBtn.setAttribute('data-tooltip-align', 'end');
@@ -4076,9 +4092,9 @@
       inputContainer.className = 'event-input-container';
       const eventInput = createInputField({
         id: `event-name-${eventIndex}`,
-        label: 'Event',
+        label: 'Step',
         showLabel: false,
-        help: 'Event name',
+        help: 'Step name',
         text: event.name || '',
         variant: 'horizontal'
       });
@@ -4092,8 +4108,8 @@
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'icon-btn';
-      deleteBtn.innerHTML = getIcon('minus');
-      deleteBtn.setAttribute('data-tooltip', 'Remove event');
+      deleteBtn.innerHTML = getIcon('x');
+      deleteBtn.setAttribute('data-tooltip', 'Remove step');
       deleteBtn.setAttribute('data-tooltip-position', 'bottom');
       deleteBtn.setAttribute('data-tooltip-align', 'end');
       deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
@@ -4181,7 +4197,7 @@
       const countEl = document.getElementById('eventsCount');
       const eventCount = events.filter(e => e.name).length;
       const variantCount = events.reduce((sum, e) => sum + (e.variants?.length || 0), 0);
-      countEl.textContent = `${eventCount} event${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
+      countEl.textContent = `${eventCount} step${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
       
       // Auto-infer experiment type based on variant count
       // 3+ variants = Multivariate, otherwise A/B Test
@@ -4210,14 +4226,14 @@
         });
       }
 
-      // Add inline "Add event" row
+      // Add inline "Add step" row
       const addRow = document.createElement('div');
       addRow.className = 'inline-add-row';
       addRow.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add event...</span>
+        <span>Add step...</span>
       `;
       addRow.onclick = () => {
         events.push({
@@ -4816,7 +4832,7 @@
         });
         let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
           ? event.name
-          : `Event ${eventIdx + 1}`;
+          : `Step ${eventIdx + 1}`;
         return {
           id: event.id || `event-${eventIdx}`,
           name: safeEventName,
@@ -4973,7 +4989,7 @@
               ...variant,
               eventIndex,
               variantIndex,
-              eventName: event.name || `Event ${eventIndex + 1}`,
+              eventName: event.name || `Step ${eventIndex + 1}`,
               displayName
             });
           });

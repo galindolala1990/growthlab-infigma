@@ -116,16 +116,16 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.itemSpacing = 8; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
-  card.name = `Event: ${eventName}`;
+  card.name = `Step: ${eventName}`;
 
-  // Event label (above thumbnail)
+  // Step label (above thumbnail)
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
   eventLabel.fontSize = TOKENS.fontSizeBodySm;
   eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventLabel.opacity = 0.5;
   eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  eventLabel.characters = 'Event';
+  eventLabel.characters = 'Step';
   eventLabel.name = 'Event Label';
   card.appendChild(eventLabel);
 
@@ -204,14 +204,14 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventNameText.textAlignHorizontal = 'LEFT';
-  // Auto-number fallback: if eventName is empty, use 'Event <n>'
+  // Auto-number fallback: if eventName is empty, use 'Step <n>'
   // Try to extract a number from the card name if possible
   let fallbackEventNumber = 1;
-  const match = card.name.match(/Event: (\\d+)/);
+  const match = card.name.match(/(?:Event|Step): (\\d+)/);
   if (!eventName && match && match[1]) {
     fallbackEventNumber = parseInt(match[1], 10);
   }
-  eventNameText.characters = eventName || `Event ${fallbackEventNumber}`;
+  eventNameText.characters = eventName || `Step ${fallbackEventNumber}`;
   eventNameText.name = 'Event Name Text';
   eventDetailsContainer.appendChild(eventNameText);
 
