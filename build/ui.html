@@ -2771,7 +2771,7 @@
     .Button.Button--toggle {
       height: 26px;
       padding: 0 var(--space-8);
-      border-radius: var(--radius-xs);
+      border-radius: 999px;
       font-size: var(--body-sm-size);
       font-weight: 500;
       border: 1px solid var(--color-transparent);
@@ -3723,6 +3723,8 @@
       'star': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
       // Star filled (custom - same path with fill)
       'star-filled': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>',
+      // https://lucide.dev/icons/circle-star
+      'circle-star': '<path d="M11.051 7.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.867l-1.156-1.152a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z" /><circle cx="12" cy="12" r="10" />',
       // https://lucide.dev/icons/maximize-2
       'maximize-2': '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
       // https://lucide.dev/icons/minimize-2
@@ -4500,7 +4502,7 @@
       primaryChip.setAttribute('data-tooltip-cursor', 'pointer');
       primaryChip.innerHTML = `
         <span class="Button__icon" aria-hidden="true">
-          ${metric.isPrimary === true ? getIcon('star', { size: 14, strokeWidth: 2 }) : getIcon('star', { size: 14, strokeWidth: 2 })}
+          ${getIcon('circle-star', { size: 14, strokeWidth: metric.isPrimary === true ? 2.5 : 2 })}
         </span>
         <span>Primary</span>
       `;
