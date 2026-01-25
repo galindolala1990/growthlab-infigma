@@ -1837,32 +1837,28 @@
       margin-top: 3px;
     }
 
-    /* Variant metrics row - max 2 per row for better placeholder visibility */
+    /* Variant metrics row - 3-column grid */
     .variant-metrics-row {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--space-8) var(--space-16);
-      align-items: flex-end;
+      align-items: end;
     }
 
-    /* Base field style - 3 per row layout */
+    /* Metric field: fill grid cell */
     .variant-metric-field {
-      /* 3 columns, accounting for 2 column gaps (var(--space-12)) */
-      flex: 1 1 calc((100% - (var(--space-12) + var(--space-12))) / 3);
-      min-width: calc((100% - (var(--space-12) + var(--space-12))) / 3);
-      max-width: calc((100% - (var(--space-12) + var(--space-12))) / 3);
+      min-width: 0;
+      width: 100%;
     }
 
     /* Match Goals threshold: tight % suffix spacing */
     .variant-metric-field .InputField__wrapper {
-      gap: 2;
+      gap: 2px;
     }
 
-    /* 1 metric: one-third width */
-    .variant-metrics-row > .variant-metric-field:only-child {
-      flex: 0 0 33.333%;
-      max-width: 33.333%;
-      min-width: auto;
+    .variant-metric-field .InputField,
+    .variant-metric-field .InputField__wrapper {
+      width: 100%;
     }
 
     /* Variant baseline checkbox (0 or 1 selected) */
@@ -3157,7 +3153,7 @@
         </div>
       </section>
 
-      <!-- Journey Section (Steps + Variants) -->
+      <!-- Journey Section (Touchpoints + Variants) -->
       <section class="section-events">
         <div class="events-header">
           <div class="events-header-left">
@@ -3165,9 +3161,9 @@
               <h2>Journey</h2>
               <div class="events-note">Start/End are automatic. Add pre-touchpoints, choose the experiment touchpoint, then add post-touchpoints.</div>
             </div>
-            <span class="events-count" id="eventsCount">0 steps • 0 variants</span>
+            <span class="events-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
-          <button class="icon-btn btn-add-event" type="button" aria-label="Add step" data-tooltip="Add step" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
+          <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -3180,7 +3176,7 @@
         </div>
         <!-- Empty state placeholder -->
         <div class="empty-state" id="eventsEmptyState">
-          <p>No steps yet. Click the + button to add your first step.</p>
+          <p>No touchpoints yet. Click the + button to add your first touchpoint.</p>
         </div>
       </section>
       </div><!-- /.form-content -->
@@ -3309,6 +3305,8 @@
       'trophy': '<path d="M6 9H4.5a1 1 0 0 1 0-5H6"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>',
       // https://lucide.dev/icons/split
       'split': '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M12 2v8.3a4 4 0 0 1 1.172 2.872L21 21"/><path d="m9 15-6 6"/>',
+      // https://lucide.dev/icons/asterisk
+      'asterisk': '<path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/>',
       // https://lucide.dev/icons/square-asterisk
       'square-asterisk': '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="m8.5 14 7-4"/><path d="m8.5 10 7 4"/>',
       // https://lucide.dev/icons/star
@@ -4800,9 +4798,9 @@
       inputContainer.className = 'event-input-container';
       const eventInput = createInputField({
         id: `event-name-${eventIndex}`,
-        label: 'Step',
+        label: 'Touchpoint',
         showLabel: false,
-        help: 'Step name',
+        help: 'Touchpoint name',
         text: event.name || '',
         variant: 'horizontal'
       });
@@ -4817,7 +4815,7 @@
       deleteBtn.type = 'button';
       deleteBtn.className = 'icon-btn';
       deleteBtn.innerHTML = getIcon('x');
-      deleteBtn.setAttribute('data-tooltip', 'Remove step');
+      deleteBtn.setAttribute('data-tooltip', 'Remove touchpoint');
       deleteBtn.setAttribute('data-tooltip-position', 'bottom');
       deleteBtn.setAttribute('data-tooltip-align', 'end');
       deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
@@ -4848,6 +4846,15 @@
       const variantsList = document.createElement('div');
       variantsList.className = 'variants-list';
 
+      // Label the experiment branch area
+      if (event.variants && event.variants.length > 0) {
+        const variantsLabel = document.createElement('div');
+        variantsLabel.className = 'variant-metrics-label';
+        variantsLabel.style.marginTop = '0';
+        variantsLabel.textContent = 'Design variants';
+        variantsList.appendChild(variantsLabel);
+      }
+
       // Render each variant card
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, vIndex) => {
@@ -4861,8 +4868,8 @@
       addVariantRow.className = 'inline-add-row';
       addVariantRow.style.marginLeft = '0';
       const addVariantsLabel = (event.variants && event.variants.length > 0)
-        ? 'Add variant'
-        : 'Add variants (make this the experiment)';
+        ? 'Add design variant'
+        : 'Add design variants (make this the experiment)';
       addVariantRow.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
@@ -4921,7 +4928,7 @@
         callout.className = 'experiment-switch-callout';
         callout.innerHTML = `
           <div class="experiment-switch-callout__text">
-            This journey already has an experiment touchpoint. Only one step can have variants.
+            This journey already has an experiment touchpoint. Only one touchpoint can have design variants.
           </div>
           <div class="experiment-switch-callout__actions">
             <button type="button" class="experiment-switch-callout__btn primary">Make this the experiment</button>
@@ -4968,7 +4975,7 @@
       const countEl = document.getElementById('eventsCount');
       const eventCount = events.filter(e => e.name).length;
       const variantCount = events.reduce((sum, e) => sum + (e.variants?.length || 0), 0);
-      countEl.textContent = `${eventCount} step${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
+      countEl.textContent = `${eventCount} touchpoint${eventCount !== 1 ? 's' : ''} • ${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
       
       // Auto-infer experiment type based on variant count
       // 3+ variants = Multivariate, otherwise A/B Test
@@ -4980,7 +4987,7 @@
     /**
      * Creates a system (read-only) row for Start/End visibility.
      */
-    function createSystemEventRow({ label, badgeText, showLineAbove, showLineBelow }) {
+    function createSystemEventRow({ label, badgeText, badgeIcon, showLineAbove, showLineBelow }) {
       const row = document.createElement('div');
       row.className = 'event-row system';
 
@@ -4998,7 +5005,11 @@
 
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
-      stepBadge.textContent = badgeText;
+      if (badgeIcon) {
+        stepBadge.innerHTML = getIcon(badgeIcon, { size: 12, strokeWidth: 2 });
+      } else {
+        stepBadge.textContent = badgeText;
+      }
       stepDiv.appendChild(stepBadge);
 
       if (showLineBelow) {
@@ -5010,8 +5021,14 @@
       const inputContainer = document.createElement('div');
       inputContainer.className = 'event-input-container';
 
+      const idTokenSource = badgeText || badgeIcon || label;
+      const idToken = String(idTokenSource || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
       const systemInput = createInputField({
-        id: `system-${badgeText}-${Date.now()}`,
+        id: `system-${idToken || 'system'}-${Date.now()}`,
         label: 'System',
         showLabel: false,
         help: '',
@@ -5078,7 +5095,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add step...</span>
+        <span>Add touchpoint...</span>
       `;
       addRow.onclick = (e) => {
         e.preventDefault();
@@ -5132,7 +5149,7 @@
       // Start (auto) row
       list.appendChild(createSystemEventRow({
         label: 'Start (auto)',
-        badgeText: 'S',
+        badgeIcon: 'asterisk',
         showLineAbove: false,
         // Always true because there is always content below (steps or add-step row)
         showLineBelow: true
@@ -5143,13 +5160,15 @@
         // Only show when an experiment touchpoint exists and there are no pre-steps
         // (i.e., experiment is the first step in the journey).
         if (hasExperimentTouchpoint && expIndex === 0) {
-          list.appendChild(createInsertHotspot('Add previous step', () => {
-            events.splice(0, 0, {
+          list.appendChild(createInsertHotspot('Add pre-touchpoint', () => {
+            const newEvent = {
               id: `event-${Date.now()}`,
               name: '',
               hasVariants: false,
               variants: []
-            });
+            };
+            events.splice(0, 0, newEvent);
+            if (newEvent.id) setPendingFocus('event', newEvent.id);
             renderEvents(events);
           }));
         }
@@ -5161,13 +5180,15 @@
           // Only show when an experiment touchpoint exists and there are no post-steps
           // (i.e., experiment is the last step in the journey).
           if (hasExperimentTouchpoint && expIndex === eventsList.length - 1 && index === expIndex) {
-            list.appendChild(createInsertHotspot('Add post step', () => {
-              events.splice(index + 1, 0, {
+            list.appendChild(createInsertHotspot('Add post-touchpoint', () => {
+              const newEvent = {
                 id: `event-${Date.now()}`,
                 name: '',
                 hasVariants: false,
                 variants: []
-              });
+              };
+              events.splice(index + 1, 0, newEvent);
+              if (newEvent.id) setPendingFocus('event', newEvent.id);
               renderEvents(events);
             }));
           }
@@ -5194,7 +5215,7 @@
       // End (auto) row
       list.appendChild(createSystemEventRow({
         label: 'End (auto)',
-        badgeText: 'E',
+        badgeIcon: 'asterisk',
         // Always true because there is always a row above (steps or add-step row)
         showLineAbove: true,
         showLineBelow: false

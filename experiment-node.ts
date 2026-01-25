@@ -116,17 +116,18 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   card.itemSpacing = 8; // 1rem gap
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
-  card.name = `Step: ${eventName}`;
+  // Naming shows up in the Layers panel; use user-facing "Touchpoint" vocabulary.
+  card.name = `Touchpoint: ${eventName}`;
 
-  // Step label (above thumbnail)
+  // Touchpoint label (above thumbnail)
   const eventLabel = figma.createText();
   eventLabel.fontName = getFontStyle("Bold");
   eventLabel.fontSize = TOKENS.fontSizeBodySm;
   eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventLabel.opacity = 0.5;
   eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  eventLabel.characters = 'Step';
-  eventLabel.name = 'Event Label';
+  eventLabel.characters = 'Touchpoint';
+  eventLabel.name = 'Touchpoint Label';
   card.appendChild(eventLabel);
 
   let thumb: FrameNode;
@@ -185,7 +186,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   }
   card.appendChild(thumb);
 
-  // Group Event Name Text and Number of Variants
+  // Group Touchpoint Name Text and Number of Variants
   const eventDetailsContainer = figma.createFrame();
   eventDetailsContainer.layoutMode = 'VERTICAL';
   eventDetailsContainer.counterAxisSizingMode = 'AUTO';
@@ -193,7 +194,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventDetailsContainer.itemSpacing = 8;
   eventDetailsContainer.fills = [];
   eventDetailsContainer.strokes = [];
-  eventDetailsContainer.name = 'Event Details Container';
+  eventDetailsContainer.name = 'Touchpoint Details Container';
   eventDetailsContainer.layoutAlign = 'STRETCH';
   eventDetailsContainer.paddingBottom = 0;
   eventDetailsContainer.paddingTop = 8;
@@ -204,15 +205,16 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventNameText.textAlignHorizontal = 'LEFT';
-  // Auto-number fallback: if eventName is empty, use 'Step <n>'
+  // Auto-number fallback: if eventName is empty, use 'Touchpoint <n>'
   // Try to extract a number from the card name if possible
   let fallbackEventNumber = 1;
-  const match = card.name.match(/(?:Event|Step): (\\d+)/);
+  // Try to parse an explicit number from the card name (if present)
+  const match = card.name.match(/(?:Touchpoint): (\d+)/);
   if (!eventName && match && match[1]) {
     fallbackEventNumber = parseInt(match[1], 10);
   }
-  eventNameText.characters = eventName || `Step ${fallbackEventNumber}`;
-  eventNameText.name = 'Event Name Text';
+  eventNameText.characters = eventName || `Touchpoint ${fallbackEventNumber}`;
+  eventNameText.name = 'Touchpoint Name Text';
   eventDetailsContainer.appendChild(eventNameText);
 
   const subtitleText = figma.createText();
@@ -247,6 +249,11 @@ export async function createVariantCard(
   options?: { 
     rolledout?: boolean;
     metrics?: MetricDefinition[]; // Available metrics from plugin
+    /**
+     * Whether to render the variant description text on the canvas node.
+     * Default: false (hidden) to keep nodes compact.
+     */
+    showDescription?: boolean;
   }
 ): Promise<FrameNode> {
   const card = figma.createFrame();
@@ -409,15 +416,18 @@ export async function createVariantCard(
 
   variantDetailsContainer.appendChild(nameRow);
 
-  // Variant label (shows variant description for all variants)
-  const variantLabel = figma.createText();
-  variantLabel.fontName = getFontStyle("Regular");
-  variantLabel.fontSize = TOKENS.fontSizeBodyMd;
-  variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantLabel.characters = (variant as any).description || 'Variant description goes here.';
-  variantLabel.name = 'Variant Label';
-  variantDetailsContainer.appendChild(variantLabel);
+  // Variant description is intentionally hidden on canvas nodes for now.
+  // (We keep description in the data model / metadata; just don't render it.)
+  if (options?.showDescription) {
+    const variantLabel = figma.createText();
+    variantLabel.fontName = getFontStyle("Regular");
+    variantLabel.fontSize = TOKENS.fontSizeBodyMd;
+    variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
+    variantLabel.characters = (variant as any).description || '';
+    variantLabel.name = 'Variant Label';
+    variantDetailsContainer.appendChild(variantLabel);
+  }
 
   card.appendChild(variantDetailsContainer);
 
@@ -454,14 +464,14 @@ export async function createVariantCard(
   metricsHeader.name = 'Metrics Header';
   metricsSection.appendChild(metricsHeader);
 
-  // Format metrics with decimal values (matches outcome card)
+  // Format metrics as percentage values (matches UI input formatting).
+  // Also auto-migrates saved 0..1 values → 0..100 display.
   const formatMetric = (value: number | undefined): string => {
-    if (value === undefined || value === null) return '--';
-    if (Math.abs(value) >= 1000) {
-      return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
-    }
-    // Always show as decimal with 2 decimal places
-    return value.toFixed(2);
+    if (value === undefined || value === null || !Number.isFinite(value)) return '--';
+    const pct = value >= 0 && value <= 1 ? value * 100 : value;
+    const fixed = pct.toFixed(2);
+    const trimmed = fixed.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    return `${trimmed}%`;
   };
 
   // Create metric text items: metric name (abbreviation): value format
@@ -535,11 +545,11 @@ export async function createVariantCard(
     const metricKey = getMetricKey(metric);
     const metricValueRaw = (variant.metrics as any)?.[metricKey];
     
-    // Use the value if it exists, otherwise default to 0
-    // This ensures all defined metrics appear in variant cards
-    const metricValue = metricValueRaw !== undefined && metricValueRaw !== null && metricValueRaw !== '' 
-      ? (typeof metricValueRaw === 'number' ? metricValueRaw : parseFloat(String(metricValueRaw)) || 0)
-      : 0;
+    // Keep empty values as undefined so we show '--' (node is a summary, not an input).
+    const metricValue =
+      metricValueRaw !== undefined && metricValueRaw !== null && metricValueRaw !== ''
+        ? (typeof metricValueRaw === 'number' ? metricValueRaw : parseFloat(String(metricValueRaw)))
+        : undefined;
     
     const metricName = metric.name;
     const abbreviation = metric.abbreviation || metric.name;

@@ -2421,11 +2421,12 @@ if (figma.editorType === 'figma') {
     for (const [eventIdx, event] of flow.events.entries()) {
       const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
         ? event.name
-        : `Step ${eventIdx + 1}`;
+        : `Touchpoint ${eventIdx + 1}`;
       
       // Create event card
       const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
-      eventCard.name = `Step: ${safeEventName}`;
+      // Naming shows up in the Layers panel; use user-facing "Touchpoint" vocabulary.
+      eventCard.name = `Touchpoint: ${safeEventName}`;
       attachNodeMeta(eventCard, {
         name: safeEventName,
         type: 'frame' as CanvasNodeType,
