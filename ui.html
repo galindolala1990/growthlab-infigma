@@ -501,11 +501,123 @@
       color: var(--text-secondary);
     }
 
+    .metrics-helper {
+      color: var(--text-secondary);
+      font-size: var(--body-sm-size);
+      font-weight: var(--body-sm-weight);
+      line-height: var(--body-sm-line-height);
+      margin-top: -2px;
+      margin-bottom: var(--space-8);
+    }
+
     /* Metric Cards */
     .metrics-list {
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
+    }
+
+    /* ============================================
+     * GOAL ROWS (collapsible)
+     * ============================================ */
+    .goal-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      padding: var(--space-8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--background-surface);
+    }
+
+    .goal-row-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .goal-caret-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      border-radius: var(--radius-xs);
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+    }
+
+    .goal-caret-btn:hover {
+      background: var(--button-secondary-hover-bg);
+      color: var(--text-primary);
+    }
+
+    .goal-title {
+      flex: 1;
+      min-width: 0;
+      font-size: var(--body-md-size);
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .goal-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      flex-shrink: 0;
+    }
+
+    .goal-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--body-sm-size);
+      font-weight: var(--body-sm-weight);
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .goal-primary input[type="radio"] {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      accent-color: var(--brand);
+    }
+
+    .goal-row-body {
+      display: flex;
+      flex-direction: row;
+      gap: var(--space-8);
+      align-items: flex-end;
+    }
+
+    .goal-row-body.hidden {
+      display: none;
+    }
+
+    .goal-field {
+      min-width: 0;
+    }
+
+    .goal-field.metric {
+      flex: 1;
+    }
+
+    .goal-field.direction {
+      width: 140px;
+    }
+
+    .goal-field.threshold {
+      width: 140px;
     }
 
     .metric-row {
@@ -2752,14 +2864,14 @@
         
       </section>
     
-      <!-- Metrics Section -->
+      <!-- Goals Section -->
       <section class="section-metrics">
         <div class="metrics-header">
           <div class="metrics-header-left">
-            <h2>Metrics</h2>
+            <h2>Goals</h2>
             <span class="metrics-count" id="metricsCount"></span>
           </div>
-          <button class="icon-btn btn-add-metric" type="button" aria-label="Add metric" data-tooltip="Add metric" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
+          <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
             <!-- Lucide: plus -->
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"/>
@@ -2767,21 +2879,22 @@
             </svg>
           </button>
         </div>
+        <div class="metrics-helper">Pick what success means.</div>
         <div class="metrics-list" id="metricsList">
           <!-- Metric rows inserted by JS -->
         </div>
         <!-- Empty state placeholder -->
         <div class="empty-state" id="metricsEmptyState">
-          <p>No metrics yet. Click the + button to add your first metric.</p>
+          <p>No goals yet. Click the + button to add your first goal.</p>
         </div>
       </section>
 
-      <!-- Journey Section (Steps + Variants) -->
+      <!-- Steps Section (Steps + Variants) -->
       <section class="section-events">
         <div class="events-header">
           <div class="events-header-left">
             <div class="events-title-wrap">
-              <h2>Journey</h2>
+              <h2>Steps</h2>
               <div class="events-note">Entry and Exit are added automatically.</div>
             </div>
             <span class="events-count" id="eventsCount">0 steps • 0 variants</span>
@@ -3471,7 +3584,7 @@
       nameFieldDiv.className = 'metric-name-field';
       const nameField = createInputField({
         id: `metric-name-${index}`,
-        label: 'Name',
+        label: 'Metric',
         showLabel: isFirstRow,
         showLText: true,
         smallText: metric.abbreviation || 'CTR',

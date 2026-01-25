@@ -2756,7 +2756,7 @@
       <section class="section-metrics">
         <div class="metrics-header">
           <div class="metrics-header-left">
-            <h2>Metrics</h2>
+            <h2>Goals</h2>
             <span class="metrics-count" id="metricsCount"></span>
           </div>
           <button class="icon-btn btn-add-metric" type="button" aria-label="Add metric" data-tooltip="Add metric" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
@@ -2776,12 +2776,12 @@
         </div>
       </section>
 
-      <!-- Journey Section (Steps + Variants) -->
+      <!-- Steps Section (Steps + Variants) -->
       <section class="section-events">
         <div class="events-header">
           <div class="events-header-left">
             <div class="events-title-wrap">
-              <h2>Journey</h2>
+              <h2>Steps</h2>
               <div class="events-note">Entry and Exit are added automatically.</div>
             </div>
             <span class="events-count" id="eventsCount">0 steps • 0 variants</span>
@@ -3471,7 +3471,7 @@
       nameFieldDiv.className = 'metric-name-field';
       const nameField = createInputField({
         id: `metric-name-${index}`,
-        label: 'Name',
+        label: 'Metric',
         showLabel: isFirstRow,
         showLText: true,
         smallText: metric.abbreviation || 'CTR',
