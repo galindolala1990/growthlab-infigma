@@ -515,6 +515,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
+      padding: var(--space-4) 0 0 0;
     }
 
     /* ============================================
@@ -524,18 +525,18 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-8);
-      border: 1px solid var(--border);
+      padding: var(--space-4) 0;
+      /*border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      background: var(--background-surface);
+      background: var(--background-surface); */
     }
 
     .goal-row-header {
       display: flex;
       align-items: center;
       gap: var(--space-8);
-      cursor: pointer;
-      user-select: none;
+      cursor: default;
+      user-select: auto;
     }
 
     .goal-caret {
@@ -566,12 +567,86 @@
     .goal-title {
       flex: 1;
       min-width: 0;
-      font-size: var(--body-md-size);
-      font-weight: 500;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* Now contains inline editable fields */
+      display: flex;
+      align-items: center;
+    }
+
+    /* Compact "sentence editor" inside the goal header */
+    .goal-title-editor {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      width: 100%;
+      min-width: 0;
+    }
+
+    .goal-title-static {
+      font-size: var(--body-sm-size);
+      font-weight: 400;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .goal-title-field {
+      min-width: 0;
+    }
+
+    .goal-title-field--metric {
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .goal-title-field--direction {
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    /* Override base dropdown widths so it can't expand */
+    .goal-title-field--direction.SelectField,
+    .goal-title-field--direction.CustomDropdown {
+      width: 80px;
+      max-width: 80px;
+      flex: 0 0 80px;
+    }
+
+    /* Tighten right padding for the goal direction dropdown only */
+    .goal-title-field--direction.CustomDropdown .CustomDropdown__trigger {
+      padding-right: calc(var(--input-field-padding-x) + var(--select-field-icon-size) + 2px);
+    }
+
+    .goal-title-field--threshold {
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    /* Override InputField horizontal wrapper flex:1 so it doesn't stretch */
+    .goal-title-field--threshold.InputField {
+      width: 50px;
+      max-width: 50px;
+      flex: 0 0 50px;
+    }
+
+    .goal-title-field--threshold.InputField.horizontal .InputField__wrapper {
+      flex: 0 0 auto;
+      width: 100%;
+    }
+
+    /* Match old "Min. goal" threshold styling (tighter suffix/stepper spacing) */
+    .goal-title-field--threshold .InputField__wrapper {
+      gap: 0;
+    }
+
+    /* Make the inline fields a bit tighter than regular form fields */
+    .goal-title-field .InputField__wrapper,
+    .goal-title-field .SelectField__wrapper {
+      height: 26px;
+    }
+
+    .goal-title-field--metric .InputField__input {
+      font-size: var(--body-sm-size);
+      line-height: 1;
     }
 
     .goal-actions {
@@ -579,24 +654,27 @@
       align-items: center;
       gap: var(--space-16);
       flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
     }
 
-    .goal-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: var(--body-sm-size);
-      font-weight: var(--body-sm-weight);
+    /* Match Steps: show actions on hover */
+    .goal-row-header:hover .goal-actions {
+      opacity: 1;
+    }
+
+    /* Also show actions when editing via keyboard */
+    .goal-row:focus-within .goal-actions {
+      opacity: 1;
+    }
+
+    /* Goal primary toggle (star icon) */
+    .goal-primary-btn {
       color: var(--text-secondary);
-      cursor: pointer;
-      user-select: none;
     }
 
-    .goal-primary input[type="radio"] {
-      width: 14px;
-      height: 14px;
-      margin: 0;
-      accent-color: var(--brand);
+    .goal-primary-btn.is-primary {
+      color: var(--text-primary);
     }
 
     .goal-row-body {
@@ -735,7 +813,6 @@
       border-radius: var(--radius-md);
       transition: background 0.15s ease, color 0.15s ease;
       margin-right: 32px;
-      margin-top: var(--space-8);
     }
     .inline-add-row:hover {
       background: var(--button-secondary-hover-bg);
@@ -748,6 +825,11 @@
     }
     .inline-add-row:hover svg {
       opacity: 1;
+    }
+    /* Only offset top-level add rows (not nested variant rows) */
+    .events-list > .inline-add-row {
+      margin-left: 28px;
+      margin-bottom: var(--space-8);
     }
 
     /* ============================================
@@ -1244,11 +1326,14 @@
     /* First event row should have top padding */
     .event-row:first-child .event-row-main {
       padding-top: var(--space-8);
+      padding-bottom: var(--space-8);
     }
 
     /* Last event row should not have bottom border */
     .event-row:last-child .event-row-main {
       border-bottom: none;
+      padding-top: var(--space-8);
+      padding-bottom: var(--space-8);
     }
 
     /* Hide border when variants container follows */
@@ -1300,6 +1385,117 @@
 
     .event-flow-line:last-child {
       top: 100%;
+    }
+
+    /* Minimal insert affordance (shown on hover) */
+    .journey-insert {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      /* Match inline add row right gutter */
+      margin-right: 32px;
+      /* Let the insert affordance sit "on top of" adjacent rows */
+      margin-top: -7px;
+      margin-bottom: -7px;
+      display: block;
+    }
+
+    /* Keep the vertical spine continuous through the insert hotspot */
+    .journey-insert::before {
+      content: "";
+      position: absolute;
+      left: 10px; /* align to step badge center */
+      top: 0;
+      bottom: 0;
+      border-left: 1px dashed var(--border-dark);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .journey-insert__line {
+      position: absolute;
+      left: 10px; /* align to step badge center (20px / 2) */
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top: 1px solid var(--text-primary);
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 2;
+    }
+
+    .journey-insert__btn {
+      position: absolute;
+      left: 10px; /* align to step badge center */
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--text-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      z-index: 3;
+    }
+
+    .journey-insert:hover .journey-insert__line,
+    .journey-insert:hover .journey-insert__btn,
+    .journey-insert:focus-visible .journey-insert__line,
+    .journey-insert:focus-visible .journey-insert__btn {
+      opacity: 1;
+    }
+
+    .journey-insert:hover .journey-insert__btn,
+    .journey-insert:focus-visible .journey-insert__btn {
+      transform: translate(-50%, -50%) scale(1.02);
+    }
+
+    .journey-insert:focus-visible {
+      outline: 2px solid var(--input-field-focus-border);
+      outline-offset: 2px;
+      border-radius: var(--radius-md);
+    }
+
+    /* System rows: Start/End (auto, read-only) */
+    .event-row.system .event-row-main {
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .event-row.system .event-step-badge {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px dashed var(--border-dark);
+    }
+
+    .event-row.system .InputField__wrapper {
+      background: transparent;
+      border-style: dashed;
+    }
+
+    .event-row.system .InputField__wrapper:hover {
+      background: transparent;
+      border-color: var(--border);
+    }
+
+    .event-row.system .InputField__wrapper:focus-within {
+      box-shadow: none;
+      border-color: var(--border);
+    }
+
+    .event-row.system .InputField__input,
+    .event-row.system .InputField__input:disabled {
+      color: var(--text-secondary);
+      -webkit-text-fill-color: var(--text-secondary);
     }
 
     /* Event input field container */
@@ -1590,6 +1786,11 @@
       box-sizing: border-box;
     }
 
+    /* Hide variant description for now (keep data model intact) */
+    .variant-description {
+      display: none !important;
+    }
+
     .variant-subtree.collapsed {
       max-height: 0;
       opacity: 0;
@@ -1640,20 +1841,27 @@
     .variant-metrics-row {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--space-8) var(--space-12);
+      gap: var(--space-8) var(--space-16);
       align-items: flex-end;
     }
 
-    /* Base field style - 2 per row layout for readable placeholders */
+    /* Base field style - 3 per row layout */
     .variant-metric-field {
-      flex: 1 1 calc(50% - var(--space-12) / 2);
-      min-width: calc(50% - var(--space-12) / 2);
-      max-width: calc(50% - var(--space-12) / 2);
+      /* 3 columns, accounting for 2 column gaps (var(--space-12)) */
+      flex: 1 1 calc((100% - (var(--space-12) + var(--space-12))) / 3);
+      min-width: calc((100% - (var(--space-12) + var(--space-12))) / 3);
+      max-width: calc((100% - (var(--space-12) + var(--space-12))) / 3);
     }
 
-    /* 1 metric: half width */
+    /* Match Goals threshold: tight % suffix spacing */
+    .variant-metric-field .InputField__wrapper {
+      gap: 2;
+    }
+
+    /* 1 metric: one-third width */
     .variant-metrics-row > .variant-metric-field:only-child {
-      flex: 0 1 calc(50% - var(--space-12) / 2);
+      flex: 0 0 33.333%;
+      max-width: 33.333%;
       min-width: auto;
     }
 
@@ -2793,7 +3001,7 @@
               <!-- Status Dropdown -->
               <div class="status-field">
                 <div class="SelectField">
-                  <label class="SelectField__label">Experiment status</label>
+                  <label class="SelectField__label">Status</label>
                   <div class="CustomDropdown" id="statusDropdown">
                     <button type="button" class="CustomDropdown__trigger" id="statusTrigger">
                       <span class="CustomDropdown__text">Running</span>
@@ -2820,7 +3028,7 @@
               <!-- Rolled-out Variant Dropdown (shown only when status is "Concluded") -->
               <div class="rolledout-field hidden" id="rolledoutField">
                 <div class="SelectField">
-                  <label class="SelectField__label">Rolled out variant</label>
+                  <label class="SelectField__label">Rolled out</label>
                   <div class="CustomDropdown" id="rolledoutVariantDropdown">
                     <button type="button" class="CustomDropdown__trigger placeholder" id="rolledoutVariantTrigger">
                       <span class="CustomDropdown__text">Add variants first</span>
@@ -2949,13 +3157,13 @@
         </div>
       </section>
 
-      <!-- Steps Section (Steps + Variants) -->
+      <!-- Journey Section (Steps + Variants) -->
       <section class="section-events">
         <div class="events-header">
           <div class="events-header-left">
             <div class="events-title-wrap">
-              <h2>Steps</h2>
-              <div class="events-note">Entry and Exit are added automatically.</div>
+              <h2>Journey</h2>
+              <div class="events-note">Start/End are automatic. Add pre-touchpoints, choose the experiment touchpoint, then add post-touchpoints.</div>
             </div>
             <span class="events-count" id="eventsCount">0 steps • 0 variants</span>
           </div>
@@ -3632,8 +3840,8 @@
 
     // Sample data for goals (stored in metrics array for compatibility)
     const defaultMetrics = [
-      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', direction: 'increase', thresholdPct: 2, isPrimary: true, collapsed: true },
-      { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', direction: 'increase', thresholdPct: 2, collapsed: true },
+      { id: 'metric-0', name: 'Click through rate', abbreviation: 'CTR', direction: 'increase', thresholdPct: 2, isPrimary: true },
+      { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', direction: 'increase', thresholdPct: 2 },
     ];
 
     // Variant badge colors
@@ -3665,8 +3873,8 @@
         name: 'Conversion button',
         hasVariants: true,
         variants: [
-          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, metrics: { ctr: 0.695, cr: 0.425 } },
-          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, metrics: { ctr: 0.725, cr: 0.480 } },
+          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, metrics: { ctr: 69.5, cr: 42.5 } },
+          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, metrics: { ctr: 72.5, cr: 48.0 } },
         ]
       },
       {
@@ -3678,8 +3886,8 @@
     ];
 
     /**
-     * Creates a goal row (collapsible).
-     * Row title auto-generated: "<Metric> will <Increase/Decrease> by ≥ <X>%"
+     * Creates a goal row.
+     * Header is a compact inline editor: "<Metric> will <Increase/Decrease> by <X>%"
      *
      * NOTE: This is still named createMetricRow for compatibility with existing renderMetrics().
      */
@@ -3691,24 +3899,132 @@
       // Ensure defaults
       if (!metric.direction) metric.direction = 'increase';
       if (metric.thresholdPct === undefined || metric.thresholdPct === null || metric.thresholdPct === '') metric.thresholdPct = 2;
-      if (metric.collapsed === undefined) metric.collapsed = true;
 
       const header = document.createElement('div');
       header.className = 'goal-row-header';
 
-      // Chevron is plain SVG (not an icon button). Header click toggles.
-      const caretEl = document.createElement('div');
-      caretEl.className = 'goal-caret';
-      // Match the "More options" chevron markup + styling
-      caretEl.innerHTML = `
-        <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m9 18 6-6-6-6"></path>
-        </svg>
-      `;
-      const caretSvg = caretEl.querySelector('.chevron-icon');
-
       const titleEl = document.createElement('div');
       titleEl.className = 'goal-title';
+
+      // Inline, compact "sentence editor" in the header:
+      // [Metric name input] will [Increase/Decrease select] by [threshold input]%
+      const titleEditor = document.createElement('div');
+      titleEditor.className = 'goal-title-editor';
+
+      const metricInline = document.createElement('div');
+      metricInline.className = 'goal-title-field goal-title-field--metric InputField';
+      metricInline.dataset.variant = 'horizontal';
+      metricInline.dataset.state = 'default';
+      const metricInlineWrap = document.createElement('div');
+      metricInlineWrap.className = 'InputField__wrapper';
+      const metricInlinePrefix = document.createElement('span');
+      metricInlinePrefix.className = 'InputField__prefix hidden';
+      const metricInlineInput = document.createElement('input');
+      metricInlineInput.className = 'InputField__input';
+      metricInlineInput.type = 'text';
+      metricInlineInput.placeholder = 'Metric';
+      metricInlineWrap.appendChild(metricInlinePrefix);
+      metricInlineWrap.appendChild(metricInlineInput);
+      metricInline.appendChild(metricInlineWrap);
+
+      const willText = document.createElement('span');
+      willText.className = 'goal-title-static';
+      willText.textContent = 'will';
+
+      // Direction: use CustomDropdown styling (matches Status dropdown)
+      const directionInline = document.createElement('div');
+      directionInline.className = 'goal-title-field goal-title-field--direction CustomDropdown';
+
+      const directionTrigger = document.createElement('button');
+      directionTrigger.type = 'button';
+      directionTrigger.className = 'CustomDropdown__trigger';
+
+      const directionTextEl = document.createElement('span');
+      directionTextEl.className = 'CustomDropdown__text';
+      const directionIconEl = document.createElement('span');
+      directionIconEl.className = 'CustomDropdown__icon';
+      directionIconEl.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      `;
+      directionTrigger.appendChild(directionTextEl);
+      directionTrigger.appendChild(directionIconEl);
+
+      const directionMenu = document.createElement('div');
+      directionMenu.className = 'CustomDropdown__menu';
+
+      const directionOptions = [
+        { value: 'increase', label: 'Increase' },
+        { value: 'decrease', label: 'Decrease' },
+      ];
+
+      directionOptions.forEach(opt => {
+        const optionBtn = document.createElement('button');
+        optionBtn.type = 'button';
+        optionBtn.className = 'CustomDropdown__option';
+        optionBtn.dataset.value = opt.value;
+        optionBtn.dataset.label = opt.label;
+        optionBtn.innerHTML = `<span class="CustomDropdown__option-text">${opt.label}</span>`;
+        optionBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          metric.direction = opt.value;
+          directionInline.classList.remove('open');
+          updateTitle();
+        });
+        directionMenu.appendChild(optionBtn);
+      });
+
+      directionTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelectorAll('.CustomDropdown.open').forEach(d => {
+          if (d !== directionInline) d.classList.remove('open');
+        });
+        directionInline.classList.toggle('open');
+      });
+
+      directionInline.appendChild(directionTrigger);
+      directionInline.appendChild(directionMenu);
+
+      const byText = document.createElement('span');
+      byText.className = 'goal-title-static';
+      byText.textContent = 'by';
+
+      const thresholdInline = createInputField({
+        id: `metric-threshold-inline-${index}`,
+        label: 'Min. goal',
+        showLabel: false,
+        showRText: true,
+        suffix: '%',
+        showNumberStepper: false,
+        help: '2',
+        text: metric.thresholdPct !== undefined ? String(metric.thresholdPct) : '',
+        variant: 'horizontal',
+        inputType: 'number',
+        onChange: (value) => {
+          const raw = String(value);
+          if (raw === '' || raw === '-' || raw === '.' || raw === '-.') return;
+          const num = parseFloat(raw);
+          metric.thresholdPct = Number.isFinite(num) ? num : 0;
+          updateTitle();
+        }
+      });
+      thresholdInline.classList.add('goal-title-field', 'goal-title-field--threshold');
+      const thresholdInlineInput = thresholdInline.querySelector('.InputField__input');
+      if (thresholdInlineInput) {
+        // Ensure no native number spinners (no up/down controls)
+        thresholdInlineInput.classList.add('no-native-spinner');
+        thresholdInlineInput.min = '0';
+        thresholdInlineInput.step = '0.1';
+      }
+
+      titleEditor.appendChild(metricInline);
+      titleEditor.appendChild(willText);
+      titleEditor.appendChild(directionInline);
+      titleEditor.appendChild(byText);
+      titleEditor.appendChild(thresholdInline);
+      titleEl.appendChild(titleEditor);
 
       const actions = document.createElement('div');
       actions.className = 'goal-actions';
@@ -3736,102 +4052,38 @@
       actions.appendChild(primaryLabel);
       actions.appendChild(deleteBtn);
 
-      header.appendChild(caretEl);
       header.appendChild(titleEl);
       header.appendChild(actions);
 
-      const body = document.createElement('div');
-      body.className = 'goal-row-body';
-      body.classList.toggle('hidden', metric.collapsed === true);
-
       const updateTitle = () => {
-        const metricName = (typeof metric.name === 'string' && metric.name.trim().length > 0) ? metric.name.trim() : 'Metric';
+        const metricName = (typeof metric.name === 'string') ? metric.name.trim() : '';
         const dir = metric.direction === 'decrease' ? 'decrease' : 'increase';
-        const pct = (metric.thresholdPct !== undefined && metric.thresholdPct !== null && metric.thresholdPct !== '') ? metric.thresholdPct : 0;
-        titleEl.textContent = `${metricName} will ${dir} by ≥ ${pct}%`;
-        // Collapsed: points right. Expanded: points down (like More options).
-        if (caretSvg) caretSvg.style.transform = metric.collapsed ? 'rotate(0deg)' : 'rotate(90deg)';
-      };
+        const pct = (metric.thresholdPct !== undefined && metric.thresholdPct !== null && metric.thresholdPct !== '') ? metric.thresholdPct : '';
 
-      // Metric field
-      const metricFieldWrap = document.createElement('div');
-      metricFieldWrap.className = 'goal-field metric';
-      const metricField = createInputField({
-        id: `metric-name-${index}`,
-        label: 'Metric',
-        showLabel: true,
-        showLText: true,
-        smallText: metric.abbreviation || 'CTR',
-        help: 'e.g., Click through rate',
-        text: metric.name || '',
-        variant: 'vertical'
-      });
-      metricFieldWrap.appendChild(metricField);
-
-      // Direction field
-      const directionWrap = document.createElement('div');
-      directionWrap.className = 'goal-field direction';
-      const directionField = createSelectField({
-        id: `metric-direction-${index}`,
-        label: 'Direction',
-        showLabel: true,
-        showPlaceholder: false,
-        options: [
-          { value: 'increase', label: 'Increase' },
-          { value: 'decrease', label: 'Decrease' },
-        ],
-        value: metric.direction || 'increase',
-        size: 'md',
-        variant: 'vertical',
-        onChange: (value) => {
-          metric.direction = value;
-          updateTitle();
+        // Keep inline header editor in sync with model (avoid clobbering active edits)
+        if (document.activeElement !== metricInlineInput) {
+          metricInlineInput.value = metricName;
         }
-      });
-      directionWrap.appendChild(directionField);
+        metricInline.classList.toggle('entered', metricInlineInput.value.trim().length > 0);
+        metricInline.dataset.state = metricInline.classList.contains('entered') ? 'entered' : 'default';
 
-      // Threshold field
-      const thresholdWrap = document.createElement('div');
-      thresholdWrap.className = 'goal-field threshold';
-      const thresholdField = createInputField({
-        id: `metric-threshold-${index}`,
-        label: 'Min. goal',
-        showLabel: true,
-        showRText: true,
-        suffix: '%',
-        showNumberStepper: true,
-        help: '2',
-        text: metric.thresholdPct !== undefined ? String(metric.thresholdPct) : '',
-        variant: 'vertical',
-        inputType: 'number',
-        onChange: (value) => {
-          const num = parseFloat(String(value));
-          metric.thresholdPct = Number.isFinite(num) ? num : 0;
-          updateTitle();
+        // Prefix (abbreviation), like variant metrics
+        const abbr = (typeof metric.abbreviation === 'string') ? metric.abbreviation.trim() : '';
+        metricInlinePrefix.textContent = abbr;
+        metricInlinePrefix.classList.toggle('hidden', abbr.length === 0);
+
+        const dirLabel = dir === 'decrease' ? 'Decrease' : 'Increase';
+        directionTextEl.textContent = dirLabel;
+        directionMenu.querySelectorAll('.CustomDropdown__option').forEach(opt => {
+          opt.classList.toggle('selected', opt.dataset.value === dir);
+        });
+
+        if (document.activeElement !== thresholdInlineInput) {
+          thresholdInlineInput.value = pct === '' ? '' : String(pct);
         }
-      });
-      thresholdWrap.appendChild(thresholdField);
-
-      body.appendChild(metricFieldWrap);
-      body.appendChild(directionWrap);
-      body.appendChild(thresholdWrap);
-
-      const toggleCollapsed = (e) => {
-        e.preventDefault();
-        metric.collapsed = !metric.collapsed;
-        body.classList.toggle('hidden', metric.collapsed === true);
-        updateTitle();
+        thresholdInline.classList.toggle('entered', thresholdInlineInput.value.trim().length > 0);
+        thresholdInline.dataset.state = thresholdInline.classList.contains('entered') ? 'entered' : 'default';
       };
-
-      caretEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCollapsed(e);
-      });
-      header.addEventListener('click', (e) => {
-        // Avoid toggling when clicking controls in actions
-        if (e.target && (e.target.closest('.goal-actions') || e.target.closest('.icon-btn') || e.target.closest('input'))) return;
-        toggleCollapsed(e);
-      });
 
       // Primary radio behavior
       primaryRadio.addEventListener('change', (e) => {
@@ -3849,36 +4101,36 @@
         renderMetrics(metrics);
       });
 
-      // Sync metric name + abbreviation on commit (avoid rerendering events on every keystroke)
-      const nameInput = metricField.querySelector('.InputField__input');
-      const prefixEl = metricField.querySelector('.InputField__prefix');
-      if (nameInput) {
-        nameInput.addEventListener('input', () => {
-          metric.name = nameInput.value.trim();
-          updateTitle();
-        });
-        nameInput.addEventListener('change', () => {
-          metric.name = nameInput.value.trim();
-          // Auto-generate abbreviation from name (max 3 characters) only if missing
-          if (metric.name && !metric.abbreviation) {
-            const words = metric.name.split(' ');
-            metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
-          }
-          if (prefixEl) {
-            prefixEl.textContent = metric.abbreviation || '';
-            prefixEl.classList.toggle('hidden', !(metric.abbreviation && metric.abbreviation.trim().length > 0));
-          }
-          updateMetricsCount();
-          if (typeof events !== 'undefined') {
-            renderEvents(events);
-          }
-        });
-      }
+      // Inline header editor behavior
+      metricInlineInput.addEventListener('input', () => {
+        metric.name = metricInlineInput.value.trim();
+        updateTitle();
+      });
+      metricInlineInput.addEventListener('change', () => {
+        metric.name = metricInlineInput.value.trim();
+        // Same abbreviation behavior as the full field
+        if (metric.name && !metric.abbreviation) {
+          const words = metric.name.split(' ');
+          metric.abbreviation = words.map(w => w[0]).join('').toUpperCase().slice(0, 3);
+        }
+        // Keep prefix in sync immediately
+        const abbr = (typeof metric.abbreviation === 'string') ? metric.abbreviation.trim() : '';
+        metricInlinePrefix.textContent = abbr;
+        metricInlinePrefix.classList.toggle('hidden', abbr.length === 0);
+        updateMetricsCount();
+        if (typeof events !== 'undefined') {
+          renderEvents(events);
+        }
+        updateTitle();
+      });
+
+      // Direction dropdown handled above via CustomDropdown option clicks.
+
+      // Threshold input is handled via createInputField(onChange) above.
 
       updateTitle();
 
       row.appendChild(header);
-      row.appendChild(body);
       return row;
     }
 
@@ -3918,7 +4170,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add goal...</span>
+        <span>Add metric...</span>
       `;
       addRow.onclick = () => {
         const isFirstMetric = metrics.length === 0;
@@ -3928,7 +4180,6 @@
           abbreviation: '',
           direction: 'increase',
           thresholdPct: 2,
-          collapsed: true,
           isPrimary: isFirstMetric
         });
         renderMetrics(metrics);
@@ -4172,6 +4423,15 @@
         if (!metric.name) return; // Skip metrics without a name
         
         const metricKey = (metric.abbreviation || metric.name.replace(/\s+/g, '_')).toLowerCase();
+        const rawMetricValue = variant.metrics?.[metricKey];
+        const displayMetricValue = (() => {
+          const num = typeof rawMetricValue === 'number' ? rawMetricValue : parseFloat(String(rawMetricValue));
+          if (!Number.isFinite(num)) return '';
+          const pct = (num >= 0 && num <= 1) ? (num * 100) : num; // auto-migrate 0..1 → 0..100
+          const fixed = pct.toFixed(2);
+          return fixed.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+        })();
+
         const metricFieldDiv = document.createElement('div');
         metricFieldDiv.className = 'variant-metric-field';
         const metricField = createInputField({
@@ -4179,15 +4439,27 @@
           label: metric.abbreviation || metric.name,
           showLabel: false,
           showLText: true,
-        smallText: metric.abbreviation || '',
+          smallText: metric.abbreviation || '',
+          showRText: true,
+          suffix: '%',
           help: '0.00',
-          text: variant.metrics?.[metricKey] !== undefined ? String(variant.metrics[metricKey]) : '',
+          text: displayMetricValue,
           variant: 'vertical',
+          inputType: 'number',
           onChange: (value) => {
             if (!variant.metrics) variant.metrics = {};
-            variant.metrics[metricKey] = parseFloat(value) || 0;
+            const num = parseFloat(String(value));
+            variant.metrics[metricKey] = Number.isFinite(num) ? num : 0;
           }
         });
+        // Match Goals threshold: allow decimals, no spinners
+        const metricInput = metricField.querySelector('.InputField__input');
+        if (metricInput) {
+          metricInput.classList.add('no-native-spinner');
+          metricInput.setAttribute('inputmode', 'decimal');
+          metricInput.step = '0.1';
+          metricInput.min = '0';
+        }
         metricFieldDiv.appendChild(metricField);
         row3.appendChild(metricFieldDiv);
       });
@@ -4332,6 +4604,161 @@
     /**
      * Creates an event row with optional variants
      */
+    function getExperimentTouchpointIndex(list = events) {
+      if (!Array.isArray(list)) return -1;
+      return list.findIndex(e => Array.isArray(e?.variants) && e.variants.length > 0);
+    }
+
+    // Interaction state (predictable + FigJam-like)
+    let pendingExperimentSwitchEventId = null; // explicit switch UI anchored to a step
+    let lastExperimentSwitchUndo = null;       // enables Undo toast
+    let pendingFocusTarget = null;             // { type: 'event'|'variant', id: string }
+    let toastHideTimer = null;
+
+    function ensureToast() {
+      let el = document.getElementById('toast');
+      if (el) return el;
+      el = document.createElement('div');
+      el.id = 'toast';
+      el.className = 'toast';
+      el.innerHTML = `
+        <div class="toast__msg" id="toastMsg"></div>
+        <div class="toast__actions">
+          <button type="button" class="toast__btn" id="toastActionBtn" style="display:none;"></button>
+          <button type="button" class="toast__btn" id="toastCloseBtn">Dismiss</button>
+        </div>
+      `;
+      document.body.appendChild(el);
+
+      const closeBtn = el.querySelector('#toastCloseBtn');
+      if (closeBtn) closeBtn.addEventListener('click', () => hideToast());
+      return el;
+    }
+
+    function showToast(message, actionLabel = null, actionFn = null) {
+      const el = ensureToast();
+      const msgEl = el.querySelector('#toastMsg');
+      const actionBtn = el.querySelector('#toastActionBtn');
+      if (msgEl) msgEl.textContent = message || '';
+
+      if (actionBtn) {
+        if (actionLabel && typeof actionFn === 'function') {
+          actionBtn.style.display = 'inline-flex';
+          actionBtn.textContent = actionLabel;
+          actionBtn.onclick = (e) => {
+            e.preventDefault();
+            hideToast();
+            actionFn();
+          };
+        } else {
+          actionBtn.style.display = 'none';
+          actionBtn.onclick = null;
+        }
+      }
+
+      el.classList.add('open');
+      if (toastHideTimer) clearTimeout(toastHideTimer);
+      toastHideTimer = setTimeout(() => hideToast(), 4500);
+    }
+
+    function hideToast() {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.classList.remove('open');
+      if (toastHideTimer) clearTimeout(toastHideTimer);
+      toastHideTimer = null;
+    }
+
+    function setPendingFocus(type, id) {
+      pendingFocusTarget = { type, id };
+    }
+
+    function applyPendingFocus() {
+      if (!pendingFocusTarget) return;
+      const target = pendingFocusTarget;
+      pendingFocusTarget = null;
+
+      requestAnimationFrame(() => {
+        try {
+          if (target.type === 'event') {
+            const row = document.getElementById(target.id);
+            const input = row?.querySelector('.event-row-main .InputField__input');
+            if (input && !input.disabled) {
+              input.focus();
+              if (typeof input.select === 'function') input.select();
+            }
+            return;
+          }
+          if (target.type === 'variant') {
+            const card = document.getElementById(target.id);
+            const input = card?.querySelector('.InputField__input');
+            if (input && !input.disabled) {
+              input.focus();
+              if (typeof input.select === 'function') input.select();
+            }
+          }
+        } catch {
+          // no-op
+        }
+      });
+    }
+
+    function clearPendingExperimentSwitch() {
+      pendingExperimentSwitchEventId = null;
+    }
+
+    function switchExperimentTouchpoint(toEventIndex) {
+      const fromEventIndex = getExperimentTouchpointIndex(events);
+      if (fromEventIndex < 0 || fromEventIndex === toEventIndex) return;
+
+      const fromEvent = events[fromEventIndex];
+      const toEvent = events[toEventIndex];
+      const fromVariants = JSON.parse(JSON.stringify(fromEvent?.variants || []));
+      const toVariants = JSON.parse(JSON.stringify(toEvent?.variants || []));
+
+      // Move variants
+      toEvent.variants = fromEvent.variants || [];
+      toEvent.hasVariants = (toEvent.variants || []).length > 0;
+      fromEvent.variants = toVariants;
+      fromEvent.hasVariants = (fromEvent.variants || []).length > 0;
+
+      lastExperimentSwitchUndo = { fromEventIndex, toEventIndex, fromVariants, toVariants };
+      clearPendingExperimentSwitch();
+
+      // Focus: first variant name if present, else the step name
+      if (toEvent.variants && toEvent.variants.length > 0 && toEvent.variants[0]?.id) {
+        setPendingFocus('variant', toEvent.variants[0].id);
+      } else {
+        setPendingFocus('event', toEvent.id);
+      }
+
+      renderEvents(events);
+      const statusInput = document.getElementById('experimentStatus');
+      if (statusInput && statusInput.value === 'completed') {
+        updateRolledoutOptions();
+      }
+      showToast('Experiment touchpoint switched.', 'Undo', undoLastExperimentSwitch);
+    }
+
+    function undoLastExperimentSwitch() {
+      if (!lastExperimentSwitchUndo) return;
+      const { fromEventIndex, toEventIndex, fromVariants, toVariants } = lastExperimentSwitchUndo;
+      if (!events[fromEventIndex] || !events[toEventIndex]) return;
+
+      events[fromEventIndex].variants = fromVariants;
+      events[fromEventIndex].hasVariants = (fromVariants || []).length > 0;
+      events[toEventIndex].variants = toVariants;
+      events[toEventIndex].hasVariants = (toVariants || []).length > 0;
+
+      setPendingFocus('event', events[fromEventIndex].id);
+      lastExperimentSwitchUndo = null;
+      renderEvents(events);
+      const statusInput = document.getElementById('experimentStatus');
+      if (statusInput && statusInput.value === 'completed') {
+        updateRolledoutOptions();
+      }
+    }
+
     function createEventRow(event, eventIndex, totalEvents) {
       const row = document.createElement('div');
       row.className = 'event-row';
@@ -4345,12 +4772,10 @@
       const stepDiv = document.createElement('div');
       stepDiv.className = 'event-step';
       
-      // Flow line above (if not first event)
-      if (eventIndex > 0) {
-        const flowLineAbove = document.createElement('div');
-        flowLineAbove.className = 'event-flow-line';
-        stepDiv.appendChild(flowLineAbove);
-      }
+      // Flow line above (connects Start -> first step)
+      const flowLineAbove = document.createElement('div');
+      flowLineAbove.className = 'event-flow-line';
+      stepDiv.appendChild(flowLineAbove);
       
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
@@ -4435,17 +4860,34 @@
       const addVariantRow = document.createElement('div');
       addVariantRow.className = 'inline-add-row';
       addVariantRow.style.marginLeft = '0';
+      const addVariantsLabel = (event.variants && event.variants.length > 0)
+        ? 'Add variant'
+        : 'Add variants (make this the experiment)';
       addVariantRow.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add variant...</span>
+        <span>${addVariantsLabel}</span>
       `;
       addVariantRow.onclick = () => {
+        // Creating the experiment touchpoint:
+        // First time user adds variants anywhere → that step becomes the experiment touchpoint.
+        //
+        // Switching:
+        // If an experiment touchpoint already exists elsewhere, require an explicit click
+        // ("Make this the experiment") via a callout + support Undo (no silent conversion).
+        const expIndex = getExperimentTouchpointIndex(events);
+        if (expIndex >= 0 && expIndex !== eventIndex) {
+          pendingExperimentSwitchEventId = event.id;
+          renderEvents(events);
+          return;
+        }
+
         event.hasVariants = true;
+        if (!Array.isArray(event.variants)) event.variants = [];
         const variantIndex = event.variants.length;
         const defaultColor = colorPalette[variantIndex % colorPalette.length].hex;
-        event.variants.push({
+        const newVariant = {
           id: `var-${eventIndex}-${variantIndex}`,
           name: '',
           label: String.fromCharCode(65 + variantIndex),
@@ -4454,10 +4896,56 @@
           // Default to no baseline; user can optionally select one (at most one)
           isControl: false,
           metrics: {}
-        });
+        };
+        event.variants.push(newVariant);
+        if (newVariant.id) setPendingFocus('variant', newVariant.id);
         renderEvents(events);
+
+        // Keep rolled-out variant dropdown in sync if Concluded
+        const statusInput = document.getElementById('experimentStatus');
+        if (statusInput && statusInput.value === 'completed') {
+          updateRolledoutOptions();
+        }
       };
       variantsList.appendChild(addVariantRow);
+
+      // Explicit switch callout (anchored to the clicked step)
+      const currentExpIndex = getExperimentTouchpointIndex(events);
+      if (
+        pendingExperimentSwitchEventId &&
+        pendingExperimentSwitchEventId === event.id &&
+        currentExpIndex >= 0 &&
+        currentExpIndex !== eventIndex
+      ) {
+        const callout = document.createElement('div');
+        callout.className = 'experiment-switch-callout';
+        callout.innerHTML = `
+          <div class="experiment-switch-callout__text">
+            This journey already has an experiment touchpoint. Only one step can have variants.
+          </div>
+          <div class="experiment-switch-callout__actions">
+            <button type="button" class="experiment-switch-callout__btn primary">Make this the experiment</button>
+            <button type="button" class="experiment-switch-callout__btn">Cancel</button>
+          </div>
+        `;
+        const buttons = callout.querySelectorAll('button');
+        const primaryBtn = buttons?.[0];
+        const cancelBtn = buttons?.[1];
+        if (primaryBtn) {
+          primaryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchExperimentTouchpoint(eventIndex);
+          });
+        }
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearPendingExperimentSwitch();
+            renderEvents(events);
+          });
+        }
+        variantsList.appendChild(callout);
+      }
 
       variantsContainer.appendChild(variantsStep);
       variantsContainer.appendChild(variantsList);
@@ -4490,6 +4978,123 @@
     }
 
     /**
+     * Creates a system (read-only) row for Start/End visibility.
+     */
+    function createSystemEventRow({ label, badgeText, showLineAbove, showLineBelow }) {
+      const row = document.createElement('div');
+      row.className = 'event-row system';
+
+      const mainRow = document.createElement('div');
+      mainRow.className = 'event-row-main';
+
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'event-step';
+
+      if (showLineAbove) {
+        const flowLineAbove = document.createElement('div');
+        flowLineAbove.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineAbove);
+      }
+
+      const stepBadge = document.createElement('div');
+      stepBadge.className = 'event-step-badge';
+      stepBadge.textContent = badgeText;
+      stepDiv.appendChild(stepBadge);
+
+      if (showLineBelow) {
+        const flowLineBelow = document.createElement('div');
+        flowLineBelow.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineBelow);
+      }
+
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'event-input-container';
+
+      const systemInput = createInputField({
+        id: `system-${badgeText}-${Date.now()}`,
+        label: 'System',
+        showLabel: false,
+        help: '',
+        text: label,
+        variant: 'horizontal'
+      });
+
+      const inputEl = systemInput.querySelector('.InputField__input');
+      if (inputEl) {
+        inputEl.disabled = true;
+        inputEl.tabIndex = -1;
+      }
+
+      inputContainer.appendChild(systemInput);
+
+      mainRow.appendChild(stepDiv);
+      mainRow.appendChild(inputContainer);
+      row.appendChild(mainRow);
+
+      return row;
+    }
+
+    /**
+     * Add-step row rendered as an event row for consistent layout/spine.
+     * (No action buttons; clickable content is the inline add row.)
+     */
+    function createAddStepEventRow({ showLineAbove, showLineBelow, onAdd }) {
+      const row = document.createElement('div');
+      row.className = 'event-row add-step-row';
+
+      const mainRow = document.createElement('div');
+      mainRow.className = 'event-row-main';
+
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'event-step';
+
+      if (showLineAbove) {
+        const flowLineAbove = document.createElement('div');
+        flowLineAbove.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineAbove);
+      }
+
+      // Keep spacing consistent with other rows (badge slot)
+      const stepBadge = document.createElement('div');
+      stepBadge.className = 'event-step-badge';
+      stepBadge.textContent = '';
+      stepBadge.style.background = 'transparent';
+      stepBadge.style.color = 'var(--text-secondary)';
+      stepBadge.style.border = '1px dashed var(--border-dark)';
+      stepDiv.appendChild(stepBadge);
+
+      if (showLineBelow) {
+        const flowLineBelow = document.createElement('div');
+        flowLineBelow.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineBelow);
+      }
+
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'event-input-container';
+
+      const addRow = document.createElement('div');
+      addRow.className = 'inline-add-row';
+      addRow.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="M12 5v14"/>
+        </svg>
+        <span>Add step...</span>
+      `;
+      addRow.onclick = (e) => {
+        e.preventDefault();
+        if (typeof onAdd === 'function') onAdd();
+      };
+
+      inputContainer.appendChild(addRow);
+
+      mainRow.appendChild(stepDiv);
+      mainRow.appendChild(inputContainer);
+      row.appendChild(mainRow);
+
+      return row;
+    }
+
+    /**
      * Renders the complete events/flow section
      */
     function renderEvents(eventsList) {
@@ -4501,35 +5106,102 @@
       emptyState.classList.add('hidden');
       list.style.display = 'flex';
 
+      const hasSteps = !!(eventsList && eventsList.length > 0);
+      const expIndex = getExperimentTouchpointIndex(eventsList);
+      const hasExperimentTouchpoint = expIndex >= 0;
+
+      const createInsertHotspot = (label, onClick) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'journey-insert';
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('data-tooltip', label);
+        btn.setAttribute('data-tooltip-position', 'top');
+        btn.setAttribute('data-tooltip-align', 'start');
+        btn.innerHTML = `
+          <span class="journey-insert__line"></span>
+          <span class="journey-insert__btn">${getIcon('plus', { size: 12 })}</span>
+        `;
+        btn.onclick = (e) => {
+          e.preventDefault();
+          onClick();
+        };
+        return btn;
+      };
+
+      // Start (auto) row
+      list.appendChild(createSystemEventRow({
+        label: 'Start (auto)',
+        badgeText: 'S',
+        showLineAbove: false,
+        // Always true because there is always content below (steps or add-step row)
+        showLineBelow: true
+      }));
+
       // Render existing events
       if (eventsList && eventsList.length > 0) {
+        // Only show when an experiment touchpoint exists and there are no pre-steps
+        // (i.e., experiment is the first step in the journey).
+        if (hasExperimentTouchpoint && expIndex === 0) {
+          list.appendChild(createInsertHotspot('Add previous step', () => {
+            events.splice(0, 0, {
+              id: `event-${Date.now()}`,
+              name: '',
+              hasVariants: false,
+              variants: []
+            });
+            renderEvents(events);
+          }));
+        }
+
         eventsList.forEach((event, index) => {
           const eventRow = createEventRow(event, index, eventsList.length);
           list.appendChild(eventRow);
+
+          // Only show when an experiment touchpoint exists and there are no post-steps
+          // (i.e., experiment is the last step in the journey).
+          if (hasExperimentTouchpoint && expIndex === eventsList.length - 1 && index === expIndex) {
+            list.appendChild(createInsertHotspot('Add post step', () => {
+              events.splice(index + 1, 0, {
+                id: `event-${Date.now()}`,
+                name: '',
+                hasVariants: false,
+                variants: []
+              });
+              renderEvents(events);
+            }));
+          }
         });
       }
 
-      // Add inline "Add step" row
-      const addRow = document.createElement('div');
-      addRow.className = 'inline-add-row';
-      addRow.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14"/><path d="M12 5v14"/>
-        </svg>
-        <span>Add step...</span>
-      `;
-      addRow.onclick = () => {
-        events.push({
-          id: `event-${Date.now()}`,
-          name: '',
-          hasVariants: false,
-          variants: []
-        });
-        renderEvents(events);
-      };
-      list.appendChild(addRow);
+      // Add-step row as an event-row (consistent layout; no action buttons)
+      list.appendChild(createAddStepEventRow({
+        showLineAbove: true,
+        showLineBelow: true,
+        onAdd: () => {
+          const newEvent = {
+            id: `event-${Date.now()}`,
+            name: '',
+            hasVariants: false,
+            variants: []
+          };
+          events.push(newEvent);
+          if (newEvent.id) setPendingFocus('event', newEvent.id);
+          renderEvents(events);
+        }
+      }));
+
+      // End (auto) row
+      list.appendChild(createSystemEventRow({
+        label: 'End (auto)',
+        badgeText: 'E',
+        // Always true because there is always a row above (steps or add-step row)
+        showLineAbove: true,
+        showLineBelow: false
+      }));
 
       updateEventsCount();
+      applyPendingFocus();
     }
 
     let metrics = JSON.parse(JSON.stringify(defaultMetrics));
@@ -5220,7 +5892,6 @@
             abbreviation: '',
             direction: 'increase',
             thresholdPct: 2,
-            collapsed: true,
             isPrimary: isFirstMetric
           });
           renderMetrics(metrics);
@@ -5549,7 +6220,7 @@
 
     // =============== Expand/Collapse Modal ===============
     let isExpanded = false;
-    const COLLAPSED_SIZE = { width: 400, height: 720 };
+    const COLLAPSED_SIZE = { width: 500, height: 720 };
     const EXPANDED_SIZE = { width: 600, height: 900 };
 
     function initExpandButton() {

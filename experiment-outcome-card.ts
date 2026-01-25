@@ -71,6 +71,8 @@ export interface MetricDefinition {
   id: string;
   name: string;
   abbreviation?: string;
+  direction?: "increase" | "decrease";
+  thresholdPct?: number;
   min?: number;
   max?: number;
   isPrimary?: boolean; // Primary metric for decision making
@@ -467,7 +469,7 @@ function createVariantHeaderCell(variant: VariantOutcome): FrameNode {
 }
 
 /**
- * Create a goal cell showing the target range (min-max)
+ * Create a goal cell showing the target percent (preferred) or legacy range (min-max)
  */
 function createGoalCell(metric: MetricDefinition, isPrimary: boolean = false): FrameNode {
   const cell = figma.createFrame();
@@ -484,7 +486,16 @@ function createGoalCell(metric: MetricDefinition, isPrimary: boolean = false): F
   cell.fills = [];
   cell.name = "Goal Cell";
 
-  if (metric.min !== undefined && metric.max !== undefined) {
+  if (typeof metric.thresholdPct === 'number' && Number.isFinite(metric.thresholdPct)) {
+    const goalText = figma.createText();
+    goalText.fontName = getFontStyle(isPrimary ? "Bold" : "Medium");
+    goalText.fontSize = TOKENS.fontSizeBodyMd;
+    goalText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+    goalText.textAutoResize = "WIDTH_AND_HEIGHT";
+    goalText.textAlignHorizontal = "CENTER";
+    goalText.characters = `${metric.direction === 'decrease' ? '≤' : '≥'} ${metric.thresholdPct}%`;
+    cell.appendChild(goalText);
+  } else if (metric.min !== undefined && metric.max !== undefined) {
     const goalText = figma.createText();
     goalText.fontName = getFontStyle(isPrimary ? "Bold" : "Medium");
     goalText.fontSize = TOKENS.fontSizeBodyMd;

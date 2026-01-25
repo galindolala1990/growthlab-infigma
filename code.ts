@@ -1758,6 +1758,14 @@ export interface MetricDefinition {
   id: string;
   name: string;
   abbreviation?: string;
+  /**
+   * Goal direction and threshold (current UI)
+   */
+  direction?: "increase" | "decrease";
+  thresholdPct?: number;
+  /**
+   * Backward-compat for older UI payloads
+   */
   min?: number;
   max?: number;
   isPrimary?: boolean;
@@ -2088,8 +2096,10 @@ if (figma.editorType === 'figma') {
   // ...existing code...
 
 
+  const MIN_UI_WIDTH = 500;
+
   figma.showUI(__html__, {
-    width: 400,
+    width: MIN_UI_WIDTH,
     height: 720,
     title: 'Growthlab Builder',
     themeColors: true,
@@ -2836,7 +2846,7 @@ if (figma.editorType === 'figma') {
     if (msg.type === 'resize-ui') {
       const resizeMsg = msg as { type: string; width?: number; height?: number };
       if (typeof resizeMsg.width === 'number' && typeof resizeMsg.height === 'number') {
-        figma.ui.resize(resizeMsg.width, resizeMsg.height);
+        figma.ui.resize(Math.max(MIN_UI_WIDTH, resizeMsg.width), resizeMsg.height);
       }
       return;
     }

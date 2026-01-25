@@ -278,6 +278,15 @@ export interface MetricDefinition {
   id: string;
   name: string;
   abbreviation?: string;
+  /**
+   * Goal direction (matches UI)
+   */
+  direction?: "increase" | "decrease";
+  /**
+   * Goal threshold percent (matches UI)
+   */
+  thresholdPct?: number;
+  // Backward-compat (older UI)
   min?: number;
   max?: number;
   isPrimary?: boolean;
@@ -1219,9 +1228,12 @@ async function appendMetricsSection(
     goalText.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
     goalText.textAutoResize = "WIDTH_AND_HEIGHT";
     goalText.textAlignHorizontal = "RIGHT";
-    const goalValue = (metric.min !== undefined && metric.max !== undefined)
-      ? `${metric.min} - ${metric.max}`
-      : '—';
+    const goalValue =
+      typeof metric.thresholdPct === 'number' && Number.isFinite(metric.thresholdPct)
+        ? `${metric.direction === 'decrease' ? '≤' : '≥'} ${metric.thresholdPct}%`
+        : (metric.min !== undefined && metric.max !== undefined)
+          ? `${metric.min} - ${metric.max}`
+          : '—';
     goalText.characters = goalValue;
     goalCell.appendChild(goalText);
     
