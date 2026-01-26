@@ -205,7 +205,7 @@
       --radius-xl: 1.125rem;
 
       /* === Component Variables === */
-      --section-padding: var(--space-16);
+      --section-padding: var(--space-16) var(--space-24);
       --section-gap: var(--space-16);
       --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
@@ -254,7 +254,7 @@
 
       /* === SelectField Component (from Figma node 678-78897) === */
       --select-field-height-sm: 20px;
-      --select-field-height-md: 26px;
+      --select-field-height-md: 24px;
       --select-field-height-lg: 32px;
       --select-field-icon-size: 12px;
       --select-field-icon-gap: 8px;
@@ -1664,6 +1664,7 @@
       /*border-bottom-color: transparent;*/
       border: none;
       padding-bottom: var(--space-8);
+      padding-right: var(--space-8);
     }
     
 
@@ -1884,7 +1885,7 @@
       align-items: flex-start;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-4) var(--space-0) var(--space-4) var(--space-0);
+      padding: var(--space-4) var(--space-8);
       background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
       border-radius: var(--radius-sm);
@@ -1896,7 +1897,7 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: var(--color-transparent);
+      background: var(--color-royal-blue-50);
       border: 1px solid var(--color-transparent);
     }
 
@@ -2060,6 +2061,18 @@
       flex-shrink: 0;
     }
 
+    /* Hide Control toggle unless selected, but keep layout stable */
+    .variant-control-toggle[aria-pressed="false"] {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .variant-card:hover .variant-control-toggle[aria-pressed="false"],
+    .variant-card:focus-within .variant-control-toggle[aria-pressed="false"] {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     /* Variant subtree toggle button */
     .variant-tree-toggle {
       display: flex;
@@ -2082,20 +2095,20 @@
       background: var(--color-transparent);
     }
 
-    .variant-tree-toggle svg {
-      width: 12px;
-      height: 12px;
-      transition: transform 0.15s ease;
+    .variant-tree-toggle .chevron-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
     }
 
-    /* Collapsed state - chevron points right */
-    .variant-tree-toggle.collapsed svg {
-      transform: rotate(-90deg);
-    }
-
-    /* Expanded state - chevron points down (default) */
-    .variant-tree-toggle:not(.collapsed) svg {
+    /* Collapsed state - chevron points right (default icon orientation) */
+    .variant-tree-toggle.collapsed .chevron-icon {
       transform: rotate(0deg);
+    }
+
+    /* Expanded state - chevron points down */
+    .variant-tree-toggle:not(.collapsed) .chevron-icon {
+      transform: rotate(90deg);
     }
 
     /* Variant subtree container for collapsible items */
@@ -2707,13 +2720,10 @@
       align-items: center;
       gap: var(--space-4);
       flex-shrink: 0;
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-
-    .variant-card:hover .variant-actions {
       opacity: 1;
     }
+
+    /* Always show variant actions (no hover-gating) */
 
     /* Variant action buttons - use .icon-btn, .icon-btn--danger for remove */
 
@@ -2769,9 +2779,9 @@
 
     /* Compact toggle-sized button (for inline controls like Primary) */
     .Button.Button--toggle {
-      height: 26px;
+      height: 24px;
       padding: 0 var(--space-8);
-      border-radius: 999px;
+      border-radius: 24px;
       font-size: var(--body-sm-size);
       font-weight: 500;
       border: 1px solid var(--color-transparent);
@@ -2787,11 +2797,11 @@
     .Button.secondary.Button--toggle:hover {
       background: var(--button-secondary-hover-bg);
       border-color: var(--color-transparent);
-      color: var(--text-primary);
+      color: var(--text-link);
     }
 
     .Button.secondary.Button--toggle[aria-pressed="true"] {
-      background: var(--color-royal-blue-alpha-50); /* subtle selected tint */
+      background: var(--color-royal-blue-alpha-100); /* subtle selected tint */
       border-color: var(--color-transparent);
       color: var(--text-link); /* selected state uses link color (text + icon) */
     }
@@ -2810,6 +2820,12 @@
     .Button__icon svg {
       width: 14px;
       height: 14px;
+    }
+
+    /* Hide icons for Primary/Control toggles (text-only) */
+    .goal-primary-chip .Button__icon,
+    .variant-control-toggle .Button__icon {
+      display: none;
     }
 
     /* ============================================
@@ -2870,12 +2886,25 @@
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
+    /* Skin: surface (match dropdown/SelectField default background + border) */
+    .InputField.surface .InputField__wrapper {
+      background: var(--color-transparent);
+      border-color: var(--color-white-100);
+    }
+
     /* Hover state */
     .InputField__wrapper:hover,
     .InputField.hover .InputField__wrapper {
       background: var(--input-field-hover-bg);
       border: var(--input-field-border);
       border-color: var(--input-field-hover-border);
+    }
+
+    /* Surface hover: match CustomDropdown (border disappears on hover) */
+    .InputField.surface .InputField__wrapper:hover,
+    .InputField.surface.hover .InputField__wrapper {
+      border-color: var(--input-field-border-no-color);
+      background: var(--input-field-hover-bg);
     }
 
     /* Focus state */
@@ -3725,6 +3754,8 @@
       'star-filled': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>',
       // https://lucide.dev/icons/circle-star
       'circle-star': '<path d="M11.051 7.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.867l-1.156-1.152a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z" /><circle cx="12" cy="12" r="10" />',
+      // https://lucide.dev/icons/circle
+      'circle': '<circle cx="12" cy="12" r="10" />',
       // https://lucide.dev/icons/maximize-2
       'maximize-2': '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
       // https://lucide.dev/icons/minimize-2
@@ -3873,6 +3904,7 @@
         showNumberStepper = false,
         state = 'default',
         variant = 'vertical',
+        skin = 'tinted',
         multiline = false,
         rows = 1,
         prefixElement = null,
@@ -3884,6 +3916,7 @@
       const container = document.createElement('div');
       container.className = `InputField ${variant}`;
       if (multiline) container.classList.add('multiline');
+      if (skin === 'surface') container.classList.add('surface');
       container.dataset.state = state;
       container.dataset.variant = variant;
       if (text) container.classList.add('entered');
@@ -4717,7 +4750,7 @@
         treeToggle.type = 'button';
         treeToggle.className = 'variant-tree-toggle';
         treeToggle.title = 'Expand/collapse variant details';
-        treeToggle.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6L8 9L11 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        treeToggle.innerHTML = '<svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>';
 
         const card = document.createElement('div');
         card.className = 'variant-card';
@@ -4764,6 +4797,7 @@
         help: 'Variant name',
         text: displayName,
         variant: 'vertical',
+        skin: 'surface',
         prefixElement: colorIndicator,
         onChange: (value) => {
           variant.name = value;
@@ -4817,25 +4851,18 @@
       row1.appendChild(nameFieldDiv);
       row1.appendChild(trafficFieldDiv);
 
-      // Baseline chip (move to top row; baseline optional; at most one per event)
+      // Control toggle (move to top row; optional; at most one per event)
       const baselineSlot = document.createElement('div');
       baselineSlot.className = 'variant-baseline-slot';
 
       const baselineChip = document.createElement('button');
       baselineChip.type = 'button';
-      baselineChip.className = 'Chip Chip--baseline Chip--noIcon variant-baseline-chip';
-      baselineChip.id = `variant-baseline-${eventIndex}-${variantIndex}`;
+      baselineChip.className = 'Button secondary Button--toggle variant-control-toggle';
+      baselineChip.id = `variant-control-${eventIndex}-${variantIndex}`;
       baselineChip.setAttribute('data-tooltip-position', 'bottom');
       baselineChip.setAttribute('data-tooltip-cursor', 'pointer');
-      baselineChip.innerHTML = `
-        <span class="Chip__icon Chip__iconStack" aria-hidden="true">
-          <span class="Chip__icon--on">${getIcon('check', { size: 14, strokeWidth: 2.5 })}</span>
-          <span class="Chip__icon--off">${getIcon('check', { size: 14, strokeWidth: 2 })}</span>
-        </span>
-        <span aria-hidden="true">Control</span>
-      `;
 
-      // Enforce AT MOST one baseline per event.
+      // Enforce AT MOST one control per event.
       // If multiple are true (bad state), keep the first and clear the rest.
       const firstControlIndex = events[eventIndex].variants.findIndex(v => v.isControl === true);
       if (firstControlIndex >= 0 && variantIndex !== firstControlIndex) {
@@ -4848,6 +4875,12 @@
         btn.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
         btn.setAttribute('data-tooltip', isPressed ? 'Control variant' : 'Set as control variant');
         btn.setAttribute('aria-label', isPressed ? 'Control variant' : 'Set as control variant');
+        btn.innerHTML = `
+          <span class="Button__icon" aria-hidden="true">
+            ${getIcon('circle', { size: 14, strokeWidth: isPressed ? 2.5 : 2 })}
+          </span>
+          <span>Control</span>
+        `;
       };
 
       renderBaselineChip(baselineChip, variant.isControl === true);
@@ -4866,11 +4899,11 @@
           });
         }
 
-        // Sync UI so selecting one baseline updates the others immediately
-        const baselineBtns = document.querySelectorAll(`button[id^="variant-baseline-${eventIndex}-"]`);
+        // Sync UI so selecting one control updates the others immediately
+        const baselineBtns = document.querySelectorAll(`button[id^="variant-control-${eventIndex}-"]`);
         baselineBtns.forEach((el) => {
           if (!el || typeof el.id !== 'string') return;
-          const match = el.id.match(new RegExp(`^variant-baseline-${eventIndex}-(\\d+)$`));
+          const match = el.id.match(new RegExp(`^variant-control-${eventIndex}-(\\d+)$`));
           if (!match) return;
           const idx = parseInt(match[1], 10);
           if (Number.isNaN(idx)) return;
@@ -5633,60 +5666,57 @@
 
       // Render existing events
       if (eventsList && eventsList.length > 0) {
-        // Only show when an experiment touchpoint exists and there are no pre-steps
-        // (i.e., experiment is the first step in the journey).
-        if (hasExperimentTouchpoint && expIndex === 0) {
-          list.appendChild(createInsertHotspot('Add pre-touchpoint', () => {
-            const newEvent = {
-              id: `event-${Date.now()}`,
-              name: '',
-              hasVariants: false,
-              variants: []
-            };
-            events.splice(0, 0, newEvent);
-            if (newEvent.id) setPendingFocus('event', newEvent.id);
-            renderEvents(events);
-          }));
-        }
-
-        eventsList.forEach((event, index) => {
-          const eventRow = createEventRow(event, index, eventsList.length);
-          list.appendChild(eventRow);
-
-          // Only show when an experiment touchpoint exists and there are no post-steps
-          // (i.e., experiment is the last step in the journey).
-          if (hasExperimentTouchpoint && expIndex === eventsList.length - 1 && index === expIndex) {
-            list.appendChild(createInsertHotspot('Add post-touchpoint', () => {
-              const newEvent = {
-                id: `event-${Date.now()}`,
-                name: '',
-                hasVariants: false,
-                variants: []
-              };
-              events.splice(index + 1, 0, newEvent);
-              if (newEvent.id) setPendingFocus('event', newEvent.id);
-              renderEvents(events);
-            }));
-          }
-        });
-      }
-
-      // Add-step row as an event-row (consistent layout; no action buttons)
-      list.appendChild(createAddStepEventRow({
-        showLineAbove: true,
-        showLineBelow: true,
-        onAdd: () => {
+        // Insert point before the first touchpoint (after Start)
+        list.appendChild(createInsertHotspot('Add touchpoint', () => {
           const newEvent = {
             id: `event-${Date.now()}`,
             name: '',
             hasVariants: false,
             variants: []
           };
-          events.push(newEvent);
+          events.splice(0, 0, newEvent);
           if (newEvent.id) setPendingFocus('event', newEvent.id);
           renderEvents(events);
-        }
-      }));
+        }));
+
+        eventsList.forEach((event, index) => {
+          const eventRow = createEventRow(event, index, eventsList.length);
+          list.appendChild(eventRow);
+
+          // Insert point after each touchpoint (i.e., between rows)
+          list.appendChild(createInsertHotspot('Add touchpoint', () => {
+            const newEvent = {
+              id: `event-${Date.now()}`,
+              name: '',
+              hasVariants: false,
+              variants: []
+            };
+            events.splice(index + 1, 0, newEvent);
+            if (newEvent.id) setPendingFocus('event', newEvent.id);
+            renderEvents(events);
+          }));
+
+        });
+      }
+
+      // Add-step row only when there are no touchpoints yet
+      if (!hasSteps) {
+        list.appendChild(createAddStepEventRow({
+          showLineAbove: true,
+          showLineBelow: true,
+          onAdd: () => {
+            const newEvent = {
+              id: `event-${Date.now()}`,
+              name: '',
+              hasVariants: false,
+              variants: []
+            };
+            events.push(newEvent);
+            if (newEvent.id) setPendingFocus('event', newEvent.id);
+            renderEvents(events);
+          }
+        }));
+      }
 
       // End (auto) row
       list.appendChild(createSystemEventRow({
