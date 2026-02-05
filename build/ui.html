@@ -1686,7 +1686,7 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--text-primary);
+      background: var(--brand);
       color: #fff;
       font-size: 10px;
       font-weight: 600;
@@ -1703,7 +1703,7 @@
       transform: translateX(-50%);
       width: 1px;
       height: 22px;
-      border-left: 1px dashed var(--border-dark);
+      border-left: 1px dashed var(--brand);
     }
 
     .event-flow-line:first-child {
@@ -1739,7 +1739,7 @@
       left: 10px; /* align to step badge center */
       top: 0;
       bottom: 0;
-      border-left: 1px dashed var(--border-dark);
+      border-left: 1px dashed var(--text-link);
       z-index: 1;
       pointer-events: none;
     }
@@ -1750,7 +1750,7 @@
       right: 0;
       top: 50%;
       transform: translateY(-50%);
-      border-top: 1px solid var(--text-primary);
+      border-top: 1px solid var(--text-link);
       opacity: 0;
       transition: opacity 0.12s ease;
       z-index: 2;
@@ -1764,7 +1764,7 @@
       width: 18px;
       height: 18px;
       border-radius: 999px;
-      background: var(--text-primary);
+      background: var(--text-link);
       color: #fff;
       display: flex;
       align-items: center;
@@ -1811,12 +1811,12 @@
 
     .event-row.system .InputField__wrapper:hover {
       background: transparent;
-      border-color: var(--border);
+      border-color: var(--brand);
     }
 
     .event-row.system .InputField__wrapper:focus-within {
       box-shadow: none;
-      border-color: var(--border);
+      border-color: var(--brand);
     }
 
     .event-row.system .InputField__input,
@@ -1882,7 +1882,7 @@
 
     .event-variants-line {
       width: 1px;
-      border-left: 1px dashed var(--border-dark);
+      border-left: 1px dashed var(--brand);
       flex: 1;
       min-height: 40px;
     }
