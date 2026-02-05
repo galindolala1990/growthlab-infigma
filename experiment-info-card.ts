@@ -835,10 +835,10 @@ function createResourcesSection(
   linksSection.name = "Links Section";
   
   const linksLabel = figma.createText();
-  linksLabel.fontName = { family: "Figtree", style: "Medium" };
+  linksLabel.fontName = { family: "Figtree", style: "Bold" };
   linksLabel.fontSize = TOKENS.fontSizeLabel;
   linksLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  linksLabel.opacity = 0.5;
+  linksLabel.opacity = 1;
   linksLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   linksLabel.characters = "Resources";
   linksSection.appendChild(linksLabel);
@@ -940,10 +940,10 @@ async function appendTargetingSection(
   
   // Section title
   const titleLabel = figma.createText();
-  titleLabel.fontName = { family: "Figtree", style: "Medium" };
+  titleLabel.fontName = { family: "Figtree", style: "Bold" };
   titleLabel.fontSize = TOKENS.fontSizeLabel;
   titleLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  titleLabel.opacity = 0.5;
+  titleLabel.opacity = 1;
   titleLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   titleLabel.characters = "Targeting";
   section.appendChild(titleLabel);
@@ -1016,8 +1016,9 @@ async function appendTargetingSection(
   
   const audienceLabel = figma.createText();
   audienceLabel.fontName = { family: "Figtree", style: "Regular" };
-  audienceLabel.fontSize = TOKENS.fontSizeBodySm;
-  audienceLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+  audienceLabel.fontSize = TOKENS.fontSizeLabel;
+  audienceLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  audienceLabel.opacity = 0.5;
   // Stretch to column width (and allow wrap if needed)
   audienceLabel.textAutoResize = "HEIGHT";
   audienceLabel.layoutAlign = "STRETCH";
@@ -1053,8 +1054,9 @@ async function appendTargetingSection(
   
   const sampleSizeLabel = figma.createText();
   sampleSizeLabel.fontName = { family: "Figtree", style: "Regular" };
-  sampleSizeLabel.fontSize = TOKENS.fontSizeBodySm;
-  sampleSizeLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+  sampleSizeLabel.fontSize = TOKENS.fontSizeLabel;
+  sampleSizeLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+  sampleSizeLabel.opacity = 0.5;
   sampleSizeLabel.textAutoResize = "HEIGHT";
   sampleSizeLabel.layoutAlign = "STRETCH";
   sampleSizeLabel.characters = "Sample size";
@@ -1096,10 +1098,10 @@ async function appendMetricsSection(
   
   // Section title
   const titleLabel = figma.createText();
-  titleLabel.fontName = { family: "Figtree", style: "Medium" };
+  titleLabel.fontName = { family: "Figtree", style: "Bold" };
   titleLabel.fontSize = TOKENS.fontSizeLabel;
   titleLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  titleLabel.opacity = 0.5;
+  titleLabel.opacity = 1;
   titleLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   titleLabel.characters = "Metrics";
   section.appendChild(titleLabel);
@@ -1265,10 +1267,10 @@ async function appendVariantsSection(
   
   // Section title
   const titleLabel = figma.createText();
-  titleLabel.fontName = { family: "Figtree", style: "Medium" };
+  titleLabel.fontName = { family: "Figtree", style: "Bold" };
   titleLabel.fontSize = TOKENS.fontSizeLabel;
   titleLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  titleLabel.opacity = 0.5;
+  titleLabel.opacity = 1;
   titleLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   titleLabel.characters = "Variants";
   section.appendChild(titleLabel);
@@ -1434,10 +1436,10 @@ async function appendDetailsSection(
   
   // Section title label
   const titleLabel = figma.createText();
-  titleLabel.fontName = { family: "Figtree", style: "Medium" };
+  titleLabel.fontName = { family: "Figtree", style: "Bold" };
   titleLabel.fontSize = TOKENS.fontSizeLabel;
   titleLabel.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
-  titleLabel.opacity = 0.5;
+  titleLabel.opacity = 1;
   titleLabel.textAutoResize = "WIDTH_AND_HEIGHT";
   titleLabel.characters = title;
   section.appendChild(titleLabel);
@@ -1452,7 +1454,7 @@ async function appendDetailsSection(
   detailsContainer.paddingLeft = detailsContainer.paddingRight = 16;
   detailsContainer.paddingTop = detailsContainer.paddingBottom = 16;
   detailsContainer.cornerRadius = 8;
-  detailsContainer.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsSurface) }];
+  detailsContainer.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.fillsBackground) }];
   detailsContainer.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   detailsContainer.name = "Details Container";
   section.appendChild(detailsContainer);
@@ -1473,8 +1475,9 @@ async function appendDetailsSection(
     // Label
     const labelNode = figma.createText();
     labelNode.fontName = { family: "Figtree", style: "Regular" };
-    labelNode.fontSize = TOKENS.fontSizeBodySm;
-    labelNode.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textSecondary) }];
+    labelNode.fontSize = TOKENS.fontSizeLabel;
+    labelNode.fills = [{ type: "SOLID", color: hexToRgb(TOKENS.textPrimary) }];
+    labelNode.opacity = 0.5;
     labelNode.textAutoResize = "WIDTH_AND_HEIGHT";
     labelNode.characters = label;
     row.appendChild(labelNode);

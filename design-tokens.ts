@@ -133,7 +133,7 @@ export const TOKENS = {
   // ================================================================
 
   // Fills
-  fillsBackground: '#eceff2', // --fills-background (azure-100)
+  fillsBackground: '#f6f7f9', // --fills-background (azure-50)
   fillsSurface: '#ffffff',    // --fills-surface
   fillsBrand: '#6f4cff',     // --fills-brand (electric-violet-500)
   fillsSuccess: '#0eab4319', // --fills-success (malachite-alpha-100)
