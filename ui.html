@@ -5464,7 +5464,7 @@
         id: `event-name-${eventIndex}`,
         label: 'Touchpoint',
         showLabel: false,
-        help: 'Touchpoint name',
+        help: 'Touchpoint name (e.g. landing page)',
         text: event.name || '',
         variant: 'horizontal'
       });
@@ -5823,7 +5823,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14"/><path d="M12 5v14"/>
         </svg>
-        <span>Add touchpoint...</span>
+        <span>Add first touchpoint (e.g. landing page)</span>
       `;
       addRow.onclick = (e) => {
         e.preventDefault();
@@ -6543,7 +6543,7 @@
         });
         let safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
           ? event.name
-          : `Step ${eventIdx + 1}`;
+          : `Touchpoint ${eventIdx + 1}`;
         return {
           id: event.id || `event-${eventIdx}`,
           name: safeEventName,
@@ -6700,7 +6700,7 @@
               ...variant,
               eventIndex,
               variantIndex,
-              eventName: event.name || `Step ${eventIndex + 1}`,
+              eventName: event.name || `Touchpoint ${eventIndex + 1}`,
               displayName
             });
           });
