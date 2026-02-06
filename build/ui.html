@@ -3904,6 +3904,8 @@
       'copy-plus': '<line x1="15" x2="15" y1="12" y2="18" /><line x1="12" x2="18" y1="15" y2="15" /><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
       // https://lucide.dev/icons/git-branch-plus
       'git-branch-plus': '<path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M15 6a9 9 0 0 0-9 9"/><path d="M18 15v6"/><path d="M21 18h-6"/>',
+      // https://lucide.dev/icons/git-branch
+      'git-branch': '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
       // https://lucide.dev/icons/split
       'split': '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M12 2v8.3a4 4 0 0 1 1.172 2.872L21 21"/><path d="m9 15-6 6"/>',
       // https://lucide.dev/icons/fork
@@ -5579,8 +5581,8 @@
       addVariantsOption.type = 'button';
       addVariantsOption.className = 'CustomDropdown__option' + (variantsExistElsewhere ? ' disabled' : '');
       addVariantsOption.innerHTML = `
-        <span class="CustomDropdown__option-icon">${getIcon('git-branch-plus', { size: 14 })}</span>
-        <span class="CustomDropdown__option-text">Add design variant</span>
+        <span class="CustomDropdown__option-icon">${getIcon('git-branch', { size: 14 })}</span>
+        <span class="CustomDropdown__option-text">Add variant</span>
       `;
 
       let addVariantsMenuChild = addVariantsOption;
