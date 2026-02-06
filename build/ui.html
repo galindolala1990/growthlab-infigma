@@ -5552,27 +5552,6 @@
         renderEvents(events);
       });
 
-      const duplicateOption = document.createElement('button');
-      duplicateOption.type = 'button';
-      duplicateOption.className = 'CustomDropdown__option';
-      duplicateOption.innerHTML = `
-        <span class="CustomDropdown__option-icon">${getIcon('copy-plus', { size: 14 })}</span>
-        <span class="CustomDropdown__option-text">Duplicate</span>
-      `;
-      duplicateOption.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const cloned = JSON.parse(JSON.stringify(events[eventIndex]));
-        cloned.id = makeId('event');
-        cloned.variants = (cloned.variants || []).map((v) => ({
-          ...v,
-          id: makeId('variant')
-        }));
-        cloned.hasVariants = (cloned.variants || []).length > 0;
-        events.splice(eventIndex + 1, 0, cloned);
-        setPendingFocus('event', cloned.id);
-        renderEvents(events);
-      });
-
       const currentExpIndex = getExperimentTouchpointIndex(events);
       const variantsExistElsewhere = currentExpIndex >= 0 && currentExpIndex !== eventIndex;
       const touchpointWithVariantsNum = variantsExistElsewhere ? currentExpIndex + 1 : 0;
@@ -5600,7 +5579,6 @@
         addVariantsMenuChild = tooltipWrapper;
       }
       actionsMenu.appendChild(removeOption);
-      actionsMenu.appendChild(duplicateOption);
       actionsMenu.appendChild(addVariantsMenuChild);
 
       actionsDropdown.appendChild(actionsTrigger);
