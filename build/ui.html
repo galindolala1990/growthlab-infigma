@@ -1708,10 +1708,11 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--text-secondary);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 600;
+      /* background: var(--text-secondary);*/
+      border: 1px solid var(--text-primary);
+      color: var(--text-primary);
+      font-size: 9px;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1725,7 +1726,7 @@
       transform: translateX(-50%);
       width: 1px;
       height: 24px;
-      border-left: 1px dashed var(--text-secondary);
+      border-left: 1px solid var(--color-azure-600);
     }
 
     .event-flow-line:first-child {
@@ -1816,14 +1817,16 @@
 
     /* System rows: Start/End (auto, read-only) */
     .event-row.system .event-row-main {
-      opacity: 0.8;
+      opacity: 1;
       pointer-events: none;
     }
 
     .event-row.system .event-step-badge {
-      background: transparent;
+      background: var(--color-transparent);
       color: var(--text-secondary);
       border: 1px dashed var(--text-secondary);
+      font-weight: 700;
+      font-size: 9px;
     }
 
     .event-row.system .InputField__wrapper {
@@ -1904,7 +1907,7 @@
 
     .event-variants-line {
       width: 1px;
-      border-left: 1px dashed var(--text-secondary);
+      border-left: 1px solid var(--color-azure-600);
       flex: 1;
       min-height: 40px;
     }
@@ -5802,10 +5805,8 @@
       // Keep spacing consistent with other rows (badge slot)
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
-      stepBadge.textContent = '';
-      stepBadge.style.background = 'transparent';
-      stepBadge.style.color = 'var(--text-secondary)';
-      stepBadge.style.border = '1px dashed var(--border-dark)';
+      stepBadge.textContent = '1';
+      
       stepDiv.appendChild(stepBadge);
 
       if (showLineBelow) {
