@@ -46,7 +46,7 @@
       --heading-h1-weight: 600;
       --heading-h1-line-height: 100%;
       --heading-h2-size: 11px;
-      --heading-h2-weight: 500;
+      --heading-h2-weight: 600;
       --heading-h2-line-height: 91%;
       --body-lg-size: 12px;
       --body-lg-weight: 400;
@@ -206,7 +206,7 @@
       --radius-xl: 1.125rem;
 
       /* === Component Variables === */
-      --section-padding: var(--space-16) var(--space-24);
+      --section-padding: var(--space-16) var(--space-24) var(--space-12) var(--space-16);
       --section-gap: var(--space-16);
       --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
@@ -295,6 +295,7 @@
       padding: 0;
       box-sizing: border-box;
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
     
     /* Heading 1 */
@@ -312,7 +313,7 @@
       font-weight: var(--heading-h2-weight);
       line-height: var(--heading-h2-line-height);
       color: var(--text-primary);
-      letter-spacing: -0.005em;
+      letter-spacing: 0.005em;
     }
     
     /* Body Medium (default) */
@@ -2839,7 +2840,7 @@
       gap: var(--space-16);
       background: var(--background-surface);
       border-top: 1px solid var(--border);
-      padding: var(--space-12) var(--section-padding);
+      padding: var(--space-16) var(--space-24);
       flex-shrink: 0;
     }
 
@@ -3564,7 +3565,7 @@
       <section class="section-header">
         <div class="header-row">
           <div class="header-content">
-            <h1>Create experiment</h1>
+            <h2>Create experiment</h2>
             <p class="body-md">Define what you’re testing, where it runs, and how you’ll measure success.</p>
           </div>
           <button type="button" class="icon-btn expand-btn" id="expandBtn" data-tooltip="Expand window" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" aria-label="Expand window">
@@ -3733,7 +3734,7 @@
         <div class="metrics-header">
           <div class="section-block-left">
             <h2>Goals</h2>
-            <p class="section-description">Define success metrics for this experiment.</p>
+            <p class="body-md">Define success metrics for this experiment.</p>
             <span class="section-count" id="metricsCount"></span>
           </div>
           <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
@@ -3758,7 +3759,7 @@
         <div class="events-header">
           <div class="section-block-left">
             <h2>Journey</h2>
-            <p class="section-description">Map the sequence of touchpoints. Add variants to experiment steps only.</p>
+            <p class="body-md">Map the sequence of touchpoints. Add variants to experiment steps only.</p>
             <span class="section-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
           <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
@@ -5027,7 +5028,7 @@
       baselineChip.setAttribute('data-tooltip-cursor', 'pointer');
       baselineChip.innerHTML = `
         <span class="radio-selection__indicator" aria-hidden="true"></span>
-        <span class="radio-selection__label">Control</span>
+        <span class="radio-selection__label">Baseline</span>
       `;
 
       // Enforce AT MOST one control per event.
@@ -5041,8 +5042,8 @@
 
       const renderBaselineChip = (btn, isPressed) => {
         btn.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
-        btn.setAttribute('data-tooltip', isPressed ? 'Control variant' : 'Set as control variant');
-        btn.setAttribute('aria-label', isPressed ? 'Control variant' : 'Set as control variant');
+        btn.setAttribute('data-tooltip', isPressed ? 'Baseline variant' : 'Set as baseline variant');
+        btn.setAttribute('aria-label', isPressed ? 'Baseline variant' : 'Set as baseline variant');
       };
 
       renderBaselineChip(baselineChip, variant.isControl === true);
