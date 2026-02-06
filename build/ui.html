@@ -196,6 +196,7 @@
       --space-12: 12px;
       --space-16: 16px;
       --space-24: 24px;
+      --space-32: 32px;
 
       /* === Border Radius === .3125rem */
       --radius-xs: 0.3125rem;
@@ -263,9 +264,9 @@
       --select-field-error-shadow: var(--danger-shadow);
 
       /* === Variant Color Palette === */
-      --variant-color-blue: #2563eb;
+      --variant-color-blue: #3B8FF6;
       --variant-color-green: #0eab43;
-      --variant-color-orange: #dd7602;
+      --variant-color-orange: #F99E07;
       --variant-color-purple: #8b5cf6;
       --variant-color-pink: #ec4899;
       --variant-color-teal: #14b8a6;
@@ -763,7 +764,7 @@
     .metrics-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      gap: var(--space-0);
       padding: var(--space-4) 0 0 0;
     }
 
@@ -774,9 +775,14 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-4) 0;
-      /*border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      padding: var(--space-16) 0 var(--space-16) 0;
+      border-bottom: 1px dashed var(--border);
+      /*border-radius: var(--radius-md);
+      background: var(--background-surface); */
+    }
+    .goal-row:last-child {
+      border-bottom: 0px !important;
+      /*border-radius: var(--radius-md);
       background: var(--background-surface); */
     }
 
@@ -1121,11 +1127,26 @@
      * INLINE ADD ROW
      * Clickable row to add new items
      * ============================================ */
-    .inline-add-row {
+    
+     .metrics-list .inline-add-row {
       display: flex;
       align-items: center;
       gap: var(--space-8);
       padding: var(--button-padding);
+      margin-top: var(--space-16);
+      color: var(--text-secondary);
+      font-size: var(--body-md-size);
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: background 0.15s ease, color 0.15s ease;
+      margin-right: 32px;
+     }
+     .inline-add-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: var(--button-padding);
+      margin-top: var(--space-0);
       color: var(--text-secondary);
       font-size: var(--body-md-size);
       cursor: pointer;
@@ -1702,7 +1723,7 @@
       left: 50%;
       transform: translateX(-50%);
       width: 1px;
-      height: 22px;
+      height: 24px;
       border-left: 1px dashed var(--accent-primary-dark);
     }
 
@@ -1845,7 +1866,7 @@
       padding: 0 var(--space-8);
       border-radius: 999px;
       border: 1px solid var(--color-transparent);
-      background: var(--color-electric-violet-100);
+      background: var(--color-electric-violet-50);
       color: var(--color-electric-violet-800);
       display: inline-flex;
       align-items: center;
@@ -2951,21 +2972,21 @@
       transition: opacity 0.2s ease;
     }
     .radio-selection[aria-pressed="true"] .radio-selection__indicator {
-      border-color: #3B82F6;
-      background: #3B82F6;
+      border-color: var(--accent-primary-dark);
+      background: var(--accent-primary-dark);
     }
     .radio-selection[aria-pressed="true"] .radio-selection__indicator::after {
       opacity: 1;
     }
     .radio-selection__label {
-      color: #6B7280;
+      color: var(--text-secondary);
       font-weight: var(--body-sm-weight);
       transition: color 0.2s ease, font-weight 0.2s ease;
       font-size: var(--body-sm-size);
       
     }
     .radio-selection[aria-pressed="true"] .radio-selection__label {
-      color: #3B82F6;
+      color: var(--accent-primary-dark);
       font-weight: 500;
     }
 
@@ -4507,13 +4528,13 @@
     
     // Color palette for variant color picker
     const colorPalette = [
-      { id: 'blue', hex: '#2563eb', class: 'variant-blue' },
-      { id: 'green', hex: '#0eab43', class: 'variant-green' },
-      { id: 'orange', hex: '#dd7602', class: 'variant-orange' },
-      { id: 'purple', hex: '#8b5cf6', class: 'variant-purple' },
-      { id: 'pink', hex: '#ec4899', class: 'variant-pink' },
-      { id: 'teal', hex: '#14b8a6', class: 'variant-teal' },
-      { id: 'red', hex: '#dc2626', class: 'variant-red' },
+      { id: 'blue', hex: '#3B8FF6', class: 'variant-blue' },
+      { id: 'green', hex: '#0EAB43', class: 'variant-green' },
+      { id: 'orange', hex: '#F99E07', class: 'variant-orange' },
+      { id: 'purple', hex: '#6F4CFF', class: 'variant-purple' },
+      { id: 'pink', hex: '#FE68DD', class: 'variant-pink' },
+      { id: 'teal', hex: '#01CBB7', class: 'variant-teal' },
+      { id: 'red', hex: '#FF3838', class: 'variant-red' },
       { id: 'gray', hex: '#6b7280', class: 'variant-gray' }
     ];
 
@@ -4530,8 +4551,8 @@
         name: 'Conversion button',
         hasVariants: true,
         variants: [
-          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, isControl: true, metrics: { ctr: 69.5, cr: 42.5 } },
-          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, isControl: false, metrics: { ctr: 72.5, cr: 48.0 } },
+          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#3B8FF6', traffic: 50, isControl: true, metrics: { ctr: 69.5, cr: 42.5 } },
+          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0EAB43', traffic: 50, isControl: false, metrics: { ctr: 72.5, cr: 48.0 } },
         ]
       },
       {
