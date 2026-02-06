@@ -1661,7 +1661,7 @@
     .event-row-main {
       display: flex;
       align-items: center;
-      gap: var(--space-8);
+      gap: var(--space-12);
       padding-bottom: var(--space-16);
       padding-top: var(--space-16);
       border-bottom: 1px dashed var(--border);
@@ -1673,15 +1673,15 @@
 
     /* First event row should have top padding */
     .event-row:first-child .event-row-main {
-      padding-top: var(--space-8);
-      padding-bottom: var(--space-8);
+      padding-top: var(--space-16);
+      padding-bottom: var(--space-16);
     }
 
     /* Last event row should not have bottom border */
     .event-row:last-child .event-row-main {
       border-bottom: none;
-      padding-top: var(--space-8);
-      padding-bottom: var(--space-8);
+      padding-top: var(--space-16);
+      padding-bottom: var(--space-16);
     }
 
     /* Hide border when variants container follows */
@@ -1705,9 +1705,9 @@
     }
 
     .event-step-badge {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      border-radius: 16%;
       /* background: var(--text-secondary);*/
       border: 1px solid var(--text-primary);
       color: var(--text-primary);
@@ -1725,7 +1725,7 @@
       left: 50%;
       transform: translateX(-50%);
       width: 1px;
-      height: 24px;
+      height: 19px;
       border-left: 1px solid var(--color-azure-600);
     }
 
@@ -1822,11 +1822,14 @@
     }
 
     .event-row.system .event-step-badge {
-      background: var(--color-transparent);
+      /*background: var(--color-azure-100);*/
       color: var(--text-secondary);
-      border: 1px dashed var(--text-secondary);
+      border: 1px dashed var(--text-primary);
       font-weight: 700;
       font-size: 9px;
+    }
+    .event-row.system .event-flow-line {
+      border-left: 1px dashed var(--text-primary);
     }
 
     .event-row.system .InputField__wrapper {
