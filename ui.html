@@ -46,7 +46,7 @@
       --heading-h1-weight: 600;
       --heading-h1-line-height: 100%;
       --heading-h2-size: 11px;
-      --heading-h2-weight: 500;
+      --heading-h2-weight: 600;
       --heading-h2-line-height: 91%;
       --body-lg-size: 12px;
       --body-lg-weight: 400;
@@ -196,6 +196,7 @@
       --space-12: 12px;
       --space-16: 16px;
       --space-24: 24px;
+      --space-32: 32px;
 
       /* === Border Radius === .3125rem */
       --radius-xs: 0.3125rem;
@@ -205,7 +206,7 @@
       --radius-xl: 1.125rem;
 
       /* === Component Variables === */
-      --section-padding: var(--space-16) var(--space-24);
+      --section-padding: var(--space-16) var(--space-24) var(--space-12) var(--space-16);
       --section-gap: var(--space-16);
       --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
@@ -263,9 +264,9 @@
       --select-field-error-shadow: var(--danger-shadow);
 
       /* === Variant Color Palette === */
-      --variant-color-blue: #2563eb;
+      --variant-color-blue: #3B8FF6;
       --variant-color-green: #0eab43;
-      --variant-color-orange: #dd7602;
+      --variant-color-orange: #F99E07;
       --variant-color-purple: #8b5cf6;
       --variant-color-pink: #ec4899;
       --variant-color-teal: #14b8a6;
@@ -294,6 +295,7 @@
       padding: 0;
       box-sizing: border-box;
       font-family: Figtree, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
     
     /* Heading 1 */
@@ -311,7 +313,7 @@
       font-weight: var(--heading-h2-weight);
       line-height: var(--heading-h2-line-height);
       color: var(--text-primary);
-      letter-spacing: -0.005em;
+      letter-spacing: 0.005em;
     }
     
     /* Body Medium (default) */
@@ -412,8 +414,8 @@
       color: var(--text-primary);
     }
     .more-options summary .chevron-icon {
-      width: 16px;
-      height: 16px;
+      width: 12px;
+      height: 12px;
       transition: transform 0.2s ease;
     }
     .more-options[open] summary .chevron-icon {
@@ -763,7 +765,7 @@
     .metrics-list {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      gap: var(--space-0);
       padding: var(--space-4) 0 0 0;
     }
 
@@ -774,9 +776,14 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-4) 0;
-      /*border: 1px solid var(--border);
+      padding: var(--space-8) 0 var(--space-8) 0;
+      /*border-bottom: 1px dashed var(--border);
       border-radius: var(--radius-md);
+      background: var(--background-surface); */
+    }
+    .goal-row:last-child {
+      border-bottom: 0px !important;
+      /*border-radius: var(--radius-md);
       background: var(--background-surface); */
     }
 
@@ -965,7 +972,7 @@
       align-items: center;
       gap: var(--space-16);
       flex-shrink: 0;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.15s;
     }
 
@@ -1121,11 +1128,26 @@
      * INLINE ADD ROW
      * Clickable row to add new items
      * ============================================ */
-    .inline-add-row {
+    
+     .metrics-list .inline-add-row {
       display: flex;
       align-items: center;
       gap: var(--space-8);
       padding: var(--button-padding);
+      margin-top: var(--space-4);
+      color: var(--text-secondary);
+      font-size: var(--body-md-size);
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: background 0.15s ease, color 0.15s ease;
+      margin-right: 32px;
+     }
+     .inline-add-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: var(--button-padding);
+      margin-top: var(--space-0);
       color: var(--text-secondary);
       font-size: var(--body-md-size);
       cursor: pointer;
@@ -1639,7 +1661,7 @@
     .event-row-main {
       display: flex;
       align-items: center;
-      gap: var(--space-8);
+      gap: var(--space-12);
       padding-bottom: var(--space-16);
       padding-top: var(--space-16);
       border-bottom: 1px dashed var(--border);
@@ -1651,15 +1673,15 @@
 
     /* First event row should have top padding */
     .event-row:first-child .event-row-main {
-      padding-top: var(--space-8);
-      padding-bottom: var(--space-8);
+      padding-top: var(--space-16);
+      padding-bottom: var(--space-16);
     }
 
     /* Last event row should not have bottom border */
     .event-row:last-child .event-row-main {
       border-bottom: none;
-      padding-top: var(--space-8);
-      padding-bottom: var(--space-8);
+      padding-top: var(--space-16);
+      padding-bottom: var(--space-16);
     }
 
     /* Hide border when variants container follows */
@@ -1851,7 +1873,7 @@
       padding: 0 var(--space-8);
       border-radius: 999px;
       border: 1px solid var(--color-transparent);
-      background: var(--color-electric-violet-100);
+      background: var(--color-electric-violet-50);
       color: var(--color-electric-violet-800);
       display: inline-flex;
       align-items: center;
@@ -1918,10 +1940,10 @@
       align-items: flex-start;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-4) var(--space-8);
+      padding: var(--space-4) var(--space-4) var(--space-4) var(--space-4);
       background: var(--color-transparent);
       border: 1px solid var(--color-transparent);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-sm);
       min-width: 0;
       width: 100%;
       cursor: grab;
@@ -2129,8 +2151,8 @@
     }
 
     .variant-tree-toggle .chevron-icon {
-      width: 16px;
-      height: 16px;
+      width: 12px;
+      height: 12px;
       transition: transform 0.2s ease;
     }
 
@@ -2237,24 +2259,15 @@
       width: 100%;
     }
 
-    /* Let the prefix take remaining space (flex), keep value + % fixed */
-    .variant-metric-field .InputField__prefix {
-      flex: 1 1 auto;
-      width: auto;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
     /* Variant metrics: compact numeric input + % suffix */
     .variant-metric-field .InputField__input.no-native-spinner {
       flex: 0 0 38px;
-      width: 38px;
+      width: auto;
       min-width: 38px;
       height: 100%;
       align-self: stretch;
       padding-left: 8px;
+      flex-basis: 53px; /* 38px input + 14px suffix */;
     }
 
     .variant-metric-field .InputField__suffix {
@@ -2267,6 +2280,7 @@
       align-items: center;
       justify-content: flex-end;
       align-content: center;
+      align-self: stretch;
     }
 
     /* Variant baseline checkbox (0 or 1 selected) */
@@ -2824,7 +2838,7 @@
       gap: var(--space-16);
       background: var(--background-surface);
       border-top: 1px solid var(--border);
-      padding: var(--space-12) var(--section-padding);
+      padding: var(--space-16) var(--space-24);
       flex-shrink: 0;
     }
 
@@ -2846,7 +2860,7 @@
     }
 
     .Button.brand {
-      background: var(--brand);
+      background: var(--accent-primary-dark);
       color: var(--text-primary-inverse);
     }
 
@@ -2957,21 +2971,21 @@
       transition: opacity 0.2s ease;
     }
     .radio-selection[aria-pressed="true"] .radio-selection__indicator {
-      border-color: #3B82F6;
-      background: #3B82F6;
+      border-color: var(--accent-primary-dark);
+      background: var(--accent-primary-dark);
     }
     .radio-selection[aria-pressed="true"] .radio-selection__indicator::after {
       opacity: 1;
     }
     .radio-selection__label {
-      color: #6B7280;
+      color: var(--text-secondary);
       font-weight: var(--body-sm-weight);
       transition: color 0.2s ease, font-weight 0.2s ease;
       font-size: var(--body-sm-size);
       
     }
     .radio-selection[aria-pressed="true"] .radio-selection__label {
-      color: #3B82F6;
+      color: var(--accent-primary-dark);
       font-weight: 500;
     }
 
@@ -3549,8 +3563,8 @@
       <section class="section-header">
         <div class="header-row">
           <div class="header-content">
-            <h1>Create experiment</h1>
-            <p class="body-md">Define variants, journey, and success metrics.</p>
+            <h2>Create experiment</h2>
+            <p class="body-md">Define what you’re testing, where it runs, and how you’ll measure success.</p>
           </div>
           <button type="button" class="icon-btn expand-btn" id="expandBtn" data-tooltip="Expand window" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" aria-label="Expand window">
             <!-- Icon injected via JS -->
@@ -3561,14 +3575,14 @@
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Experiment name</label>
             <div class="InputField__wrapper">
-              <input class="InputField__input" type="text" id="experimentName" placeholder="e.g., Landing page CTA test">
+              <input class="InputField__input" type="text" id="experimentName" placeholder="e.g., Landing page CTA: Primary button copy">
             </div>
           </div>
           <!-- Description -->
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Description</label>
             <div class="InputField__wrapper">
-              <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Testing if new CTA increases conversions">
+              <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Changing the CTA copy will increase click-through rate">
             </div>
           </div>
 
@@ -3633,14 +3647,14 @@
               <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m9 18 6-6-6-6"/>
               </svg>
-              More options
+              Advanced settings
             </summary>
             <div class="more-options-content">
               <!-- Hypothesis -->
               <div class="InputField" data-state="default" data-variant="vertical">
                 <label class="InputField__label">Hypothesis</label>
                 <div class="InputField__wrapper">
-                  <input class="InputField__input" type="text" id="experimentHypothesis" placeholder="If we [change], then [metric] will [improve] because [reason]">
+                  <input class="InputField__input" type="text" id="experimentHypothesis" placeholder="If we [change], then [metric] will [improve], because [reason]">
                 </div>
               </div>
 
@@ -3718,12 +3732,12 @@
         <div class="metrics-header">
           <div class="section-block-left">
             <h2>Goals</h2>
-            <p class="section-description">Set clear success metrics to track your experiment.</p>
+            <p class="body-md">Define success metrics for this experiment.</p>
             <span class="section-count" id="metricsCount"></span>
           </div>
-          <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
-            <!-- Lucide: plus -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" style="display:none">
+            <!-- Lucide: plus (hidden) -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
               <path d="M5 12h14"/>
               <path d="M12 5v14"/>
             </svg>
@@ -3743,12 +3757,12 @@
         <div class="events-header">
           <div class="section-block-left">
             <h2>Journey</h2>
-            <p class="section-description">Map the sequence of touchpoints users move through. Add variants to experiment steps only.</p>
+            <p class="body-md">Map the sequence of touchpoints. Add variants to experiment steps only.</p>
             <span class="section-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
-          <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
-            <!-- Lucide: plus -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" style="display:none">
+            <!-- Lucide: plus (hidden) -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
               <path d="M5 12h14"/>
               <path d="M12 5v14"/>
             </svg>
@@ -3890,6 +3904,12 @@
       'git-branch-plus': '<path d="M6 3v12"/><path d="M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M15 6a9 9 0 0 0-9 9"/><path d="M18 15v6"/><path d="M21 18h-6"/>',
       // https://lucide.dev/icons/git-branch
       'git-branch': '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+      // https://lucide.dev/icons/split
+      'split': '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M12 2v8.3a4 4 0 0 1 1.172 2.872L21 21"/><path d="m9 15-6 6"/>',
+      // https://lucide.dev/icons/fork
+      'fork': '<path d="M12 2v12m0 0l-3-3m3 3l3-3m-3 3v6m0-6l-3-3m3 3l3-3m-3 3v6m0-6l-3-3m3 3l3-3"/>',
+      // https://lucide.dev/icons/branch-plus
+      'branch-plus': '<path d="M12 2v12m0 0l-3-3m3 3l3-3m-3 3v6m0-6l-3-3m3 3l3-3m-3 3v6m0-6l-3-3m3 3l3-3"/>',
       // https://lucide.dev/icons/trophy
       'trophy': '<path d="M6 9H4.5a1 1 0 0 1 0-5H6"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>',
       // https://lucide.dev/icons/split
@@ -4515,13 +4535,13 @@
     
     // Color palette for variant color picker
     const colorPalette = [
-      { id: 'blue', hex: '#2563eb', class: 'variant-blue' },
-      { id: 'green', hex: '#0eab43', class: 'variant-green' },
-      { id: 'orange', hex: '#dd7602', class: 'variant-orange' },
-      { id: 'purple', hex: '#8b5cf6', class: 'variant-purple' },
-      { id: 'pink', hex: '#ec4899', class: 'variant-pink' },
-      { id: 'teal', hex: '#14b8a6', class: 'variant-teal' },
-      { id: 'red', hex: '#dc2626', class: 'variant-red' },
+      { id: 'blue', hex: '#3B8FF6', class: 'variant-blue' },
+      { id: 'green', hex: '#0EAB43', class: 'variant-green' },
+      { id: 'orange', hex: '#F99E07', class: 'variant-orange' },
+      { id: 'purple', hex: '#6F4CFF', class: 'variant-purple' },
+      { id: 'pink', hex: '#FE68DD', class: 'variant-pink' },
+      { id: 'teal', hex: '#01CBB7', class: 'variant-teal' },
+      { id: 'red', hex: '#FF3838', class: 'variant-red' },
       { id: 'gray', hex: '#6b7280', class: 'variant-gray' }
     ];
 
@@ -4538,8 +4558,8 @@
         name: 'Conversion button',
         hasVariants: true,
         variants: [
-          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#2563eb', traffic: 50, isControl: true, metrics: { ctr: 69.5, cr: 42.5 } },
-          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0eab43', traffic: 50, isControl: false, metrics: { ctr: 72.5, cr: 48.0 } },
+          { id: 'var-0-0', name: 'Control', description: 'Original version without changes', color: '#3B8FF6', traffic: 50, isControl: true, metrics: { ctr: 69.5, cr: 42.5 } },
+          { id: 'var-0-1', name: 'Variation A', description: 'New CTA button design', color: '#0EAB43', traffic: 50, isControl: false, metrics: { ctr: 72.5, cr: 48.0 } },
         ]
       },
       {
@@ -4724,7 +4744,7 @@
         const isDecrease = dir === 'decrease';
         directionChip.setAttribute('aria-pressed', isDecrease ? 'true' : 'false');
         // Tooltip copy: action-oriented + consistent with other chips
-        directionChip.setAttribute('data-tooltip', isDecrease ? 'Set direction to increase' : 'Set direction to Decrease');
+        directionChip.setAttribute('data-tooltip', isDecrease ? 'Set direction to increase' : 'Set direction to decrease');
         directionChip.setAttribute('aria-label', isDecrease ? 'decrease' : 'increase');
 
         if (document.activeElement !== thresholdInlineInput) {
@@ -5014,7 +5034,7 @@
       baselineChip.setAttribute('data-tooltip-cursor', 'pointer');
       baselineChip.innerHTML = `
         <span class="radio-selection__indicator" aria-hidden="true"></span>
-        <span class="radio-selection__label">Control</span>
+        <span class="radio-selection__label">Baseline</span>
       `;
 
       // Enforce AT MOST one control per event.
@@ -5028,8 +5048,8 @@
 
       const renderBaselineChip = (btn, isPressed) => {
         btn.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
-        btn.setAttribute('data-tooltip', isPressed ? 'Control variant' : 'Set as control variant');
-        btn.setAttribute('aria-label', isPressed ? 'Control variant' : 'Set as control variant');
+        btn.setAttribute('data-tooltip', isPressed ? 'Baseline variant' : 'Set as baseline variant');
+        btn.setAttribute('aria-label', isPressed ? 'Baseline variant' : 'Set as baseline variant');
       };
 
       renderBaselineChip(baselineChip, variant.isControl === true);
@@ -5788,10 +5808,8 @@
       // Keep spacing consistent with other rows (badge slot)
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
-      stepBadge.textContent = '';
-      stepBadge.style.background = 'transparent';
-      stepBadge.style.color = 'var(--text-secondary)';
-      stepBadge.style.border = '1px dashed var(--border-dark)';
+      stepBadge.textContent = '1';
+      
       stepDiv.appendChild(stepBadge);
 
       if (showLineBelow) {
@@ -5872,7 +5890,7 @@
 
       // Start (auto) row
       list.appendChild(createSystemEventRow({
-        label: 'Start (auto)',
+        label: 'Start',
         badgeIcon: 'asterisk',
         showLineAbove: false,
         // Always true because there is always content below (steps or add-step row)
@@ -5935,7 +5953,7 @@
 
       // End (auto) row
       list.appendChild(createSystemEventRow({
-        label: 'End (auto)',
+        label: 'End',
         badgeIcon: 'asterisk',
         // Always true because there is always a row above (steps or add-step row)
         showLineAbove: true,
