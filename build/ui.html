@@ -3544,7 +3544,7 @@
         <div class="header-row">
           <div class="header-content">
             <h1>Create experiment</h1>
-            <p class="body-md">Define variants, journey, and success metrics.</p>
+            <p class="body-md">Define what you’re testing, where it runs, and how you’ll measure success.</p>
           </div>
           <button type="button" class="icon-btn expand-btn" id="expandBtn" data-tooltip="Expand window" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" aria-label="Expand window">
             <!-- Icon injected via JS -->
@@ -3555,14 +3555,14 @@
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Experiment name</label>
             <div class="InputField__wrapper">
-              <input class="InputField__input" type="text" id="experimentName" placeholder="e.g., Landing page CTA test">
+              <input class="InputField__input" type="text" id="experimentName" placeholder="e.g., Landing page CTA: Primary button copy.">
             </div>
           </div>
           <!-- Description -->
           <div class="InputField" data-state="default" data-variant="vertical">
             <label class="InputField__label">Description</label>
             <div class="InputField__wrapper">
-              <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Testing if new CTA increases conversions">
+              <input class="InputField__input" type="text" id="experimentDescription" placeholder="e.g., Changing the CTA copy will increase click-through rate.">
             </div>
           </div>
 
@@ -3627,14 +3627,14 @@
               <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m9 18 6-6-6-6"/>
               </svg>
-              More options
+              Advanced settings
             </summary>
             <div class="more-options-content">
               <!-- Hypothesis -->
               <div class="InputField" data-state="default" data-variant="vertical">
                 <label class="InputField__label">Hypothesis</label>
                 <div class="InputField__wrapper">
-                  <input class="InputField__input" type="text" id="experimentHypothesis" placeholder="If we [change], then [metric] will [improve] because [reason]">
+                  <input class="InputField__input" type="text" id="experimentHypothesis" placeholder="If we [change], then [metric] will [improve], because [reason].">
                 </div>
               </div>
 
@@ -3712,7 +3712,7 @@
         <div class="metrics-header">
           <div class="section-block-left">
             <h2>Goals</h2>
-            <p class="section-description">Set clear success metrics to track your experiment.</p>
+            <p class="section-description">Define success metrics for this experiment.</p>
             <span class="section-count" id="metricsCount"></span>
           </div>
           <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
@@ -3737,7 +3737,7 @@
         <div class="events-header">
           <div class="section-block-left">
             <h2>Journey</h2>
-            <p class="section-description">Map the sequence of touchpoints users move through. Add variants to experiment steps only.</p>
+            <p class="section-description">Map the sequence of touchpoints. Add variants to experiment steps only.</p>
             <span class="section-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
           <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer">
