@@ -74,12 +74,11 @@
       --color-azure-600: #506179;
       --color-azure-900: #333b47;
       --color-azure-950: #22272f;
-      --color-azure-light-alpha-25: #eceff206;
-      --color-azure-light-alpha-50: #eceff20c;
-      --color-azure-light-alpha-100: #eceff219;
       --color-azure-dark-alpha-25: #22272f06;
       --color-azure-dark-alpha-50: #22272f0c;
       --color-azure-dark-alpha-100: #22272f19;
+      --color-azure-dark-alpha-200: #22272f33;
+      --color-azure-dark-alpha-300: #22272f4c;
       --color-azure-dark-alpha-400: #22272f66;
       --color-azure-dark-alpha-500: #22272f7f;
       --color-azure-dark-alpha-600: #22272f99;
@@ -87,6 +86,32 @@
       --color-azure-dark-alpha-800: #22272fcc;
       --color-azure-dark-alpha-900: #22272fe5;
       --color-azure-dark-alpha-950: #22272ff2;
+
+      /* Azure Alpha (Light) */
+      --color-azure-light-alpha-25: #eceff206;
+      --color-azure-light-alpha-50: #eceff20c;
+      --color-azure-light-alpha-100: #eceff219;
+      --color-azure-light-alpha-200: #eceff233;
+      --color-azure-light-alpha-300: #eceff24c;
+      --color-azure-light-alpha-400: #eceff266;
+      --color-azure-light-alpha-500: #eceff27f;
+      --color-azure-light-alpha-600: #eceff299;
+      --color-azure-light-alpha-700: #eceff2b2;
+      --color-azure-light-alpha-800: #eceff2cc;
+      --color-azure-light-alpha-900: #eceff2e5;
+      --color-azure-light-alpha-950: #eceff2f2;
+      /* --- White & Pale Sky (Neutrals) --- */
+      --color-white-alpha-50: #ffffff0c;
+      --color-white-alpha-100: #ffffff19;
+      --color-white-alpha-200: #ffffff33;
+      --color-white-alpha-300: #ffffff4c;
+      --color-white-alpha-400: #ffffff66;
+      --color-white-alpha-500: #ffffff7f;
+      --color-white-alpha-600: #ffffff99;
+      --color-white-alpha-700: #ffffffb2;
+      --color-white-alpha-800: #ffffffcc;
+      --color-white-alpha-900: #ffffffe5;
+      --color-white-alpha-950: #fffffff2;
       --color-white-100: #ffffff;
       --color-pale-sky-100: #edeef1;
       --color-pale-sky-200: #d8dbdf;
@@ -103,6 +128,15 @@
       --color-electric-violet-800: #4718bf;
       --color-electric-violet-900: #3b169c;
       --color-electric-violet-950: #230b6a;
+      --color-electric-violet-alpha-50: #7f4dff0c;
+      --color-electric-violet-alpha-100: #7f4dff19;
+      --color-electric-violet-alpha-200: #7f4dff33;
+      --color-electric-violet-alpha-300: #7f4dff4c;
+      --color-electric-violet-alpha-400: #7f4dff66;
+      --color-electric-violet-alpha-500: #7f4dff7f;
+      --color-electric-violet-alpha-600: #7f4dff99;
+      --color-electric-violet-alpha-700: #7f4dffb2;
+
 
        /* --- Yellow (Warning) --- */
       --color-yellow-50: #fffbea;
@@ -1656,15 +1690,16 @@
       display: flex;
       flex-direction: column;
       /* gap: var(--space-8);*/
+      border-bottom: 0px dashed var(--border);
+
     }
 
     .event-row-main {
       display: flex;
       align-items: center;
       gap: var(--space-12);
-      padding-bottom: var(--space-16);
-      padding-top: var(--space-16);
-      border-bottom: 1px dashed var(--border);
+      padding: var(--space-12);
+      border-bottom: 0px dashed var(--border);
     }
 
     /* .event-row-main:not(:last-child) {
@@ -1673,24 +1708,23 @@
 
     /* First event row should have top padding */
     .event-row:first-child .event-row-main {
-      padding-top: var(--space-16);
-      padding-bottom: var(--space-16);
+      padding-top: var(--space-12);
+      padding-bottom: var(--space-12);
     }
 
     /* Last event row should not have bottom border */
     .event-row:last-child .event-row-main {
       border-bottom: none;
-      padding-top: var(--space-16);
-      padding-bottom: var(--space-16);
+      padding-top: var(--space-12);
+      padding-bottom: var(--space-12);
     }
 
-    /* Hide border when variants container follows */
+    /* Hide border when variants container follows
     .event-row:has(.event-variants-container) .event-row-main {
-      /*border-bottom-color: transparent;*/
-      border: none;
+      border-bottom-color: transparent;
       padding-bottom: var(--space-12);
-      /*padding-right: var(--space-8);*/
-    }
+      padding-right: var(--space-8);
+    }*/
     
 
     /* Event step number badge */
@@ -1707,17 +1741,30 @@
     .event-step-badge {
       width: 20px;
       height: 20px;
-      border-radius: 16%;
+      border-radius: 50%;
       /* background: var(--text-secondary);*/
       border: 1px solid var(--text-primary);
       color: var(--text-primary);
-      font-size: 9px;
-      font-weight: 700;
+      font-size: 10px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       z-index: 1;
+    }
+
+    /* Experiment events (with variants) get purple background */
+    .event-row:has(.event-variants-badge) .event-step-badge {
+      background: var(--color-electric-violet-500);
+      border-color: var(--color-electric-violet-500);
+      color: var(--color-electric-violet-100);
+    }
+
+    /* Experiment events (with variants) get purple background */
+    .event-row:has(.event-variants-badge){
+      background: var(--color-electric-violet-alpha-50);
+       border-radius: var(--radius-md);
     }
 
     .event-flow-line {
@@ -1741,7 +1788,7 @@
     .journey-insert {
       position: relative;
       width: 100%;
-      height: 14px;
+      height: 16px;
       margin: 0;
       padding: 0;
       background: transparent;
@@ -1781,11 +1828,12 @@
 
     .journey-insert__btn {
       position: absolute;
-      left: 10px; /* align to step badge center */
+      left: 50%; /* align to container center */
+      /*left: 10px; /* align to step badge center */
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 999px;
       background: var(--text-link);
       color: #fff;
@@ -1819,17 +1867,18 @@
     .event-row.system .event-row-main {
       opacity: 1;
       pointer-events: none;
+      padding: var(--space-12);
     }
 
     .event-row.system .event-step-badge {
       /*background: var(--color-azure-100);*/
       color: var(--text-secondary);
       border: 1px dashed var(--text-primary);
-      font-weight: 700;
-      font-size: 9px;
+      font-weight: 600;
+      font-size: 10px;
     }
     .event-row.system .event-flow-line {
-      border-left: 1px dashed var(--text-primary);
+      border-left: 1px solid var(--text-primary);
     }
 
     .event-row.system .InputField__wrapper {
@@ -1869,17 +1918,17 @@
 
     /* Event-level "Experiment" badge (informational only) */
     .event-variants-badge {
-      height: 20px;
+      height: 24px;
       padding: 0 var(--space-8);
-      border-radius: 999px;
+      border-radius: var(--radius-lg);
       border: 1px solid var(--color-transparent);
-      background: var(--color-electric-violet-50);
+      background: var(--color-electric-violet-alpha-100);
       color: var(--color-electric-violet-800);
       display: inline-flex;
       align-items: center;
       gap: var(--space-4);
-      font-size: var(--body-xs-size);
-      font-weight: 500;
+      font-size: var(--body-sm-size);
+      font-weight: 400;
       line-height: 1;
       white-space: nowrap;
       flex-shrink: 0;
@@ -1901,9 +1950,10 @@
     /* Variants container (nested under event) */
     .event-variants-container {
       display: flex;
-      gap: var(--space-8);
-      margin-top: -1px;
-      border-bottom: 1px dashed var(--border);
+      gap: var(--space-16);
+      margin-top: -3px;
+      border-bottom: 0px dashed var(--border);
+      padding: 0 8px 0 12px;
       /*margin-left: 9px;
       padding-left: var(--space-8);*/
     }
@@ -1952,7 +2002,7 @@
 
     /* Hover state */
     .variant-card:hover {
-      background: var(--dropdown-selected-bg);
+      background: var(--color-white-alpha-900);
       border: 1px solid var(--color-transparent);
     }
 
@@ -1964,14 +2014,14 @@
 
     /* Active/pressed state */
     .variant-card:active {
-      background: var(--color-royal-blue-50);
+      background: var(--color-white-alpha-900);
       border: 1px solid var(--color-transparent);
       cursor: grabbing;
     }
 
     /* Newly added variant - blue bg until click outside */
     .variant-card.newly-added {
-      background: var(--dropdown-selected-bg);
+      background: var(--color-white-alpha-900);
       border: 1px solid var(--color-transparent);
     }
 
@@ -2267,7 +2317,7 @@
       height: 100%;
       align-self: stretch;
       padding-left: 8px;
-      flex-basis: 53px; /* 38px input + 14px suffix */;
+      flex-basis: 44px;
     }
 
     .variant-metric-field .InputField__suffix {
