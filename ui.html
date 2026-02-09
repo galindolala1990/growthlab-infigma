@@ -539,6 +539,35 @@
       font-weight: 500;
     }
 
+    /* Back to intro link */
+   .back-to-intro-link-container {
+      padding: var(--space-12) var(--space-12) var(--space-0) var(--space-16);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .back-to-intro-link {
+      display: inline-block;
+      font-size: var(--body-sm-size);
+      color: var(--text-link);
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      transition: color 0.15s ease;
+    }
+
+    .back-to-intro-link:hover {
+      color: var(--color-royal-blue-700);
+      text-decoration: underline;
+    }
+
+    /* Expand button in top bar */
+    .back-to-intro-link-container .expand-btn {
+      flex-shrink: 0;
+    }
+
     /* Form Container*/
     .form-container {
       display: flex;
@@ -1220,7 +1249,7 @@
       padding: var(--space-24);
       color: var(--text-secondary);
       font-size: var(--body-md-size);
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       min-height: 60px;
@@ -3710,6 +3739,13 @@
     <form id="exp-form" autocomplete="off" class="form-container" style="display:none;">
       <!-- Scrollable content area -->
       <div class="form-content">
+      <!-- Back to intro link -->
+      <div class="back-to-intro-link-container">
+        <button type="button" class="back-to-intro-link" id="backToIntroLink">← Back to intro</button>
+        <button type="button" class="icon-btn expand-btn" id="expandBtn" data-tooltip="Expand window" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" aria-label="Expand window">
+          <!-- Icon injected via JS -->
+        </button>
+      </div>
       <!-- Header Section -->
       <section class="section-header">
         <div class="header-row">
@@ -3717,9 +3753,6 @@
             <h2>Create experiment</h2>
             <p class="body-md">Define what you’re testing, where it runs, and how you’ll measure success.</p>
           </div>
-          <button type="button" class="icon-btn expand-btn" id="expandBtn" data-tooltip="Expand window" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" aria-label="Expand window">
-            <!-- Icon injected via JS -->
-          </button>
         </div>
         <div class="header-inputs">
           <!-- Experiment Name (Required - Always Visible) -->
@@ -3899,7 +3932,6 @@
         </div>
         <!-- Empty state placeholder -->
         <div class="empty-state" id="metricsEmptyState">
-          <p>No goals yet. Click the + button to add your first goal.</p>
         </div>
       </section>
 
@@ -3933,7 +3965,7 @@
       <footer class="section-footer">
         <button type="submit" class="Button brand">Create flow</button>
         <button type="button" id="cancel" class="Button secondary">Cancel</button>
-        <button type="button" id="refreshConnectors" class="Button secondary" title="Refresh flow after moving cards">Refresh connectors</button>
+        <button type="button" id="refreshConnectors" class="Button secondary" title="Refresh flow">Refresh</button>
       </footer>
       <!-- Debug Panel (collapsible, below footer) -->
       <div id="qaDebugPanelContainer"></div>
@@ -7254,6 +7286,11 @@
         }
       }
 
+      function showIntro() {
+        form.style.display = 'none';
+        introScreen.style.display = 'flex';
+      }
+
       function loadExample() {
         // Load example data into the form
         document.getElementById('experimentName').value = 'Landing Page CTA Test';
@@ -7331,6 +7368,16 @@
         e.stopPropagation();
         loadExample();
       });
+
+      // Back to intro button
+      const backBtn = document.getElementById('backToIntroLink');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showIntro();
+        });
+      }
     }
 
     // Initialize all DOM-dependent handlers
