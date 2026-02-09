@@ -462,6 +462,83 @@
       padding-top: var(--space-8);
     }
 
+    /* ============================================
+     * INTRO SCREEN
+     * ============================================ */
+    .intro-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      background: var(--background-surface);
+      padding: var(--space-32);
+      overflow: auto;
+    }
+
+    .intro-screen__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-24);
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .intro-screen__title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 140%;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      margin: 0;
+      padding: 0;
+    }
+
+    .intro-screen__subtitle {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 140%;
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+    }
+
+    .intro-screen__features {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+      width: 100%;
+    }
+
+    .intro-screen__feature-text {
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 160%;
+      color: var(--text-secondary);
+      margin: 0;
+      padding: 0;
+    }
+
+    .intro-screen__actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+      width: 100%;
+    }
+
+    .intro-screen__btn-primary {
+      gap: var(--space-8);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .intro-screen__btn-secondary {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
     /* Form Container*/
     .form-container {
       display: flex;
@@ -3608,7 +3685,29 @@
     <div id="qaDebugPanelBody" style="display:block; padding:18px 20px; margin:0; background:#f7f7fa; border-radius:0 0 12px 12px; font-size:13px; color:#222; line-height:1.6; overflow-x:auto; white-space:pre-wrap; word-break:break-word; max-height:320px;"></div>
   </div>
   <div class="app" id="container">
-    <form id="exp-form" autocomplete="off" class="form-container">
+    <!-- Intro Screen -->
+    <div class="intro-screen" id="introScreen">
+      <div class="intro-screen__content">
+        <h1 class="intro-screen__title">Growth Labs — Plugin Intro</h1>
+        <p class="intro-screen__subtitle">Growth Labs helps teams design and reason about growth experiments — before they ship them.</p>
+        
+        <div class="intro-screen__features">
+          <p class="intro-screen__feature-text">Map experiment flows, define events and variants, and visualize how everything connects across the user journey.</p>
+          <p class="intro-screen__feature-text">Built for product, design, and growth teams who want clarity, not chaos.</p>
+          <p class="intro-screen__feature-text">Start with a simple experiment, or build a full growth system — directly in Figma.</p>
+        </div>
+
+        <div class="intro-screen__actions">
+          <button type="button" class="Button brand intro-screen__btn-primary" id="btnNewExperiment">
+            <span>👉</span>
+            <span>New experiment</span>
+          </button>
+          <button type="button" class="Button secondary intro-screen__btn-secondary" id="btnLoadExample">Load example</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="exp-form" autocomplete="off" class="form-container" style="display:none;">
       <!-- Scrollable content area -->
       <div class="form-content">
       <!-- Header Section -->
@@ -6075,8 +6174,8 @@
       applyPendingFocus();
     }
 
-    let metrics = JSON.parse(JSON.stringify(defaultMetrics));
-    let events = JSON.parse(JSON.stringify(defaultEvents));
+    let metrics = [];
+    let events = [];
 
     // Initial render - skip event render from metrics to avoid double render
     renderMetrics(metrics, true);
@@ -7135,9 +7234,109 @@
       });
     }
 
+    // =============== Intro Screen ===============
+    function initIntroScreen() {
+      const introScreen = document.getElementById('introScreen');
+      const form = document.getElementById('exp-form');
+      const btnNewExperiment = document.getElementById('btnNewExperiment');
+      const btnLoadExample = document.getElementById('btnLoadExample');
+
+      if (!introScreen || !form || !btnNewExperiment || !btnLoadExample) return;
+
+      function showForm() {
+        introScreen.style.display = 'none';
+        form.style.display = 'flex';
+        
+        // Focus on experiment name input
+        const expNameInput = document.getElementById('experimentName');
+        if (expNameInput) {
+          setTimeout(() => expNameInput.focus(), 100);
+        }
+      }
+
+      function loadExample() {
+        // Load example data into the form
+        document.getElementById('experimentName').value = 'Landing Page CTA Test';
+        document.getElementById('experimentDescription').value = 'Testing a new primary button copy to increase click-through rate';
+        document.getElementById('experimentHypothesis').value = 'If we change the CTA button text to action-oriented copy, then click-through rate will increase by 5%, because users will better understand the value proposition.';
+
+        // Set sample date range
+        const today = new Date();
+        const startDate = today.toISOString().split('T')[0];
+        const endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        document.getElementById('experimentStartDate').value = startDate;
+        document.getElementById('experimentEndDate').value = endDate;
+
+        document.getElementById('experimentAudience').value = 'US users on desktop';
+        document.getElementById('experimentSampleSize').value = '5000';
+        document.getElementById('experimentOwner').value = 'Growth Team';
+
+        // Load example metrics
+        metrics = [
+          { id: 'metric-0', name: 'Click-through rate', abbreviation: 'CTR', direction: 'increase', thresholdPct: 5, isPrimary: true },
+          { id: 'metric-1', name: 'Conversion rate', abbreviation: 'CR', direction: 'increase', thresholdPct: 3 }
+        ];
+        renderMetrics(metrics, true);
+
+        // Load example events
+        events = [
+          { id: 'event-0', name: 'Landing page', hasVariants: false, variants: [] },
+          {
+            id: 'event-1',
+            name: 'Call-to-action',
+            hasVariants: true,
+            variants: [
+              { 
+                id: 'var-0', 
+                name: 'Control', 
+                description: 'Original button text: "Learn More"',
+                color: '#3B8FF6',
+                traffic: 50,
+                isControl: true,
+                metrics: { ctr: 2.4, cr: 0.8 }
+              },
+              {
+                id: 'var-1',
+                name: 'Variation A',
+                description: 'New button text: "Start Your Free Trial"',
+                color: '#0EAB43',
+                traffic: 50,
+                isControl: false,
+                metrics: { ctr: 3.8, cr: 1.2 }
+              }
+            ]
+          },
+          { id: 'event-2', name: 'Checkout page', hasVariants: false, variants: [] }
+        ];
+        renderEvents(events);
+
+        showForm();
+      }
+
+      btnNewExperiment.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Clear any existing data for a fresh start
+        document.getElementById('experimentName').value = '';
+        document.getElementById('experimentDescription').value = '';
+        metrics = [];
+        events = [];
+        renderMetrics(metrics, true);
+        renderEvents(events);
+        showForm();
+      });
+
+      btnLoadExample.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        loadExample();
+      });
+    }
+
     // Initialize all DOM-dependent handlers
     // Wrap in DOMContentLoaded to ensure DOM elements exist before accessing them
     function initializeAllHandlers() {
+      initIntroScreen();
       initializeLinkInputHandlers();
       initializeFormSubmitHandler();
       initializeButtonHandlers();
