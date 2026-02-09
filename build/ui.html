@@ -240,7 +240,7 @@
       --radius-xl: 1.125rem;
 
       /* === Component Variables === */
-      --section-padding: var(--space-16) var(--space-24) var(--space-12) var(--space-16);
+      --section-padding: var(--space-16) var(--space-16) var(--space-12) var(--space-16);
       --section-gap: var(--space-16);
       --section-radius: var(--radius-xl);
       --section-shadow: 0 4px 16px 0 rgba(40,60,90,0.06);
@@ -584,7 +584,7 @@
       align-items: center;
       justify-content: flex-start; /* keep label left-aligned within reserved width */
       gap: var(--space-4);
-      font-size: var(--body-sm-size);
+      font-size: var(--body-md-size);
       font-weight: 500;
       line-height: 1;
       white-space: nowrap;
@@ -993,12 +993,7 @@
     /* Make the inline fields a bit tighter than regular form fields */
     .goal-title-field .InputField__wrapper,
     .goal-title-field .SelectField__wrapper {
-      height: 26px;
-    }
-
-    .goal-title-field--metric .InputField__input {
-      font-size: var(--body-sm-size);
-      line-height: 1;
+      height: 24px;
     }
 
     .goal-actions {
@@ -1697,8 +1692,8 @@
     .event-row-main {
       display: flex;
       align-items: center;
-      gap: var(--space-12);
-      padding: var(--space-12);
+      gap: var(--space-8);
+      padding: var(--space-8) var(--space-12);
       border-bottom: 0px dashed var(--border);
     }
 
@@ -1757,13 +1752,13 @@
     /* Experiment events (with variants) get purple background */
     .event-row:has(.event-variants-badge) .event-step-badge {
       background: var(--color-electric-violet-500);
-      border-color: var(--color-electric-violet-500);
-      color: var(--color-electric-violet-100);
+      border: 0px solid var(--color-electric-violet-500);
+      color: var(--color-white-100);
     }
 
     /* Experiment events (with variants) get purple background */
     .event-row:has(.event-variants-badge){
-      background: var(--color-electric-violet-alpha-50);
+      background: var(--color-royal-blue-alpha-50);
        border-radius: var(--radius-md);
     }
 
@@ -1804,14 +1799,7 @@
 
     /* Keep the vertical spine continuous through the insert hotspot */
     .journey-insert::before {
-      content: "";
-      position: absolute;
-      left: 10px; /* align to step badge center */
-      top: 0;
-      bottom: 0;
-      border-left: 1px dashed var(--text-link);
-      z-index: 1;
-      pointer-events: none;
+      display: none;
     }
 
     .journey-insert__line {
@@ -1908,6 +1896,14 @@
       min-width: 0;
     }
 
+    .event-input-container .InputField__wrapper {
+      background: var(--color-transparent);
+      border: 1px solid var(--color-transparent);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4) var(--space-8);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
     /* Event action buttons */
     .event-actions {
       display: flex;
@@ -1918,18 +1914,19 @@
 
     /* Event-level "Experiment" badge (informational only) */
     .event-variants-badge {
-      height: 24px;
-      padding: 0 var(--space-8);
-      border-radius: var(--radius-lg);
+      height: 20px;
+      padding: 0 6px;
+      margin: 0 var(--space-4);
+      border-radius: var(--radius-sm);
       border: 1px solid var(--color-transparent);
       background: var(--color-electric-violet-alpha-100);
       color: var(--color-electric-violet-800);
+      font-size: 9px;
+      font-weight: 500;
+      line-height: 1;
       display: inline-flex;
       align-items: center;
-      gap: var(--space-4);
-      font-size: var(--body-sm-size);
-      font-weight: 400;
-      line-height: 1;
+      gap: 4px;
       white-space: nowrap;
       flex-shrink: 0;
       user-select: none;
@@ -2161,7 +2158,7 @@
 
     .variant-row {
       display: flex;
-      gap: var(--space-8);
+      gap: var(--space-4);
       align-items: center;
       width: 100%;
     }
@@ -2221,7 +2218,7 @@
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      padding-left: var(--space-24); /* Indent to align with content after toggle */
+      padding-left: 20px; /* Indent to align with content after toggle */
       padding-top: var(--space-12);
       padding-bottom: var(--space-8);
       padding-right: 32px;
@@ -2250,6 +2247,11 @@
       flex: 1;
       min-width: 0;
       width: 100%;
+    }
+
+    .variant-name-field .InputField__wrapper {
+      background: var(--color-transparent);
+
     }
 
     .variant-traffic-field {
@@ -2311,13 +2313,13 @@
 
     /* Variant metrics: compact numeric input + % suffix */
     .variant-metric-field .InputField__input.no-native-spinner {
-      flex: 0 0 38px;
       width: auto;
-      min-width: 38px;
+      min-width: 0px;
       height: 100%;
       align-self: stretch;
       padding-left: 8px;
-      flex-basis: 44px;
+      /*flex-basis: 44px;
+      flex: 0 0 38px;*/
     }
 
     .variant-metric-field .InputField__suffix {
@@ -2991,7 +2993,7 @@
       cursor: pointer;
       border: none;
       background: transparent;
-      font-size: var(--body-sm-size);
+      font-size: var(--body-md-size);
       font-family: inherit;
       transition: background 0.2s ease, color 0.2s ease;
       -webkit-tap-highlight-color: transparent;
@@ -3029,9 +3031,9 @@
     }
     .radio-selection__label {
       color: var(--text-secondary);
-      font-weight: var(--body-sm-weight);
       transition: color 0.2s ease, font-weight 0.2s ease;
-      font-size: var(--body-sm-size);
+      /*font-size: var(--body-sm-size);
+      font-weight: var(--body-sm-weight);*/
       
     }
     .radio-selection[aria-pressed="true"] .radio-selection__label {
@@ -3151,9 +3153,9 @@
       border: none;
       background: transparent;
       outline: none;
-      font-size: var(--body-sm-size);
-      font-weight: var(--body-sm-weight);
-      line-height: var(--body-sm-line-height);
+      font-size: var(--body-md-size);
+      font-weight: var(--body-md-weight);
+      line-height: var(--body-md-line-height);
       color: var(--text-primary);
       min-width: 0;
     }
@@ -3807,7 +3809,7 @@
         <div class="events-header">
           <div class="section-block-left">
             <h2>Journey</h2>
-            <p class="body-md">Map the sequence of touchpoints. Add variants to experiment steps only.</p>
+            <p class="body-md">Map the sequence of touchpoints. Add variants to experiment step only.</p>
             <span class="section-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
           <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" style="display:none">
@@ -5556,7 +5558,12 @@
       variantsBadge.setAttribute('data-tooltip-position', 'top');
       variantsBadge.setAttribute('data-tooltip-multiline', '');
       variantsBadge.setAttribute('data-tooltip-cursor', 'default');
-      variantsBadge.innerHTML = `<span class="event-variants-badge__text">Experiment</span>`;
+      
+      // Dynamic badge text based on variant count
+      if (Array.isArray(event.variants) && event.variants.length > 0) {
+        const badgeText = `${variantCount} variant${variantCount !== 1 ? 's' : ''}`;
+        variantsBadge.innerHTML = `<span class="event-variants-badge__text">${badgeText}</span>`;
+      }
 
       // Actions (kebab menu)
       const actionsDiv = document.createElement('div');
@@ -5924,9 +5931,6 @@
         btn.type = 'button';
         btn.className = 'journey-insert';
         btn.setAttribute('aria-label', label);
-        btn.setAttribute('data-tooltip', label);
-        btn.setAttribute('data-tooltip-position', 'top');
-        btn.setAttribute('data-tooltip-align', 'start');
         btn.innerHTML = `
           <span class="journey-insert__line"></span>
           <span class="journey-insert__btn">${getIcon('plus', { size: 12 })}</span>
@@ -5966,24 +5970,81 @@
           const eventRow = createEventRow(event, index, eventsList.length);
           list.appendChild(eventRow);
 
-          // Insert point after each touchpoint (i.e., between rows)
-          list.appendChild(createInsertHotspot('Add touchpoint', () => {
-            const newEvent = {
-              id: `event-${Date.now()}`,
-              name: '',
-              hasVariants: false,
-              variants: []
-            };
-            events.splice(index + 1, 0, newEvent);
-            if (newEvent.id) setPendingFocus('event', newEvent.id);
-            renderEvents(events);
-          }));
+          // Insert point after each touchpoint (except the last one)
+          if (index < eventsList.length - 1) {
+            list.appendChild(createInsertHotspot('Add touchpoint', () => {
+              const newEvent = {
+                id: `event-${Date.now()}`,
+                name: '',
+                hasVariants: false,
+                variants: []
+              };
+              events.splice(index + 1, 0, newEvent);
+              if (newEvent.id) setPendingFocus('event', newEvent.id);
+              renderEvents(events);
+            }));
+          }
 
         });
       }
 
-      // Add-step row only when there are no touchpoints yet
-      if (!hasSteps) {
+      // Always show inline-add-row at the bottom (before End row)
+      if (hasSteps) {
+        // When there are existing touchpoints - show add row with next sequential number
+        const nextStepNumber = eventsList.length + 1;
+        const row = document.createElement('div');
+        row.className = 'event-row add-step-row';
+
+        const mainRow = document.createElement('div');
+        mainRow.className = 'event-row-main';
+
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'event-step';
+
+        const flowLineAbove = document.createElement('div');
+        flowLineAbove.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineAbove);
+
+        const stepBadge = document.createElement('div');
+        stepBadge.className = 'event-step-badge';
+        stepBadge.textContent = String(nextStepNumber);
+        stepDiv.appendChild(stepBadge);
+
+        const flowLineBelow = document.createElement('div');
+        flowLineBelow.className = 'event-flow-line';
+        stepDiv.appendChild(flowLineBelow);
+
+        const inputContainer = document.createElement('div');
+        inputContainer.className = 'event-input-container';
+
+        const addRow = document.createElement('div');
+        addRow.className = 'inline-add-row';
+        addRow.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/><path d="M12 5v14"/>
+          </svg>
+          <span>Add touchpoint</span>
+        `;
+        addRow.onclick = (e) => {
+          e.preventDefault();
+          const newEvent = {
+            id: `event-${Date.now()}`,
+            name: '',
+            hasVariants: false,
+            variants: []
+          };
+          events.push(newEvent);
+          if (newEvent.id) setPendingFocus('event', newEvent.id);
+          renderEvents(events);
+        };
+
+        inputContainer.appendChild(addRow);
+        mainRow.appendChild(stepDiv);
+        mainRow.appendChild(inputContainer);
+        row.appendChild(mainRow);
+        list.appendChild(row);
+      } else {
+        // When there are no touchpoints yet
         list.appendChild(createAddStepEventRow({
           showLineAbove: true,
           showLineBelow: true,
