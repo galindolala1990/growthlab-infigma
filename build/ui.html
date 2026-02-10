@@ -468,41 +468,50 @@
     .intro-screen {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      align-items: flex-start;
+      justify-content: left;
       height: 100%;
       background: var(--background-surface);
-      padding: var(--space-32);
+      padding: 60px 80px 60px 60px;
       overflow: auto;
     }
 
     .intro-screen__content {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: var(--space-24);
+      align-items: flex-start;
+      gap: var(--space-8);
       max-width: 520px;
       width: 100%;
-      text-align: center;
+      text-align: left;
     }
 
     .intro-screen__title {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 24px;
+      font-weight: 500;
       line-height: 140%;
       color: var(--text-primary);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.025em;
       margin: 0;
       padding: 0;
     }
 
+    .intro-screen__logo {
+      display: block;
+      margin-left: 0;
+      margin-right: auto;
+      width: auto;
+      height: auto;
+    }
+
     .intro-screen__subtitle {
-      font-size: 14px;
-      font-weight: 500;
+      font-size: var(--body-lg-size);
+      font-weight: 400;
       line-height: 140%;
       color: var(--text-primary);
       margin: 0;
       padding: 0;
+      letter-spacing: -0.015em;
     }
 
     .intro-screen__features {
@@ -513,19 +522,22 @@
     }
 
     .intro-screen__feature-text {
-      font-size: 13px;
+      font-size: var(--body-lg-size);
       font-weight: 400;
-      line-height: 160%;
-      color: var(--text-secondary);
-      margin: 0;
+      line-height: 140%;
+      letter-spacing: -0.015em;
+      margin-left: 16px; /* Indent for list style */
+      margin-bottom: 8px; /* Space between list items */
       padding: 0;
     }
 
+
     .intro-screen__actions {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: var(--space-12);
       width: 100%;
+        margin-top: var(--space-24);
     }
 
     .intro-screen__btn-primary {
@@ -3717,19 +3729,24 @@
     <!-- Intro Screen -->
     <div class="intro-screen" id="introScreen">
       <div class="intro-screen__content">
-        <h1 class="intro-screen__title">Growth Labs — Plugin Intro</h1>
-        <p class="intro-screen__subtitle">Growth Labs helps teams design and reason about growth experiments — before they ship them.</p>
-        
+        <!-- Logo -->
+        <svg id="logo" class="intro-screen__logo" xmlns="http://www.w3.org/2000/svg" width="502" height="412" viewBox="0 0 502 412" fill="none" style="max-width: 100%; height: 100px; margin-bottom: 0px;">
+          <path d="M190.465 302.643C191.373 297.195 196.525 293.514 201.973 294.422C207.421 295.33 211.101 300.482 210.193 305.93C204.846 338.007 179.048 373.418 147.906 393.828C132.163 404.146 114.287 411.153 96.105 411.536C77.6168 411.926 59.4706 405.427 43.9722 389.929C40.067 386.023 40.0669 379.691 43.9722 375.786C47.8774 371.881 54.2096 371.881 58.1147 375.786C69.7245 387.396 82.5959 391.817 95.6841 391.541C109.078 391.258 123.34 386.015 136.943 377.1C164.493 359.044 186.229 328.06 190.465 302.643ZM223.901 0C298.854 0 359.615 60.7611 359.616 135.714C359.616 155.882 355.879 172.662 346.583 189.032C337.464 205.089 323.325 220.152 303.673 237.497C292.107 247.706 290.502 257.35 292.389 264.835C294.466 273.071 301.351 280.949 310.618 285.52C319.836 290.066 329.736 290.545 337.399 286.488C344.769 282.587 352.583 273.126 354.923 252.379C360.336 204.39 378.791 175.88 396.782 159.343C405.692 151.153 414.307 146.065 420.805 143.001C423.212 141.866 425.333 141.006 427.076 140.367C427.464 140.154 427.869 139.961 428.293 139.797L465.771 126.412L449.415 119.923C444.362 117.693 442.074 111.789 444.303 106.736C446.533 101.684 452.437 99.3944 457.49 101.624L495.934 117.861C500.987 120.091 503.275 125.995 501.045 131.048L484.809 169.491C482.579 174.544 476.675 176.833 471.623 174.604C466.57 172.374 464.281 166.47 466.51 161.417L473 145.061L440.022 156.838C439.048 157.483 437.945 157.968 436.74 158.245L436.741 158.246C436.742 158.246 436.749 158.244 436.752 158.243L436.772 158.239C436.731 158.25 436.643 158.272 436.512 158.309C436.232 158.386 435.754 158.528 435.103 158.745C433.799 159.181 431.81 159.923 429.336 161.09C424.388 163.423 417.527 167.439 410.316 174.067C396.065 187.167 379.699 211.157 374.796 254.621C371.979 279.6 361.774 296.214 346.757 304.164C332.034 311.959 315.179 310.069 301.771 303.456C288.412 296.867 276.797 284.795 272.997 269.726C269.007 253.904 274.145 236.884 290.438 222.503C309.588 205.6 321.73 192.294 329.191 179.156C336.474 166.333 339.616 153.093 339.616 135.714C339.615 71.8068 287.808 20 223.901 20C159.994 20.0004 108.186 71.8071 108.186 135.714C108.186 168.777 131.799 199.939 157.364 222.503C168.96 232.738 175.693 244.86 178.068 257.81C180.421 270.639 178.384 283.629 173.56 295.652C163.993 319.498 142.986 340.862 118.814 352.886C65.1143 379.597 8.06679 346.418 0.531738 288.797C-3.31004 259.418 14.1724 236.508 36.6685 225.622C59.0248 214.804 88.2536 214.834 110.113 232.77C120.804 241.542 127.271 254.364 126.243 269.481C125.235 284.281 117.163 299.839 101.931 315.071C101.472 315.53 100.979 315.933 100.46 316.284C94.5544 321.691 86.817 324.793 78.7202 324.99L77.9009 325C69.4227 324.999 61.2806 321.811 55.1538 316.114L54.5669 315.555C48.3785 309.508 44.9018 301.306 44.9009 292.755V291.245C44.9018 282.694 48.3785 274.492 54.5669 268.445C60.7554 262.398 69.1491 259.001 77.9009 259C86.6525 259.001 95.0455 262.399 101.234 268.445L101.806 269.019C103.149 270.397 104.354 271.882 105.416 273.45C105.893 271.567 106.175 269.79 106.289 268.124C106.839 260.036 103.585 253.284 97.4263 248.23C82.7133 236.158 62.1206 235.524 45.3794 243.625C28.7784 251.659 17.885 267.254 20.3628 286.203C26.2122 330.935 69.1525 355.25 109.906 334.979C130.251 324.858 147.48 306.945 154.999 288.206C158.717 278.937 159.935 269.807 158.396 261.417C156.879 253.148 152.575 244.952 144.129 237.497C117.497 213.991 88.186 177.745 88.186 135.714C88.1863 60.7613 148.948 0.000445377 223.901 0ZM390.403 268.563C390.919 263.065 395.795 259.026 401.293 259.542C406.792 260.058 410.831 264.935 410.315 270.434C407.398 301.505 394.762 322.873 376.388 335.545C358.319 348.007 336.075 351.111 315.403 348.656C294.735 346.202 274.564 338.086 259.842 326.683C245.439 315.525 234.183 299.392 236.973 281C237.802 275.54 242.9 271.785 248.36 272.613C253.82 273.442 257.576 278.54 256.748 284C255.55 291.893 260.143 301.616 272.09 310.871C283.72 319.88 300.404 326.736 317.761 328.797C335.114 330.857 352.066 328.023 365.033 319.08C377.695 310.347 387.936 294.842 390.403 268.563ZM77.9009 279C74.3059 279.001 70.9484 280.401 68.5444 282.75C66.1559 285.084 64.9013 288.15 64.9009 291.247V292.755C64.9018 295.851 66.1564 298.916 68.5444 301.25C70.9484 303.599 74.3059 304.998 77.9009 304.999C81.4956 304.998 84.8524 303.599 87.2563 301.25C89.4958 299.062 90.7393 296.23 90.8862 293.333L90.9009 292.753V291.247C90.9005 288.15 89.6451 285.084 87.2563 282.75C84.8524 280.401 81.4956 279.001 77.9009 279ZM224.361 183C228.471 183.001 232.413 185.01 235.32 188.585C238.227 192.161 239.859 197.011 239.86 202.067L239.861 215.933C239.86 220.989 238.227 225.839 235.32 229.415C232.413 232.99 228.471 234.999 224.361 235C220.25 234.999 216.308 232.991 213.401 229.415C210.494 225.839 208.861 220.989 208.861 215.933V202.067C208.861 197.011 210.494 192.161 213.401 188.585C216.308 185.009 220.25 183.001 224.361 183ZM261.361 188C264.411 188.001 267.335 189.497 269.492 192.161C271.648 194.825 272.86 198.439 272.86 202.206L272.861 215.794C272.861 219.561 271.648 223.175 269.492 225.839C267.335 228.503 264.411 229.999 261.361 230C258.311 230 255.386 228.503 253.229 225.839C251.072 223.175 249.861 219.561 249.861 215.794V202.206C249.861 198.439 251.072 194.825 253.229 192.161C255.386 189.497 258.311 188 261.361 188Z" fill="#6F4CFF"/>
+        </svg>
+        <h1 class="intro-screen__title">GrowthLabs</h1>
+        <p class="intro-screen__subtitle">GrowthLabs for Figma lets teams visually map experiments and design variants directly on the canvas, so everyone understands what’s being tested, where, and why. </p>
         <div class="intro-screen__features">
-          <p class="intro-screen__feature-text">Map experiment flows, define events and variants, and visualize how everything connects across the user journey.</p>
-          <p class="intro-screen__feature-text">Built for product, design, and growth teams who want clarity, not chaos.</p>
-          <p class="intro-screen__feature-text">Start with a simple experiment, or build a full growth system — directly in Figma.</p>
+          <ul>
+            <li class="intro-screen__feature-text"><span style="font-weight: 600;">Make experiments visible</span> <br> Map flows and variants directly on the canvas.</li>
+            <li class="intro-screen__feature-text"><span style="font-weight: 600;">Experiment clarity</span> <br>Standardize how experiments are defined and connected.</li>
+            <li class="intro-screen__feature-text"><span style="font-weight: 600;">Align decisions across teams</span> <br>Maintain a single source of truth from idea to rollout.</li>
+          </ul>
+        
         </div>
 
         <div class="intro-screen__actions">
           <button type="button" class="Button brand intro-screen__btn-primary" id="btnNewExperiment">
-            <span>👉</span>
-            <span>New experiment</span>
+            New experiment
           </button>
           <button type="button" class="Button secondary intro-screen__btn-secondary" id="btnLoadExample">Load example</button>
         </div>
