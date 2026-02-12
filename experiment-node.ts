@@ -88,14 +88,14 @@ async function createIconFromSVG(
 
 
 
-export function createEventCard(eventName: string, variantCount?: number): FrameNode {
+export function createEventCard(eventName: string, variantCount?: number, eventIndex?: number): FrameNode {
   const card = figma.createFrame();
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';
   card.primaryAxisSizingMode = 'AUTO';
   card.minWidth = 300; // 18.75rem
   card.maxWidth = 400; // 25rem
-  card.resize(300, 270); // Default width 300px (18.75rem)
+  card.resize(300, 340); // Default width 300px (18.75rem)
   card.paddingLeft = 16;
   card.paddingRight = 16;
   card.paddingTop = 16; // 1rem
@@ -119,17 +119,6 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   // Naming shows up in the Layers panel; use user-facing "Touchpoint" vocabulary.
   card.name = `Touchpoint: ${eventName}`;
 
-  // Touchpoint label (above thumbnail)
-  const eventLabel = figma.createText();
-  eventLabel.fontName = getFontStyle("Bold");
-  eventLabel.fontSize = TOKENS.fontSizeBodySm;
-  eventLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  eventLabel.opacity = 0.5;
-  eventLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  eventLabel.characters = 'Touchpoint';
-  eventLabel.name = 'Touchpoint Label';
-  card.appendChild(eventLabel);
-
   let thumb: FrameNode;
   const selection = figma.currentPage.selection;
   
@@ -144,8 +133,8 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     // If it's already a Frame, clone it directly
     if (selectedNode.type === 'FRAME') {
       thumb = selectedNode.clone() as FrameNode;
-      thumb.resize(268, 160);
-      thumb.cornerRadius = TOKENS.radiusSM;
+      thumb.resize(368, 260);
+      thumb.cornerRadius = TOKENS.radiusMD;
       thumb.name = 'Thumbnail - Replace with image';
       thumb.layoutAlign = 'MIN';
       thumb.clipsContent = true;
@@ -155,14 +144,14 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
       const rect = selectedNode.clone() as RectangleNode;
       thumb = figma.createFrame();
       thumb.layoutMode = 'NONE';
-      thumb.resize(268, 160);
-      thumb.cornerRadius = TOKENS.radiusSM;
+      thumb.resize(368, 260);
+      thumb.cornerRadius = TOKENS.radiusMD;
       thumb.name = 'Thumbnail - Replace with image';
       thumb.layoutAlign = 'MIN';
       thumb.clipsContent = true;
       
       // Resize and center the rectangle in the frame
-      rect.resize(268, 160);
+      rect.resize(368, 260);
       rect.x = 0;
       rect.y = 0;
       if ('cornerRadius' in rect) rect.cornerRadius = TOKENS.radiusSM;
@@ -173,31 +162,68 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
     // This is the default when no valid thumbnail source is selected
     const placeholder = figma.createFrame();
     placeholder.layoutMode = 'NONE';
-    placeholder.resize(268, 160);
-    placeholder.cornerRadius = TOKENS.radiusSM;
+    placeholder.resize(368, 260);
+    placeholder.cornerRadius = TOKENS.radiusMD;
     placeholder.name = 'Thumbnail - Replace with image';
     placeholder.layoutAlign = 'MIN';
     placeholder.clipsContent = true;
-    placeholder.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
-    placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    placeholder.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue100) }];
+    placeholder.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue200) }];
     placeholder.strokeWeight = 1;
     // Empty Frame with background fill - ready for "Replace with"
     thumb = placeholder;
   }
   card.appendChild(thumb);
 
-  // Group Touchpoint Name Text and Number of Variants
+  // Group Touchpoint Name Text and Number of Variants Badge
   const eventDetailsContainer = figma.createFrame();
-  eventDetailsContainer.layoutMode = 'VERTICAL';
+  eventDetailsContainer.layoutMode = 'HORIZONTAL';
   eventDetailsContainer.counterAxisSizingMode = 'AUTO';
-  eventDetailsContainer.primaryAxisSizingMode = 'AUTO';
+  eventDetailsContainer.primaryAxisSizingMode = 'FIXED';
+  eventDetailsContainer.primaryAxisAlignItems = 'MIN';
+  eventDetailsContainer.counterAxisAlignItems = 'CENTER';
   eventDetailsContainer.itemSpacing = 8;
   eventDetailsContainer.fills = [];
   eventDetailsContainer.strokes = [];
   eventDetailsContainer.name = 'Touchpoint Details Container';
   eventDetailsContainer.layoutAlign = 'STRETCH';
-  eventDetailsContainer.paddingBottom = 0;
+  eventDetailsContainer.resize(300 - 32, 32); // Match card width minus padding
+  eventDetailsContainer.paddingBottom = 8;
   eventDetailsContainer.paddingTop = 8;
+
+  // Step badge: 20x20 circle with step number
+  const stepNumber = eventIndex !== undefined ? eventIndex + 1 : 1;
+  const hasVariants = (variantCount ?? 0) > 0;
+  const stepBadge = figma.createFrame();
+  stepBadge.layoutMode = 'HORIZONTAL';
+  stepBadge.primaryAxisSizingMode = 'FIXED';
+  stepBadge.counterAxisSizingMode = 'FIXED';
+  stepBadge.resize(20, 20);
+  stepBadge.cornerRadius = 10; // Circle
+  stepBadge.primaryAxisAlignItems = 'CENTER';
+  stepBadge.counterAxisAlignItems = 'CENTER';
+  stepBadge.name = 'Step Badge';
+  if (hasVariants) {
+    // Purple filled badge when touchpoint has variants
+    stepBadge.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.electricViolet500) }];
+    stepBadge.strokes = [];
+  } else {
+    // Bordered badge when no variants
+    stepBadge.fills = [];
+    stepBadge.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
+    stepBadge.strokeWeight = 1;
+  }
+  const stepText = figma.createText();
+  stepText.fontName = getFontStyle("Bold");
+  stepText.fontSize = 10;
+  stepText.lineHeight = { value: 11, unit: "PIXELS" };
+  stepText.fills = [{ type: 'SOLID', color: hexToRgb(hasVariants ? TOKENS.white : TOKENS.textPrimary) }];
+  stepText.textAutoResize = 'WIDTH_AND_HEIGHT';
+  stepText.textAlignHorizontal = 'CENTER';
+  stepText.characters = String(stepNumber);
+  stepText.name = 'Step Number';
+  stepBadge.appendChild(stepText);
+  eventDetailsContainer.appendChild(stepBadge);
 
   const eventNameText = figma.createText();
   eventNameText.fontName = getFontStyle("Bold");
@@ -205,6 +231,7 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   eventNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
   eventNameText.textAlignHorizontal = 'LEFT';
+  eventNameText.layoutGrow = 1; // Fill available space so badge is pushed right
   // Auto-number fallback: if eventName is empty, use 'Touchpoint <n>'
   // Try to extract a number from the card name if possible
   let fallbackEventNumber = 1;
@@ -217,16 +244,13 @@ export function createEventCard(eventName: string, variantCount?: number): Frame
   eventNameText.name = 'Touchpoint Name Text';
   eventDetailsContainer.appendChild(eventNameText);
 
-  const subtitleText = figma.createText();
-  subtitleText.fontName = getFontStyle("Regular");
-  subtitleText.fontSize = TOKENS.fontSizeBodyMd;
-  subtitleText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  subtitleText.textAutoResize = 'WIDTH_AND_HEIGHT';
-  subtitleText.textAlignHorizontal = 'LEFT';
   const count = variantCount ?? 0;
-  subtitleText.characters = `${count} variant${count !== 1 ? 's' : ''}`;
-  subtitleText.name = 'Number of Variants';
-  eventDetailsContainer.appendChild(subtitleText);
+  if (count > 0) {
+    const variantsBadgeText = `${count} variant${count !== 1 ? 's' : ''}`;
+    const variantsBadge = createBadge(variantsBadgeText, 'micro', TOKENS.electricViolet100, TOKENS.electricViolet800);
+    variantsBadge.name = 'Number of Variants Badge';
+    eventDetailsContainer.appendChild(variantsBadge);
+  }
 
   card.appendChild(eventDetailsContainer);
 
@@ -260,8 +284,8 @@ export async function createVariantCard(
   card.layoutMode = 'VERTICAL';
   card.counterAxisSizingMode = 'AUTO';
   card.primaryAxisSizingMode = 'AUTO';
-  card.minWidth = 300; // 18.75rem
-  card.maxWidth = 400; // 25rem
+  card.minWidth = 400; // 25rem
+  card.maxWidth = 640; // 40rem
   // Height will hug content automatically with primaryAxisSizingMode = 'AUTO'
   card.paddingLeft = 16;
   card.paddingRight = 16;
@@ -290,77 +314,16 @@ export async function createVariantCard(
   card.primaryAxisAlignItems = 'MIN';
   card.counterAxisAlignItems = 'MIN';
 
-  // ...top row removed...
-
-  // Header row: Variant type label + badges (above thumbnail)
-  const headerRow = figma.createFrame();
-  headerRow.layoutMode = 'HORIZONTAL';
-  headerRow.counterAxisSizingMode = 'AUTO';
-  headerRow.primaryAxisSizingMode = 'FIXED';
-  headerRow.primaryAxisAlignItems = 'SPACE_BETWEEN';
-  headerRow.counterAxisAlignItems = 'CENTER';
-  headerRow.minHeight = 16;
-  headerRow.fills = [];
-  headerRow.strokes = [];
-  headerRow.name = 'Header Row';
-  headerRow.layoutAlign = 'STRETCH';
-  // Set initial width to match card min width minus padding
-  headerRow.resize(300 - 32, 16); // 300 - (16 padding * 2)
-
-  // Left container for variant label
-  const headerLeft = figma.createFrame();
-  headerLeft.layoutMode = 'HORIZONTAL';
-  headerLeft.counterAxisSizingMode = 'AUTO';
-  headerLeft.primaryAxisSizingMode = 'AUTO';
-  headerLeft.primaryAxisAlignItems = 'MIN';
-  headerLeft.fills = [];
-  headerLeft.strokes = [];
-  headerLeft.name = 'Header Left';
-
-  // Variant type label
-  const variantTypeLabel = figma.createText();
-  variantTypeLabel.fontName = getFontStyle("Bold");
-  variantTypeLabel.fontSize = TOKENS.fontSizeBodySm;
-  variantTypeLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
-  variantTypeLabel.opacity = 0.5;
-  variantTypeLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-  variantTypeLabel.characters = `Variant`;
-  variantTypeLabel.name = 'Variant Type Label';
-  headerLeft.appendChild(variantTypeLabel);
-  headerRow.appendChild(headerLeft);
-
-  // Right container for badges
-  const headerRight = figma.createFrame();
-  headerRight.layoutMode = 'HORIZONTAL';
-  headerRight.counterAxisSizingMode = 'AUTO';
-  headerRight.primaryAxisSizingMode = 'AUTO';
-  headerRight.itemSpacing = 6;
-  headerRight.counterAxisAlignItems = 'CENTER';
-  headerRight.fills = [];
-  headerRight.strokes = [];
-  headerRight.name = 'Header Badges';
-
-  // Rolled out badge - micro style (deployment status) using green for success
-  if (options?.rolledout) {
-    const rolledoutBadge = createBadge('Rolled out', 'micro', '#FFF420', TOKENS.textPrimary);
-    headerRight.appendChild(rolledoutBadge);
-  }
-
-  // Always add right container (even if empty, for consistent layout)
-  headerRow.appendChild(headerRight);
-
-  card.appendChild(headerRow);
-
   // Empty placeholder Frame ready for "Replace with"
   const thumb = figma.createFrame();
   thumb.layoutMode = 'NONE';
-  thumb.resize(268, 160);
+  thumb.resize(368, 260);
   thumb.cornerRadius = TOKENS.radiusSM;
   thumb.name = 'Thumbnail - Replace with image';
   thumb.layoutAlign = 'MIN';
   thumb.clipsContent = true;
-  thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsBackground) }];
-  thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+  thumb.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue100) }];
+  thumb.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue200) }];
   thumb.strokeWeight = 1;
   // Empty Frame with background fill - ready for "Replace with"
   card.appendChild(thumb);
@@ -378,18 +341,30 @@ export async function createVariantCard(
   variantDetailsContainer.paddingBottom = 8 ;
   variantDetailsContainer.paddingTop = 8;
 
-  // Radio button + variant name row
+  // Radio button + variant name row (with badges on the right)
   const nameRow = figma.createFrame();
   nameRow.layoutMode = 'HORIZONTAL';
   nameRow.counterAxisSizingMode = 'AUTO';
-  nameRow.primaryAxisSizingMode = 'AUTO';
+  nameRow.primaryAxisSizingMode = 'FIXED';
   nameRow.itemSpacing = 6;
-  nameRow.primaryAxisAlignItems = 'MIN';
+  nameRow.primaryAxisAlignItems = 'SPACE_BETWEEN';
   nameRow.counterAxisAlignItems = 'CENTER';
   nameRow.fills = [];
   nameRow.strokes = [];
   nameRow.name = 'Name Row';
-  nameRow.layoutAlign = 'MIN';
+  nameRow.layoutAlign = 'STRETCH';
+  nameRow.resize(300 - 32, 16); // Match card width minus padding
+
+  // Left: radio button + variant name
+  const nameLeft = figma.createFrame();
+  nameLeft.layoutMode = 'HORIZONTAL';
+  nameLeft.counterAxisSizingMode = 'AUTO';
+  nameLeft.primaryAxisSizingMode = 'AUTO';
+  nameLeft.itemSpacing = 6;
+  nameLeft.counterAxisAlignItems = 'CENTER';
+  nameLeft.fills = [];
+  nameLeft.strokes = [];
+  nameLeft.name = 'Name Left';
 
   // Radio button indicator (uses variant color)
   const radioButton = figma.createEllipse();
@@ -398,7 +373,7 @@ export async function createVariantCard(
   radioButton.fills = [{ type: 'SOLID', color: hexToRgb(variantColor) }];
   radioButton.strokes = [];
   radioButton.name = 'Radio Button';
-  nameRow.appendChild(radioButton);
+  nameLeft.appendChild(radioButton);
 
   // Variant name (with fallback logic always applied)
   const variantNameText = figma.createText();
@@ -412,7 +387,33 @@ export async function createVariantCard(
     : (variantIndex !== undefined ? `Variant ${variantIndex + 1}` : 'Variant');
   variantNameText.characters = displayName;
   variantNameText.name = 'Variant Name';
-  nameRow.appendChild(variantNameText);
+  nameLeft.appendChild(variantNameText);
+  nameRow.appendChild(nameLeft);
+
+  // Right: badges container
+  const nameBadges = figma.createFrame();
+  nameBadges.layoutMode = 'HORIZONTAL';
+  nameBadges.counterAxisSizingMode = 'AUTO';
+  nameBadges.primaryAxisSizingMode = 'AUTO';
+  nameBadges.itemSpacing = 6;
+  nameBadges.counterAxisAlignItems = 'CENTER';
+  nameBadges.fills = [];
+  nameBadges.strokes = [];
+  nameBadges.name = 'Header Badges';
+
+  // Baseline badge - shown when this variant is the control/baseline
+  if ((variant as any).isControl === true) {
+    const baselineBadge = createBadge('Baseline', 'micro', TOKENS.accentPrimaryDark, TOKENS.white);
+    nameBadges.appendChild(baselineBadge);
+  }
+
+  // Rolled out badge - micro style (deployment status)
+  if (options?.rolledout) {
+    const rolledoutBadge = createBadge('Rolled out', 'micro', '#FFF420', TOKENS.textPrimary);
+    nameBadges.appendChild(rolledoutBadge);
+  }
+
+  nameRow.appendChild(nameBadges);
 
   variantDetailsContainer.appendChild(nameRow);
 
@@ -431,16 +432,16 @@ export async function createVariantCard(
 
   card.appendChild(variantDetailsContainer);
 
-  // Separator line
+  // Separator line between variant details and metrics (matches design tokens)
   const separator = figma.createFrame();
-  separator.resize(268, 1);
+  separator.resize(368, 1);
   separator.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
   separator.strokes = [];
   separator.name = 'Separator';
   separator.layoutAlign = 'MIN';
   card.appendChild(separator);
 
-  // Metrics section
+  // Metrics section - displays available metrics for this variant (e.g. conversion rate, click-through rate)
   const metricsSection = figma.createFrame();
   metricsSection.layoutMode = 'VERTICAL';
   metricsSection.counterAxisSizingMode = 'AUTO';
@@ -453,7 +454,7 @@ export async function createVariantCard(
   metricsSection.paddingTop = 8;
   metricsSection.layoutAlign = 'STRETCH';
 
-  // Metrics header
+  // Metrics header (label above metrics list)
   const metricsHeader = figma.createText();
   metricsHeader.fontName = getFontStyle("Bold");
   metricsHeader.fontSize = TOKENS.fontSizeBodySm;

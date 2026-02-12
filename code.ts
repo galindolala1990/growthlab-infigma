@@ -1239,7 +1239,7 @@ function createConnectorV2(
     // Arrowhead - only create for PRIMARY_FLOW_LINE (not for variant connectors)
     // Variant connectors (BRANCH_LINE, MERGE_LINE) connect directly without arrowheads
     if (type === 'PRIMARY_FLOW_LINE') {
-      const arrowSize = 12; // Larger arrowhead for better visibility
+      const arrowSize = 8; // Arrow length (tip to base)
       arrow = figma.createVector();
       
       // Calculate angle from the path end direction (points toward the card)
@@ -1272,7 +1272,7 @@ function createConnectorV2(
       
       // Calculate perpendicular angle for base width
       const perpAngle = angle + Math.PI / 2;
-      const halfWidth = arrowSize * 0.4;
+      const halfWidth = 5; // Half of 10px total width
       
       // Base points form a line perpendicular to the arrow direction
       const baseX2 = baseX1 - halfWidth * Math.cos(perpAngle);
@@ -1461,7 +1461,7 @@ function createConnectorV2(
     // Arrowhead - only create for PRIMARY_FLOW_LINE (not for variant connectors)
     // Variant connectors (BRANCH_LINE, MERGE_LINE) connect directly without arrowheads
     if (type === 'PRIMARY_FLOW_LINE') {
-      const arrowSize = 12; // Larger arrowhead for better visibility
+      const arrowSize = 8; // Arrow length (tip to base)
       arrow = figma.createVector();
       
       // Calculate angle from the path end direction (points toward the card)
@@ -1496,7 +1496,7 @@ function createConnectorV2(
       
       // Calculate perpendicular angle for base width
       const perpAngle = angle + Math.PI / 2;
-      const halfWidth = arrowSize * 0.4;
+      const halfWidth = 5; // Half of 10px total width
       
       // Base points form a line perpendicular to the arrow direction
       baseX2 = baseX1 - halfWidth * Math.cos(perpAngle);
@@ -1709,29 +1709,29 @@ function getConnectorStyle(
     case 'PRIMARY_FLOW_LINE':
       return {
         strokeWeight: 1,
-        color: hexToRgb(TOKENS.azure300),
-        dashPattern: [4, 4], // Dashed pattern
+        color: hexToRgb(TOKENS.textPrimary),
+        dashPattern: undefined, // Solid line
         arrowhead: true,
       };
     case 'BRANCH_LINE':
       return {
         strokeWeight: 1,
-        color: hexToRgb(TOKENS.azure300),
-        dashPattern: [4, 4], // Dashed pattern
+        color: hexToRgb(TOKENS.textPrimary),
+        dashPattern: [6, 3], // Dashed pattern
         arrowhead: true,
       };
     case 'MERGE_LINE':
       return {
         strokeWeight: 1,
-        color: hexToRgb(TOKENS.azure300),
-        dashPattern: [4, 4], // Dashed pattern
+        color: hexToRgb(TOKENS.textPrimary),
+        dashPattern: [6, 3], // Dashed pattern
         arrowhead: true,
       };
     default:
       return {
         strokeWeight: 4,
-        color: hexToRgb(TOKENS.azure300),
-        dashPattern: [4, 4],
+        color: hexToRgb(TOKENS.textPrimary),
+       dashPattern: [6, 3],
         arrowhead: true,
       };
   }
@@ -1890,12 +1890,12 @@ if (figma.editorType === 'figma') {
     const color = options?.color ?? hexToRgb(TOKENS.royalBlue400);
     const strokeWeight = options?.strokeWeight ?? 2;
     const arrowSize = options?.arrowSize ?? 16;
-    const dashPattern = options?.dashPattern ?? [4, 4];
+    const dashPattern = options?.dashPattern ?? [6, 3];
 
     // Elbow (right-angle) connector: horizontal, then vertical
     const midX = x1 + (x2 - x1) * 0.5;
 
-    // Arrowhead at end
+    // Arrowhead at end pointing toward the card (from x2,y2 to midX,y1)
     const dx = x2 - midX;
     const dy = y2 - y1;
     const angle = Math.atan2(y2 - y1, x2 - midX);
@@ -2424,7 +2424,7 @@ if (figma.editorType === 'figma') {
         : `Touchpoint ${eventIdx + 1}`;
       
       // Create event card
-      const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0);
+      const eventCard = createEventCard(safeEventName, event.variants?.length ?? 0, eventIdx);
       // Naming shows up in the Layers panel; use user-facing "Touchpoint" vocabulary.
       eventCard.name = `Touchpoint: ${safeEventName}`;
       attachNodeMeta(eventCard, {
@@ -2929,7 +2929,7 @@ if (figma.editorType === 'figma') {
         entryCard = await createVariantCard(matchingVariant);
         entryCard.name = 'Entry Variant Node';
       } else {
-        entryCard = createEventCard(entryLabel, 0);
+        entryCard = createEventCard(entryLabel, 0, undefined);
         entryCard.name = 'Entry Event Node';
       }
       flowFrame.appendChild(entryCard);
@@ -3118,7 +3118,7 @@ if (figma.editorType === 'figma') {
       line.strokeAlign = "CENTER";
       line.strokeCap = "ROUND";
       line.strokeJoin = "ROUND";
-      line.dashPattern = [4, 4];
+      line.dashPattern = [6, 3];
       line.name = "Flow Line";
       if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
       if (options?.label) {
@@ -3154,7 +3154,7 @@ if (figma.editorType === 'figma') {
       line.strokeAlign = "CENTER";
       line.strokeCap = "ROUND";
       line.strokeJoin = "ROUND";
-      line.dashPattern = [4, 4];
+      line.dashPattern = [6, 3];
       line.name = "Flow Line";
       if (flowFrame) flowFrame.appendChild(line); else figma.currentPage.appendChild(line);
       if (options?.label) {
