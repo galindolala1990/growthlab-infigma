@@ -20,6 +20,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "esbuild": "^0.27.1",
     "eslint": "^8.54.0",
+    "sortablejs": "^1.15.7",
     "typescript": "^5.9.3"
   },
   "eslintConfig": {

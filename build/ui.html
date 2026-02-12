@@ -2096,6 +2096,7 @@
       width: 100%;
       gap: var(--space-4);
       padding-bottom: var(--space-8);
+      overflow: visible;
     }
 
     /* Variant Card - States: Default, Entered, onHover, onDrag */
@@ -2112,6 +2113,8 @@
       width: 100%;
       cursor: grab;
       user-select: none;
+      position: relative;
+      transition: opacity 0.15s ease;
     }
 
     /* Hover state */
@@ -2120,13 +2123,48 @@
       border: 1px solid var(--color-transparent);
     }
 
-    /* Dragging state */
+    /* Dragging state - minimal visual change to avoid interfering with drag preview */
     .variant-card.dragging {
-      box-shadow: 0 2px 8px rgba(40, 60, 90, 0.1);
+      opacity: 1;
       cursor: grabbing;
     }
 
-    /* Active/pressed state */
+    /* Drag reorder states */
+    .variant-card.drag-active {
+      opacity: 1;
+      cursor: grabbing;
+    }
+
+    .variants-list.is-dragging .variant-card {
+      cursor: grabbing;
+    }
+
+    /* Drop indicator - line above/below variant */
+    .variant-card::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      right: -8px;
+      height: 2px;
+      background: var(--brand);
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.08s ease;
+    }
+
+    .variant-card.drop-indicator-above::before {
+      top: 0px;
+      opacity: 1;
+    }
+
+    .variant-card.drop-indicator-below::before {
+      bottom: 0px;
+      top: auto;
+      opacity: 1;
+    }
+
+    /* Active/pressed state - keep same bg but change cursor to grabbing for better feedback during drag */
     .variant-card:active {
       background: var(--color-white-alpha-900);
       border: 1px solid var(--color-transparent);
@@ -3736,8 +3774,7 @@
     </button>
     <div id="qaDebugPanelBody" style="display:block; padding:18px 20px; margin:0; background:#f7f7fa; border-radius:0 0 12px 12px; font-size:13px; color:#222; line-height:1.6; overflow-x:auto; white-space:pre-wrap; word-break:break-word; max-height:320px;"></div>
   </div>
-  <div class="app" id="container">
-    <!-- Intro Screen -->
+
     <div class="intro-screen" id="introScreen">
       <div class="intro-screen__content">
         <!-- Logo -->
@@ -5486,48 +5523,16 @@
       // Assemble card
       card.appendChild(content);
 
-      // Drag and drop functionality
-      card.draggable = true;
-      card.dataset.eventIndex = eventIndex;
-      card.dataset.variantIndex = variantIndex;
-
-      card.addEventListener('dragstart', (e) => {
-        card.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', JSON.stringify({ eventIndex, variantIndex }));
-      });
-
-      card.addEventListener('dragend', () => {
-        card.classList.remove('dragging');
-      });
-
+      // Click highlight (non-drag behavior)
       card.addEventListener('click', (e) => {
         document.querySelectorAll('.variant-card.newly-added').forEach(c => c.classList.remove('newly-added'));
         card.classList.add('newly-added');
         highlightedVariantId = variant.id;
       });
 
-      card.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      });
-
-      card.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-        const fromEventIndex = data.eventIndex;
-        const fromVariantIndex = data.variantIndex;
-        const toEventIndex = parseInt(card.dataset.eventIndex);
-        const toVariantIndex = parseInt(card.dataset.variantIndex);
-
-        // Only reorder within the same event
-        if (fromEventIndex === toEventIndex && fromVariantIndex !== toVariantIndex) {
-          const variants = events[fromEventIndex].variants;
-          const [movedVariant] = variants.splice(fromVariantIndex, 1);
-          variants.splice(toVariantIndex, 0, movedVariant);
-          renderEvents(events);
-        }
-      });
+      // Data for drag ordering
+      card.dataset.eventIndex = eventIndex;
+      card.dataset.variantIndex = variantIndex;
 
       return card;
     }
@@ -5932,6 +5937,8 @@
       });
       variantsList.appendChild(addVariantRow);
 
+      initVariantDragReorder(variantsList, eventIndex);
+
       variantsContainer.appendChild(variantsStep);
       variantsContainer.appendChild(variantsList);
       // Hide variants list if no variants are attached
@@ -6093,6 +6100,118 @@
     /**
      * Renders the complete events/flow section
      */
+    /**
+     * Pure mouse-event drag reorder for variant cards.
+     * No external library needed — works inside Figma's sandboxed iframe.
+     */
+    function initVariantDragReorder(variantsList, eventIndex) {
+      if (!variantsList) return;
+
+      const DRAG_THRESHOLD = 4; // px before drag activates
+
+      variantsList.addEventListener('mousedown', (e) => {
+        // Don't drag when interacting with inputs, buttons, selects, textareas
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
+        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('select')) return;
+
+        const dragCard = e.target.closest('.variant-card');
+        if (!dragCard || dragCard.parentElement !== variantsList) return;
+
+        // Only left mouse button
+        if (e.button !== 0) return;
+
+        const startY = e.clientY;
+        let isDragging = false;
+
+        function getCards() {
+          return Array.from(variantsList.querySelectorAll(':scope > .variant-card'));
+        }
+
+        function clearIndicators() {
+          variantsList.querySelectorAll('.variant-card.drop-indicator-above, .variant-card.drop-indicator-below').forEach(c => {
+            c.classList.remove('drop-indicator-above', 'drop-indicator-below');
+          });
+        }
+
+        function onMouseMove(ev) {
+          ev.preventDefault();
+
+          // Activate drag only after threshold
+          if (!isDragging) {
+            if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
+            isDragging = true;
+            dragCard.classList.add('drag-active');
+            variantsList.classList.add('is-dragging');
+          }
+
+          clearIndicators();
+
+          // Find which card we're hovering over
+          const cards = getCards();
+          for (const card of cards) {
+            if (card === dragCard) continue;
+            const rect = card.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            if (ev.clientY >= rect.top && ev.clientY <= rect.bottom) {
+              if (ev.clientY < midY) {
+                card.classList.add('drop-indicator-above');
+              } else {
+                card.classList.add('drop-indicator-below');
+              }
+              break;
+            }
+          }
+        }
+
+        function onMouseUp(ev) {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+
+          if (!isDragging) return;
+
+          // Find target card with indicator
+          const targetAbove = variantsList.querySelector('.variant-card.drop-indicator-above');
+          const targetBelow = variantsList.querySelector('.variant-card.drop-indicator-below');
+
+          clearIndicators();
+          dragCard.classList.remove('drag-active');
+          variantsList.classList.remove('is-dragging');
+
+          // Perform the DOM move
+          if (targetAbove && targetAbove !== dragCard) {
+            variantsList.insertBefore(dragCard, targetAbove);
+          } else if (targetBelow && targetBelow !== dragCard) {
+            // Insert after targetBelow
+            if (targetBelow.nextSibling) {
+              variantsList.insertBefore(dragCard, targetBelow.nextSibling);
+            } else {
+              variantsList.appendChild(dragCard);
+            }
+          } else {
+            return; // No valid drop target
+          }
+
+          // Sync data model with new DOM order
+          const event = events?.[eventIndex];
+          if (!event || !Array.isArray(event.variants)) return;
+
+          const orderedIds = Array.from(variantsList.querySelectorAll(':scope > .variant-card')).map(c => c.id);
+          const reordered = orderedIds
+            .map(id => event.variants.find(v => v.id === id))
+            .filter(Boolean);
+
+          if (reordered.length === event.variants.length) {
+            event.variants = reordered;
+            renderEvents(events);
+          }
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    }
+
     function renderEvents(eventsList) {
       const list = document.getElementById('eventsList');
       const emptyState = document.getElementById('eventsEmptyState');
