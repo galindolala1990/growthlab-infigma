@@ -29,7 +29,11 @@ import type {
   FlowLayoutV2,
   FlowV2,
   CreateFlowV2Payload,
-  PluginMessageV2
+  PluginMessageV2,
+  ValidationResult,
+  ConnectorStyleConfig,
+  PluginMessageUnion,
+  PluginMessage
 } from './types';
 
 // ===== Error Handling System =====
@@ -308,14 +312,6 @@ function safeGetProperty(obj: unknown, key: string): unknown {
 }
 
 // ===== Flow Data Validation System =====
-/**
- * Validation result with detailed error information
- */
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-}
 
 /**
  * Validates ExperimentV2 structure for required fields and data integrity
@@ -2064,16 +2060,6 @@ function deleteExperimentFlowFrames() {
 // --- V2 Experiment Flow Helpers ---
 
 /**
- * Connector style configuration based on type
- */
-interface ConnectorStyleConfig {
-  strokeWeight: number;
-  color: RGB;
-  dashPattern?: number[];
-  arrowhead: boolean;
-}
-
-/**
  * Get connector style configuration based on type
  */
 function getConnectorStyle(
@@ -2174,22 +2160,6 @@ function getConnectorStyle(
 }
 
 const selectedEventIndex = 0; // Default to first event selected
-
-/**
- * Type-safe union of all plugin message types
- * Using discriminated unions prevents runtime errors from mismatched types
- */
-type PluginMessageUnion =
-  | { type: 'create-flow-v2'; payload: CreateFlowV2Payload }
-  | { type: 'delete-experiment-flows' }
-  | { type: 'refresh-connectors' }
-  | { type: 'resize-ui'; width?: number; height?: number }
-  | { type: string; payload?: unknown }; // Fallback for unknown messages
-
-interface PluginMessage {
-  type: string;
-  payload?: CreateFlowV2Payload;
-}
 
 /**
  * Type guard to check if message is a known plugin message type
