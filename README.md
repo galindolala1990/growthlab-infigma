@@ -39,6 +39,18 @@ Auto-fix lint issues with:
 For Figma plugin API docs, see: https://www.figma.com/plugin-docs/
 For TypeScript info: https://www.typescriptlang.org/
 
+### Project Maintenance
+**Feb 2026 - Code Cleanup & Optimization:**
+- ✅ Removed ~1.1 MB of build artifacts from root directory (source maps, compiled JS)
+- ✅ Archived 13 historical process documents to `_archive/` folder for cleaner root
+- ✅ Removed 52+ debug console.log/warn/error statements throughout codebase
+- ✅ Removed QA debug panel from UI (visual debugging helper)
+- ✅ Deleted unused `scripts/` and `assets/` folders
+- ✅ Reorganized TypeScript imports (all imports now at top of files)
+- ✅ Improved type safety (eliminated `any` types, added proper interfaces)
+- ✅ Updated `.gitignore` to prevent build artifacts from being tracked
+- **Result:** Cleaner codebase, better maintainability, zero TypeScript errors
+
 ### Docs
 - [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md)
 - [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md)

@@ -382,7 +382,7 @@ export async function createVariantCard(
   variantNameText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
   variantNameText.textAutoResize = 'WIDTH_AND_HEIGHT';
   // Always apply fallback: if name is empty, whitespace, or missing, use 'Variant <index+1>'
-  let displayName = (typeof variant.name === 'string' && variant.name.trim().length > 0)
+  const displayName = (typeof variant.name === 'string' && variant.name.trim().length > 0)
     ? variant.name
     : (variantIndex !== undefined ? `Variant ${variantIndex + 1}` : 'Variant');
   variantNameText.characters = displayName;

@@ -204,7 +204,7 @@ function createDynamicConnector(
  * - Or send message from UI: figma.ui.postMessage({ type: 'refresh-connectors' })
  * - Or add to menu/command handler
  */
-let refreshDebounceTimer: number | null = null;
+const refreshDebounceTimer: number | null = null;
 let isRefreshing = false;
 
 async function refreshConnectors(): Promise<void> {
@@ -496,8 +496,8 @@ async function refreshConnectors(): Promise<void> {
  * Only needed in regular Figma (not FigJam, where native connectors auto-update).
  * Uses event listeners since setInterval doesn't work reliably in Figma plugins.
  */
-let lastNodePositions: Map<string, { x: number; y: number }> = new Map();
-let refreshTimeout: number | null = null;
+const lastNodePositions: Map<string, { x: number; y: number }> = new Map();
+const refreshTimeout: number | null = null;
 
 async function setupAutoRefreshConnectors(): Promise<void> {
   // Only set up auto-refresh in regular Figma (not FigJam)
@@ -1000,7 +1000,7 @@ function createConnectorV2(
   const { from: startAbs, to: endAbs } = getEdgePoints(fromNode, toNode);
   // Always work in absolute coordinates for accurate edge positioning
   // endAbs is the EXACT card edge position - use this directly for arrowhead
-  let start = { ...startAbs }, end = { ...endAbs };
+  const start = { ...startAbs }, end = { ...endAbs };
   
   // Convert to flowFrame-local if provided (only for line path coordinates)
   // Arrowhead will always use endAbs (absolute) for precise positioning
@@ -1731,7 +1731,7 @@ export interface FlowV2 {
   exit: ExitNodeV2;
   connectors: ConnectorV2[];
 }
-let selectedEventIndex = 0; // Default to first event selected
+const selectedEventIndex = 0; // Default to first event selected
 
 export interface MetricDefinition {
   id: string;
@@ -2731,8 +2731,8 @@ if (figma.editorType === 'figma') {
 
         // Position note based on attachTo
         let anchorNode: SceneNode | undefined = undefined;
-        let anchorType = note.attachTo?.target;
-        let anchorId = note.attachTo?.targetId;
+        const anchorType = note.attachTo?.target;
+        const anchorId = note.attachTo?.targetId;
         if (anchorType === 'EVENT_NODE' && anchorId) {
           anchorNode = nodeMap[anchorId] as SceneNode;
         }
@@ -2962,8 +2962,8 @@ if (figma.editorType === 'figma') {
           default: return { x: x + node.width / 2, y: y + node.height / 2 };
         }
       }
-      let fromPoint = getMagnetPoint(from, fx, fy, fromMagnet);
-      let toPoint = getMagnetPoint(to, tx, ty, toMagnet);
+      const fromPoint = getMagnetPoint(from, fx, fy, fromMagnet);
+      const toPoint = getMagnetPoint(to, tx, ty, toMagnet);
       return { from: fromPoint, to: toPoint };
     }
 
@@ -3020,7 +3020,7 @@ if (figma.editorType === 'figma') {
     }
     const { from: startAbs, to: endAbs } = getEdgeToEdgePointsAbs(fromNode, toNode);
     // Convert to flowFrame-local coordinates
-    let start = { ...startAbs }, end = { ...endAbs };
+    const start = { ...startAbs }, end = { ...endAbs };
     if (flowFrame) {
       const frameAbs = getAbsolutePos(flowFrame);
       start.x = startAbs.x - frameAbs.x;
