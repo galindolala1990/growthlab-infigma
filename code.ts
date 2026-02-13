@@ -2035,10 +2035,9 @@ function createConnectorV2(
   
   return line;
 }
-// ...existing code...
 
-  // Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
-  function deleteExperimentFlowFrames() {
+// Delete frames named 'Sample Experiment Flow' or matching 'Experiment Flow' patterns
+function deleteExperimentFlowFrames() {
     const pattern = /Sample Experiment Flow|Experiment Flow.*|undefined/i;
     const frames = figma.currentPage.findAll(node =>
       node.type === "FRAME" && pattern.test(node.name)
@@ -2635,12 +2634,6 @@ if (figma.editorType === 'figma') {
     await createFlowV2FromData(experiment, flow);
   }
 
-  // Sample flow now uses v2 schema - see createSampleFlowV2 function below
-  // createSampleFlowFromData(); // OLD - commented out for merge
-
-  // ...existing code...
-
-
   const MIN_UI_WIDTH = 500;
   // Keep in sync with package.json version
   const PLUGIN_VERSION = '1.0.0';
@@ -2653,11 +2646,6 @@ if (figma.editorType === 'figma') {
   });
 
   figma.ui.postMessage({ type: 'plugin-version', version: PLUGIN_VERSION });
-
-  // ...existing code...
-
-    // Old Experiment Flow Row Card -- ACTUAL Variant Card
-  // ...existing code...
 
   function createNodeCard(title: string, subtitle?: string, trafficLabel?: string, note?: string): FrameNode {
     const card = figma.createFrame();
@@ -3943,7 +3931,6 @@ export function attachNodeMeta(node: BaseNode, meta: CanvasNodeMeta) {
   node.setPluginData('meta', JSON.stringify(meta));
 }
 
- //OLD EXPERIMENT FLOW ROW FRAME THAT HOLDS OLD FLOW
 export function createFrame(meta: CanvasNodeMeta, options: CanvasNodeOptions = {}): FrameNode {
   const frame = figma.createFrame();
   frame.name = meta.name;
@@ -4054,8 +4041,3 @@ function serializeNode(node: SceneNode): SerializeNode {
     cornerRadius: typeof (node as any).cornerRadius === 'number' ? (node as any).cornerRadius : undefined,
   };
 }
-
-// Example usage (to be replaced with actual plugin logic):
-// const frame = createFrame({ name: 'Experiment Frame', type: 'frame' as const }, { width: 400, height: 300 });
-// figma.currentPage.appendChild(frame);
-// const meta = getNodeMeta(frame);
