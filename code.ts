@@ -2977,6 +2977,7 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
     //   2. Falls back to VectorNode (regular Figma): manual refresh via refreshConnectors()
     // For VectorNode connectors, call refreshConnectors() or send 'refresh-connectors' message when nodes move
     const createdConnectors: SceneNode[] = [];
+    const connectorErrors: Array<{ connectorId?: string; from?: string; to?: string; error: string }> = []; // Track errors for reporting
     
     if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
       // Categorize connectors into two groups based on their structure:
@@ -3004,36 +3005,47 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         const fromNode = nodeMap[connector.from.id];
         const toNode = nodeMap[connector.to.id];
         
-        if (fromNode && toNode) {
-          try {
-            // Determine connector styling: is one endpoint a rolled-out (winning) variant?
-            // Rolled-out variants get special styling to highlight the chosen path
-            const fromNodeId = connector.from.id;
-            const toNodeId = connector.to.id;
-            const rolledoutVariantId = experiment.outcomes?.rolledoutVariantId;
-            // Check if either endpoint is the rolled-out variant
-            const isRolledout = rolledoutVariantId && (fromNodeId === rolledoutVariantId || toNodeId === rolledoutVariantId);
-            // Rolled-out styling takes priority over generic winner styling
-            const isWinner = isRolledout || false;
-            
-            // Create connector using dynamic system (tries native → VectorNode fallback)
-            // Native connectors in FigJam will automatically update when nodes move!
-            const connectorNode = createDynamicConnector(
-              fromNode,
-              toNode,
-              connector.type,
-              {
-                label: connector.label,
-                winner: isWinner, // Rolled-out variant is the winner
-                variantColor: undefined,
-                index: 0,
-                rolledout: isRolledout || false,  // Rollout styling takes priority over winner
-                useNativeConnector: true, // Try native connectors for automatic updates
-              }
-            );
-            
-            if (connectorNode) {
-              // Store additional metadata on the connector
+        if (!fromNode || !toNode) {
+          // Skip: one or both endpoints missing (normal for optional connectors)
+          connectorErrors.push({
+            connectorId: connector.id,
+            from: connector.from.id,
+            to: connector.to.id,
+            error: `Missing node endpoint: ${fromNode ? 'to' : 'from'} node not found`
+          });
+          continue;
+        }
+        
+        try {
+          // Determine connector styling: is one endpoint a rolled-out (winning) variant?
+          // Rolled-out variants get special styling to highlight the chosen path
+          const fromNodeId = connector.from.id;
+          const toNodeId = connector.to.id;
+          const rolledoutVariantId = experiment.outcomes?.rolledoutVariantId;
+          // Check if either endpoint is the rolled-out variant
+          const isRolledout = rolledoutVariantId && (fromNodeId === rolledoutVariantId || toNodeId === rolledoutVariantId);
+          // Rolled-out styling takes priority over generic winner styling
+          const isWinner = isRolledout || false;
+          
+          // Create connector using dynamic system (tries native → VectorNode fallback)
+          // Native connectors in FigJam will automatically update when nodes move!
+          const connectorNode = createDynamicConnector(
+            fromNode,
+            toNode,
+            connector.type,
+            {
+              label: connector.label,
+              winner: isWinner, // Rolled-out variant is the winner
+              variantColor: undefined,
+              index: 0,
+              rolledout: isRolledout || false,  // Rollout styling takes priority over winner
+              useNativeConnector: true, // Try native connectors for automatic updates
+            }
+          );
+          
+          if (connectorNode) {
+            // Store additional metadata on the connector
+            try {
               const existingMeta = connectorNode.getPluginData('connectorMeta');
               let meta = existingMeta ? JSON.parse(existingMeta) : {};
               meta = {
@@ -3044,17 +3056,38 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
                 experimentId: experiment.id,
               };
               connectorNode.setPluginData('connectorMeta', JSON.stringify(meta));
-              
-              // Name the connector for easy identification
+            } catch (metaError) {
+              // Non-critical: metadata storage failed, but connector was created
+            }
+            
+            // Name the connector for easy identification
+            try {
               if (!connectorNode.name.includes('Dynamic') && !connectorNode.name.includes('Static')) {
                 connectorNode.name = `${connector.type}: ${connector.from.nodeType} → ${connector.to.nodeType}`;
               }
-              
-              createdConnectors.push(connectorNode);
+            } catch (nameError) {
+              // Non-critical: naming failed, but connector was created
             }
-          } catch (error) {
+            
+            createdConnectors.push(connectorNode);
+          } else {
+            // Connector creation returned null (likely FigJam unavailable or VectorNode creation failed)
+            connectorErrors.push({
+              connectorId: connector.id,
+              from: connector.from.nodeType,
+              to: connector.to.nodeType,
+              error: 'Failed to create connector (likely environment incompatibility)'
+            });
           }
-        } else {
+        } catch (error) {
+          // Connector creation threw an error: log but continue with remaining connectors
+          // This prevents one bad connector from breaking the entire flow
+          connectorErrors.push({
+            connectorId: connector.id,
+            from: connector.from.nodeType,
+            to: connector.to.nodeType,
+            error: `Connector creation failed: ${error instanceof Error ? error.message : 'unknown error'}`
+          });
         }
       }
       
@@ -3064,6 +3097,12 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       for (const [targetId, merges] of mergeGroups.entries()) {
         const targetNode = nodeMap[targetId];
         if (!targetNode) {
+          // Skip: target node missing (unlikely, but handle gracefully)
+          connectorErrors.push({
+            from: `${merges.length} variant(s)`,
+            to: targetId,
+            error: 'Target node not found - merge cannot be created'
+          });
           continue;
         }
         
@@ -3073,20 +3112,44 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
           .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
         
         if (variantNodes.length === 0) {
+          // Skip: no valid source nodes (all missing)
+          connectorErrors.push({
+            from: `${merges.length} variant(s)`,
+            to: targetId,
+            error: 'All source nodes missing - merge cannot be created'
+          });
           continue;
+        }
+
+        // Log if some variants were filtered out
+        if (variantNodes.length < merges.length) {
+          const missingCount = merges.length - variantNodes.length;
+          connectorErrors.push({
+            error: `Merge group: ${missingCount} of ${merges.length} source nodes missing, creating merge with ${variantNodes.length} available node(s)`
+          });
         }
         
         try {
-          // Create merge+trunk structure (variants → trunk → target)
+          // Create merge+trunk structure: branches from variants converge on trunk, then to target
+          // This produces cleaner visualization than many separate connectors
           const mergeConnectors = createMergingTree(variantNodes, targetNode, experiment.id);
           createdConnectors.push(...mergeConnectors);
         } catch (error) {
+          // Merge tree creation failed: log but continue with remaining connectors
+          // Partial failure doesn't prevent the flow from rendering
+          connectorErrors.push({
+            from: `${variantNodes.length} variant(s)`,
+            to: targetId,
+            error: `Merge tree creation failed: ${error instanceof Error ? error.message : 'unknown error'}`
+          });
+          // Continue to next merge group instead of stopping
         }
       }
     } else {
     }
     
-    // Notify user
+    // Notify user about connector creation results
+    // Report success, partial failure, or complete failure with detailed information
     
     if (createdConnectors.length > 0) {
       const nativeCount = createdConnectors.filter(c => c.type === 'CONNECTOR').length;
@@ -3102,9 +3165,30 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
           message += `. ${vectorCount} connector${vectorCount !== 1 ? 's' : ''} - auto-refreshing when cards move`;
         }
       }
-      notifyUser({ type: 'success', title: `✓ Created ${message}` });
+      
+      // If there were errors during connector creation, report them as a warning
+      if (connectorErrors.length > 0) {
+        notifyUser({
+          type: 'warning',
+          title: `⚠️ ${message}`,
+          detail: `However, ${connectorErrors.length} connector(s) failed to create.`,
+          actionHint: 'The flow is complete, but some connections are missing. Check console for details.'
+        });
+      } else {
+        notifyUser({ type: 'success', title: `✓ ${message}` });
+      }
     } else {
-      notifyUser(ERRORS.NO_CONNECTORS_CREATED);
+      // No connectors created at all
+      if (connectorErrors.length > 0) {
+        notifyUser({
+          type: 'error',
+          title: '❌ No connectors created',
+          detail: `All ${connectorErrors.length} connector creation attempt(s) failed.`,
+          actionHint: 'Flow structure is intact. Check console for detailed error information.'
+        });
+      } else {
+        notifyUser(ERRORS.NO_CONNECTORS_CREATED);
+      }
     }
     
     // Select info card and zoom to view all nodes
