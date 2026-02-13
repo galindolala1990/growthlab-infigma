@@ -43,14 +43,15 @@ async function createIconFromSVG(
   frame.clipsContent = false;
 
   try {
-    // Check if importSVGAsync exists
-    if (typeof (figma as any).importSVGAsync !== 'function') {
+    // Check if importSVGAsync exists using type-safe method
+    const figmaExt = figma as Partial<typeof figma> & { importSVGAsync?: (svg: string) => Promise<FrameNode | null> };
+    if (typeof figmaExt.importSVGAsync !== 'function') {
       console.warn('importSVGAsync not available, using fallback');
       return frame;
     }
 
-    // Use type assertion to access importSVGAsync (may not be in TypeScript types)
-    const importedNode = await (figma as any).importSVGAsync(svgString);
+    // Use safe optional chaining for importSVGAsync
+    const importedNode = await figmaExt.importSVGAsync?.(svgString);
     
     if (!importedNode) {
       console.warn('importSVGAsync returned null/undefined');
@@ -443,7 +444,7 @@ export async function createVariantCard(
   // Radio button indicator (uses variant color)
   const radioButton = figma.createEllipse();
   radioButton.resize(10, 10);
-  const variantColor = (variant as any).color || TOKENS.royalBlue600;
+  const variantColor = (variant as Record<string, unknown>).color as string | undefined || TOKENS.royalBlue600;
   radioButton.fills = [{ type: 'SOLID', color: hexToRgb(variantColor) }];
   radioButton.strokes = [];
   radioButton.name = 'Radio Button';
@@ -476,7 +477,8 @@ export async function createVariantCard(
   nameBadges.name = 'Header Badges';
 
   // Baseline badge - shown when this variant is the control/baseline
-  if ((variant as any).isControl === true) {
+  const isControl = Boolean((variant as Record<string, unknown>).isControl);
+  if (isControl) {
     const baselineBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
     nameBadges.appendChild(baselineBadge);
   }
@@ -499,7 +501,8 @@ export async function createVariantCard(
     variantLabel.fontSize = TOKENS.fontSizeBodyMd;
     variantLabel.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.textPrimary) }];
     variantLabel.textAutoResize = 'WIDTH_AND_HEIGHT';
-    variantLabel.characters = (variant as any).description || '';
+    const description = (variant as Record<string, unknown>).description as string | undefined;
+    variantLabel.characters = description || '';
     variantLabel.name = 'Variant Label';
     variantDetailsContainer.appendChild(variantLabel);
   }
@@ -609,7 +612,8 @@ export async function createVariantCard(
     if (!metric.name) continue; // Skip metrics without a name
     
     const metricKey = getMetricKey(metric);
-    const metricValueRaw = (variant.metrics as any)?.[metricKey];
+    const metricsObj = variant.metrics as Record<string, unknown> | undefined;
+    const metricValueRaw = metricsObj?.[metricKey];
     
     // Keep empty values as undefined so we show '--' (node is a summary, not an input).
     const metricValue =
@@ -638,7 +642,7 @@ export async function createVariantCard(
   }
 
   // Figma link row — shows a clickable link to the variant's Figma design (below metrics)
-  const variantFigmaLink = (variant as any).figmaLink;
+  const variantFigmaLink = (variant as Record<string, unknown>).figmaLink as string | undefined;
   if (variantFigmaLink && typeof variantFigmaLink === 'string' && variantFigmaLink.trim().length > 0) {
     const linkRow = figma.createFrame();
     linkRow.layoutMode = 'HORIZONTAL';

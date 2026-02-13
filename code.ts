@@ -120,6 +120,140 @@ const ERRORS = {
   })
 };
 
+// ===== Type Guards & Safe Type Utilities =====
+/**
+ * Type guard: Check if value is ExperimentV2
+ * @param value - Value to check
+ * @returns true if value is a valid ExperimentV2
+ */
+function isExperimentV2(value: unknown): value is ExperimentV2 {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    typeof obj.roundNumber === 'number'
+  );
+}
+
+/**
+ * Type guard: Check if value is FlowV2
+ * @param value - Value to check
+ * @returns true if value is a valid FlowV2
+ */
+function isFlowV2(value: unknown): value is FlowV2 {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  
+  if (typeof obj.id !== 'string') return false;
+  if (!obj.entry || typeof obj.entry !== 'object') return false;
+  if (!obj.exit || typeof obj.exit !== 'object') return false;
+  if (!Array.isArray(obj.events)) return false;
+  if (!Array.isArray(obj.connectors)) return false;
+  
+  return true;
+}
+
+/**
+ * Type guard: Check if value is VariantV2
+ * @param value - Value to check
+ * @returns true if value is a valid VariantV2
+ */
+function isVariantV2(value: unknown): value is VariantV2 {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.parentEventId === 'string' &&
+    typeof obj.key === 'string' &&
+    typeof obj.name === 'string' &&
+    typeof obj.traffic === 'number'
+  );
+}
+
+/**
+ * Type guard: Check if value is CreateFlowV2Payload
+ * @param value - Value to check
+ * @returns true if value is a valid CreateFlowV2Payload
+ */
+function isCreateFlowV2Payload(value: unknown): value is CreateFlowV2Payload {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return isExperimentV2(obj.experiment) && isFlowV2(obj.flow);
+}
+
+/**
+ * Type guard: Check if value is MetricDefinition
+ * @param value - Value to check
+ * @returns true if value is a valid MetricDefinition
+ */
+function isMetricDefinition(value: unknown): value is MetricDefinition {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    (obj.abbreviation === undefined || typeof obj.abbreviation === 'string') &&
+    (obj.isPrimary === undefined || typeof obj.isPrimary === 'boolean')
+  );
+}
+
+/**
+ * Type guard: Check if value is an array of MetricDefinitions
+ * @param value - Value to check
+ * @returns true if value is a valid MetricDefinition array
+ */
+function isMetricDefinitionArray(value: unknown): value is MetricDefinition[] {
+  return Array.isArray(value) && value.every(item => isMetricDefinition(item));
+}
+
+/**
+ * Safely extract string property from object with type checking
+ * @param obj - Object to extract from
+ * @param key - Property key
+ * @returns The string value if found and correct type, undefined otherwise
+ */
+function safeGetString(obj: unknown, key: string): string | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const value = (obj as Record<string, unknown>)[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+/**
+ * Safely extract number property from object with type checking
+ * @param obj - Object to extract from
+ * @param key - Property key
+ * @returns The number value if found and correct type, undefined otherwise
+ */
+function safeGetNumber(obj: unknown, key: string): number | undefined {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const value = (obj as Record<string, unknown>)[key];
+  return typeof value === 'number' ? value : undefined;
+}
+
+/**
+ * Safely extract boolean property from object with type checking
+ * @param obj - Object to extract from
+ * @param key - Property key
+ * @returns The boolean value if found and correct type, false otherwise
+ */
+function safeGetBoolean(obj: unknown, key: string): boolean {
+  if (!obj || typeof obj !== 'object') return false;
+  const value = (obj as Record<string, unknown>)[key];
+  return typeof value === 'boolean' ? value : false;
+}
+
+/**
+ * Safely extract property from object
+ * @param obj - Object to extract from
+ * @param key - Property key
+ * @returns The value if found, undefined otherwise
+ */
+function safeGetProperty(obj: unknown, key: string): unknown {
+  if (!obj || typeof obj !== 'object') return undefined;
+  return (obj as Record<string, unknown>)[key];
+}
+
 // ===== Flow Data Validation System =====
 /**
  * Validation result with detailed error information
@@ -301,6 +435,41 @@ function validateFlowData(experiment: any, flow: any): ValidationResult {
     errors: [...experimentResult.errors, ...flowResult.errors],
     warnings: [...experimentResult.warnings, ...flowResult.warnings]
   };
+}
+
+/**
+ * Safely get absolute coordinates accounting for parent frames
+ * Avoids unsafe 'as any' casts by using calculated coordinates
+ * @param node - Node to get coordinates for
+ * @returns Absolute {x, y} coordinates
+ */
+function getAbsoluteCoordinates(node: BaseNode & { x?: number; y?: number }): { x: number; y: number } {
+  let x = node.x || 0;
+  let y = node.y || 0;
+  
+  // Walk up the parent chain to account for nested frames
+  let parent = node.parent;
+  while (parent && 'x' in parent && 'y' in parent) {
+    x += (parent as any).x || 0;
+    y += (parent as any).y || 0;
+    parent = parent.parent;
+  }
+  
+  return { x, y };
+}
+
+/**
+ * Type-safe way to access optional properties that may be added by this plugin
+ * @param node - Node to get metadata from
+ * @returns Extra metadata or undefined
+ */
+function getNodeExtra(node: BaseNode): Record<string, unknown> | undefined {
+  try {
+    const meta = getNodeMeta(node);
+    return meta?.extra as Record<string, unknown> | undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
@@ -1922,6 +2091,17 @@ export interface EntryNoteV2 {
 
 export type ConnectorTypeV2 = 'PRIMARY_FLOW_LINE' | 'BRANCH_LINE' | 'MERGE_LINE';
 
+/**
+ * Connector style properties with type-safe values
+ */
+export interface ConnectorStyle {
+  strokeWeight?: number;
+  color?: RGB | string;
+  dashPattern?: number[];
+  arrowhead?: boolean;
+  opacity?: number;
+}
+
 export interface ConnectorV2 {
   id: string;
   type: ConnectorTypeV2;
@@ -1929,7 +2109,7 @@ export interface ConnectorV2 {
   to: { nodeType: string; id: string };
   label?: string;
   arrowhead?: boolean;
-  style?: Record<string, any>;
+  style?: ConnectorStyle;
 }
 
 /**
@@ -2082,15 +2262,42 @@ export interface CreateFlowV2Payload {
   metrics?: MetricDefinition[];
 }
 
+/**
+ * V2 message for creating experiment flows with type-safe payload
+ */
 export interface PluginMessageV2 {
   type: 'create-flow-v2';
   payload: CreateFlowV2Payload;
 }
 
+/**
+ * Type-safe union of all plugin message types
+ * Using discriminated unions prevents runtime errors from mismatched types
+ */
+type PluginMessageUnion =
+  | { type: 'create-flow-v2'; payload: CreateFlowV2Payload }
+  | { type: 'delete-experiment-flows' }
+  | { type: 'refresh-connectors' }
+  | { type: 'resize-ui'; width?: number; height?: number }
+  | { type: string; payload?: unknown }; // Fallback for unknown messages
+
 interface PluginMessage {
   type: string;
   payload?: CreateFlowV2Payload;
 }
+
+/**
+ * Type guard to check if message is a known plugin message type
+ * @param msg - Message to check
+ * @returns true if message is a recognized plugin message type
+ */
+function isKnownMessageType(msg: unknown): msg is PluginMessageUnion {
+  if (!msg || typeof msg !== 'object') return false;
+  const obj = msg as Record<string, unknown>;
+  const type = obj.type;
+  return typeof type === 'string' && ['create-flow-v2', 'delete-experiment-flows', 'refresh-connectors', 'resize-ui'].includes(type);
+}
+
 /// <reference types="@figma/plugin-typings" />
 /* eslint-disable no-inner-declarations */
 
@@ -2592,9 +2799,9 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
           const rolledOutId = experiment.outcomes?.rolledoutVariantId;
-          // Normalize isControl: only true if explicitly set (prevents accidental multiple baselines)
+          // Normalize isControl: safely extract and validate (prevents accidental multiple baselines)
           // This ensures outcome card shows correct control baseline
-          const finalIsControl = (variant as any).isControl === true ? true : false;
+          const finalIsControl = safeGetBoolean(variant, 'isControl');
           allVariants.push({
             id: variant.id,
             key: variant.key,
@@ -2607,9 +2814,9 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
             // Check if this is the rolled-out (winning) variant from outcomes
             isRolledOut: rolledOutId === variant.id,
             // Statistical significance marker passed from UI for outcome card display
-            isStatSig: (variant as any).isStatSig,
+            isStatSig: safeGetBoolean(variant, 'isStatSig'),
             // Variant color used for visual identification in cards
-            color: (variant as any).color || variant.style?.variantColor,
+            color: safeGetString(variant, 'color') || variant.style?.variantColor,
           });
         });
       }
@@ -2647,18 +2854,18 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       experiment.links?.clickup || '',
       Array.isArray(experiment.links?.generic) ? experiment.links.generic : [],
       metrics,
-      (experiment as any).status || 'running',
+      safeGetString(experiment, 'status') as any || 'running',
       {
         showOutcomeCard: allVariants.length > 0,
         variants: allVariants,
-        owner: (experiment as any).owner,
-        audience: (experiment as any).audience,
-        experimentType: (experiment as any).experimentType,
-        hypothesis: (experiment as any).hypothesis,
-        startDate: (experiment as any).startDate,
-        endDate: (experiment as any).endDate,
-        totalSampleSize: (experiment as any).sampleSize,
-        confidenceLevel: (experiment as any).confidenceLevel,
+        owner: safeGetString(experiment, 'owner'),
+        audience: safeGetString(experiment, 'audience'),
+        experimentType: safeGetString(experiment, 'experimentType'),
+        hypothesis: safeGetString(experiment, 'hypothesis'),
+        startDate: safeGetString(experiment, 'startDate'),
+        endDate: safeGetString(experiment, 'endDate'),
+        totalSampleSize: safeGetNumber(experiment, 'sampleSize'),
+        confidenceLevel: safeGetNumber(experiment, 'confidenceLevel'),
         primaryMetric: (() => {
           // Find the metric marked as primary, or fall back to first metric
           const primaryMetricDef = metrics?.find(m => m.isPrimary) || (metrics && metrics.length > 0 ? metrics[0] : undefined);
@@ -3280,53 +3487,79 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
   }
 }
 
-  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string; width?: number; height?: number }) => {
-    // Handle UI resize
-    if (msg.type === 'resize-ui') {
-      const resizeMsg = msg as { type: string; width?: number; height?: number };
-      if (typeof resizeMsg.width === 'number' && typeof resizeMsg.height === 'number') {
-        figma.ui.resize(Math.max(MIN_UI_WIDTH, resizeMsg.width), resizeMsg.height);
-      }
-      return;
+/**
+ * Safely handle type-specific message dispatch
+ * Uses type guards to ensure type safety without 'as any' casts
+ * @param msg - Message from UI
+ */
+async function handlePluginMessage(msg: PluginMessage | PluginMessageV2 | { type: string; width?: number; height?: number }): Promise<void> {
+  // Handle UI resize
+  if (msg.type === 'resize-ui') {
+    const width = safeGetNumber(msg, 'width');
+    const height = safeGetNumber(msg, 'height');
+    if (width && height) {
+      figma.ui.resize(Math.max(MIN_UI_WIDTH, width), height);
     }
+    return;
+  }
 
-    if (msg.type === 'create-flow-v2' && 'payload' in msg && msg.payload) {
-      // --- NEW V2 FLOW HANDLER ---
-      const { experiment, flow, metrics } = msg.payload as CreateFlowV2Payload;
-      await createFlowV2FromData(experiment, flow, metrics);
-    }
-    
-    if (msg.type === 'refresh-connectors') {
-      await refreshConnectors();
-    }
-
-    // --- OLD HANDLERS BELOW ---
-    if (msg.type === 'delete-experiment-flows') {
-      deleteExperimentFlowFrames();
-      notifyUser(ERRORS.FLOW_DELETED_SUCCESSFULLY);
-      return;
-    }
-
-
-    if (msg.type === 'create-flow' && 'payload' in msg && msg.payload) {
-      notifyUser(ERRORS.OLD_FLOW_SCHEMA);
-      const {
-        experimentName,
-        roundNumber,
-        entryLabel,
-        exitLabel,
-        variants,
-        experimentDescription,
-        figmaLink,
-        jiraLink,
-        miroLink
-      } = msg.payload as any;
-
-      if (!Array.isArray(variants) || variants.length === 0) {
-        notifyUser(ERRORS.NO_VARIANTS);
+  // Handle V2 flow creation (primary handler with full type safety)
+  if (msg.type === 'create-flow-v2') {
+    const payload = safeGetProperty(msg, 'payload');
+    if (payload && isCreateFlowV2Payload(payload)) {
+      const { experiment, flow, metrics } = payload;
+      
+      // Validate payload before processing
+      const experimentValidation = validateExperiment(experiment);
+      const flowValidation = validateFlow(flow);
+      
+      if (!experimentValidation.isValid || !flowValidation.isValid) {
+        const allErrors = [...experimentValidation.errors, ...flowValidation.errors];
+        notifyUser(ERRORS.VALIDATION_FAILED(allErrors.length));
+        console.error('Validation errors:', allErrors);
         return;
       }
-      // The old handler logic is deprecated and replaced by the sample/demo flow and v2 handler.
+      
+      // Validate metrics if provided
+      if (metrics && !isMetricDefinitionArray(metrics)) {
+        notifyUser(ERRORS.VALIDATION_FAILED(1));
+        console.error('Invalid metrics array');
+        return;
+      }
+      
+      await createFlowV2FromData(experiment, flow, metrics);
+    }
+    return;
+  }
+
+  // Handle connector refresh
+  if (msg.type === 'refresh-connectors') {
+    await refreshConnectors();
+    return;
+  }
+
+  // Handle legacy message types
+  if (msg.type === 'delete-experiment-flows') {
+    deleteExperimentFlowFrames();
+    notifyUser(ERRORS.FLOW_DELETED_SUCCESSFULLY);
+    return;
+  }
+}
+
+  figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string; width?: number; height?: number }) => {
+    await handlePluginMessage(msg);
+    
+    // --- LEGACY HANDLERS (kept for backward compatibility) ---
+    if (msg.type === 'create-flow' && 'payload' in msg && msg.payload) {
+      notifyUser(ERRORS.OLD_FLOW_SCHEMA);
+      const payload = safeGetProperty(msg, 'payload');
+      if (payload && typeof payload === 'object') {
+        const variants = safeGetProperty(payload, 'variants');
+        if (!Array.isArray(variants) || variants.length === 0) {
+          notifyUser(ERRORS.NO_VARIANTS);
+          return;
+        }
+      }
       notifyUser(ERRORS.DEPRECATED_FLOW_TYPE);
     } else if (msg.type === 'create-from-selection') {
       const selection = figma.currentPage.selection.filter(node => node.type === 'FRAME' || node.type === 'GROUP');
@@ -3338,9 +3571,19 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         notifyUser(ERRORS.FORM_INCOMPLETE);
         return;
       }
-      const payload = (msg as PluginMessage).payload;
-      if (!payload) return;
-      const { experimentName, roundNumber, entryLabel, exitLabel, variants } = payload as any;
+      const payload = safeGetProperty(msg, 'payload');
+      if (!payload || typeof payload !== 'object') return;
+      
+      const experimentName = safeGetString(payload, 'experimentName');
+      const roundNumber = safeGetNumber(payload, 'roundNumber');
+      const entryLabel = safeGetString(payload, 'entryLabel');
+      const exitLabel = safeGetString(payload, 'exitLabel');
+      const variants = safeGetProperty(payload, 'variants');
+
+      if (!experimentName || !roundNumber || !entryLabel || !exitLabel || !Array.isArray(variants)) {
+        notifyUser(ERRORS.FORM_INCOMPLETE);
+        return;
+      }
 
       await loadFonts();
       const flowFrame = figma.createFrame();
