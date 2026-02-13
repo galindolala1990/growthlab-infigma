@@ -1801,6 +1801,7 @@ export type Variant = {
   traffic: number;    // 50, 25, etc
   status: VariantStatus;
   metrics: VariantMetrics;
+  figmaLink?: string; // Link to the Figma design for this variant
 };
 
 const KEEP_OPEN = true;

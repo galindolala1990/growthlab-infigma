@@ -403,7 +403,7 @@ export async function createVariantCard(
 
   // Baseline badge - shown when this variant is the control/baseline
   if ((variant as any).isControl === true) {
-    const baselineBadge = createBadge('Baseline', 'micro', TOKENS.accentPrimaryDark, TOKENS.white);
+    const baselineBadge = createBadge('Baseline', 'micro', TOKENS.azure100, TOKENS.azure700);
     nameBadges.appendChild(baselineBadge);
   }
 
@@ -432,15 +432,6 @@ export async function createVariantCard(
 
   card.appendChild(variantDetailsContainer);
 
-  // Separator line between variant details and metrics (matches design tokens)
-  const separator = figma.createFrame();
-  separator.resize(368, 1);
-  separator.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
-  separator.strokes = [];
-  separator.name = 'Separator';
-  separator.layoutAlign = 'MIN';
-  card.appendChild(separator);
-
   // Metrics section - displays available metrics for this variant (e.g. conversion rate, click-through rate)
   const metricsSection = figma.createFrame();
   metricsSection.layoutMode = 'VERTICAL';
@@ -450,8 +441,8 @@ export async function createVariantCard(
   metricsSection.fills = [];
   metricsSection.strokes = [];
   metricsSection.name = 'Metrics Section';
-  metricsSection.paddingBottom = 0;
-  metricsSection.paddingTop = 8;
+  metricsSection.paddingBottom = 8;
+  metricsSection.paddingTop = 0;
   metricsSection.layoutAlign = 'STRETCH';
 
   // Metrics header (label above metrics list)
@@ -570,6 +561,62 @@ export async function createVariantCard(
         metricItem.resize(sectionWidth, metricItem.height);
       }
     }
+  }
+
+  // Figma link row — shows a clickable link to the variant's Figma design (below metrics)
+  const variantFigmaLink = (variant as any).figmaLink;
+  if (variantFigmaLink && typeof variantFigmaLink === 'string' && variantFigmaLink.trim().length > 0) {
+    const linkRow = figma.createFrame();
+    linkRow.layoutMode = 'HORIZONTAL';
+    linkRow.counterAxisSizingMode = 'AUTO';
+    linkRow.primaryAxisSizingMode = 'FIXED';
+    linkRow.itemSpacing = 4;
+    linkRow.counterAxisAlignItems = 'CENTER';
+    linkRow.fills = [];
+    linkRow.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    linkRow.strokeWeight = 1;
+    linkRow.strokeTopWeight = 1;
+    linkRow.strokeBottomWeight = 0;
+    linkRow.strokeLeftWeight = 0;
+    linkRow.strokeRightWeight = 0;
+    linkRow.name = 'Figma Link Row';
+    linkRow.layoutAlign = 'STRETCH';
+    linkRow.paddingTop = 16;
+
+    // Figma brand icon (multi-color SVG, same as experiment info card)
+    const figmaIconSvg = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+      <path d="M8 24c2.208 0 4-1.792 4-4v-4H8c-2.208 0-4 1.792-4 4s1.792 4 4 4z" fill="#0ACF83"/>
+      <path d="M4 12c0-2.208 1.792-4 4-4h4v8H8c-2.208 0-4-1.792-4-4z" fill="#A259FF"/>
+      <path d="M4 4c0-2.208 1.792-4 4-4h4v8H8C5.792 8 4 6.208 4 4z" fill="#F24E1E"/>
+      <path d="M12 0h4c2.208 0 4 1.792 4 4s-1.792 4-4 4h-4V0z" fill="#FF7262"/>
+      <path d="M20 12c0 2.208-1.792 4-4 4s-4-1.792-4-4 1.792-4 4-4 4 1.792 4 4z" fill="#1ABCFE"/>
+    </svg>`;
+    try {
+      const figmaIcon = figma.createNodeFromSvg(figmaIconSvg);
+      figmaIcon.name = 'Figma Icon';
+      figmaIcon.resize(14, 14);
+      figmaIcon.fills = [];
+      linkRow.appendChild(figmaIcon);
+    } catch {
+      // Fallback: empty placeholder frame if SVG parsing fails
+      const fallbackIcon = figma.createFrame();
+      fallbackIcon.name = 'Figma Icon (fallback)';
+      fallbackIcon.resize(14, 14);
+      fallbackIcon.fills = [];
+      linkRow.appendChild(fallbackIcon);
+    }
+
+    const linkText = figma.createText();
+    linkText.fontName = getFontStyle('Medium');
+    linkText.fontSize = TOKENS.fontSizeBodySm;
+    linkText.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.royalBlue600) }];
+    linkText.textAutoResize = 'WIDTH_AND_HEIGHT';
+    linkText.hyperlink = { type: 'URL', value: variantFigmaLink.trim() };
+    linkText.characters = 'Open in Figma';
+    linkText.name = 'Figma Link';
+    linkRow.appendChild(linkText);
+
+    card.appendChild(linkRow);
   }
 
   return card;

@@ -210,7 +210,7 @@
       --background: var(--color-azure-100);
       --background-surface: var(--color-white-100);
       --foreground: var(--color-azure-900);
-      --text-primary: var(--color-azure-950);
+      --text-primary: #22272f;
       --text-primary-inverse: var(--color-white-100);
       --text-secondary: var(--color-azure-dark-alpha-600);
       --text-link: var(--color-royal-blue-600);
@@ -2314,7 +2314,7 @@
 
     .variant-row {
       display: flex;
-      gap: var(--space-4);
+      gap: var(--space-8);
       align-items: center;
       width: 100%;
     }
@@ -2373,7 +2373,7 @@
     .variant-subtree {
       display: flex;
       flex-direction: column;
-      gap: var(--space-8);
+      gap: var(--space-12);
       padding-left: 20px; /* Indent to align with content after toggle */
       padding-top: var(--space-12);
       padding-bottom: var(--space-8);
@@ -2391,6 +2391,14 @@
       display: none !important;
     }
 
+    .variant-figma-link {
+      width: 100%;
+    }
+
+    /*.variant-figma-link .InputField__wrapper {
+      background: var(--color-transparent);
+    }*/
+
     .variant-subtree.collapsed {
       max-height: 0;
       opacity: 0;
@@ -2407,7 +2415,10 @@
 
     .variant-name-field .InputField__wrapper {
       background: var(--color-transparent);
-
+      border: 1px solid var(--color-transparent);
+      border-radius: var(--radius-sm);
+      padding: var(--space-4) var(--space-8);
+      transition: background 0.15s, border-color 0.15s;
     }
 
     .variant-traffic-field {
@@ -2668,10 +2679,10 @@
       align-items: center;
     }
 
-    /* Select element - default (md) size, matches InputField__wrapper */
+    /* Select element - default (lg) size, matches InputField__wrapper */
     .SelectField__select {
       width: 100%;
-      height: var(--select-field-height-md);
+      height: 24px;
       padding: 0 var(--input-field-padding-x);
       padding-right: calc(var(--input-field-padding-x) + var(--select-field-icon-size) + var(--select-field-icon-gap));
       background: var(--input-field-dropdown-bg);
@@ -2836,7 +2847,7 @@
       align-items: center;
       gap: var(--space-8);
       width: 100%;
-      height: var(--select-field-height-md);
+      height: 24px;
       padding: 0 var(--input-field-padding-x);
       padding-right: calc(var(--input-field-padding-x) + var(--select-field-icon-size) + var(--select-field-icon-gap));
       background: var(--input-field-dropdown-bg);
@@ -3257,7 +3268,7 @@
     .InputField__wrapper {
       display: flex;
       align-items: center;
-      height: var(--select-field-height-md);
+      height: 24px;
       gap: var(--input-field-gap);
       background: var(--input-field-bg);
       border: var(--input-field-border);
@@ -3275,7 +3286,7 @@
     /* Hover state */
     .InputField__wrapper:hover,
     .InputField.hover .InputField__wrapper {
-      background: var(--input-field-hover-bg);
+      /* background: var(--input-field-hover-bg);*/
       border-color: var(--input-field-hover-border);
     }
 
@@ -3283,14 +3294,14 @@
     .InputField.surface .InputField__wrapper:hover,
     .InputField.surface.hover .InputField__wrapper {
       border-color: var(--input-field-border-no-color);
-      background: var(--input-field-hover-bg);
+      /* background: var(--input-field-hover-bg);*/
     }
 
     /* Focus state */
     .InputField__wrapper:focus-within {
       border-color: var(--input-field-focus-border);
       box-shadow: var(--input-field-focus-shadow);
-      background-color: var(--input-field-bg);
+      /* background-color: var(--input-field-bg);*/
     }
 
     /* Left text (prefix like "(CR)") */
@@ -3550,7 +3561,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       transition: background 0.15s, border-color 0.15s;
-      height: var(--select-field-height-lg);
+      height: 24px;
     }
 
     .link-row:hover {
@@ -3839,7 +3850,7 @@
       <section class="section-header">
         <div class="header-row">
           <div class="header-content">
-            <h2>Create experiment</h2>
+            <h2>Experiment</h2>
             <p class="body-md">Define what you’re testing, where it runs, and how you’ll measure success.</p>
           </div>
         </div>
@@ -4201,7 +4212,9 @@
       // https://lucide.dev/icons/maximize-2
       'maximize-2': '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
       // https://lucide.dev/icons/minimize-2
-      'minimize-2': '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/>'
+      'minimize-2': '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/>',
+      // https://lucide.dev/icons/link
+      'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
     };
 
     /**
@@ -5240,7 +5253,6 @@
         help: 'Variant name',
         text: displayName,
         variant: 'vertical',
-        skin: 'surface',
         prefixElement: colorIndicator,
         onChange: (value) => {
           variant.name = value;
@@ -5491,9 +5503,182 @@
 
       metricsSection.appendChild(row3);
 
-      // Add description and metrics to subtree
+      // Figma design link field (inside subtree) — matches resource link styling
+      const figmaLinkDiv = document.createElement('div');
+      figmaLinkDiv.className = 'variant-figma-link link-input-wrapper';
+
+      function renderFigmaLink() {
+        figmaLinkDiv.innerHTML = '';
+
+        if (variant.figmaLink) {
+          // Show as a link-row chip (same as resource link entered state)
+          const row = document.createElement('div');
+          row.className = 'link-row';
+
+          // Figma icon
+          const iconEl = document.createElement('div');
+          iconEl.className = 'link-row__icon figma';
+          iconEl.innerHTML = getBrandIcon('figma', { size: 12 });
+
+          // URL display
+          const infoEl = document.createElement('div');
+          infoEl.className = 'link-row__info';
+          const nameEl = document.createElement('div');
+          nameEl.className = 'link-row__name';
+          nameEl.textContent = variant.figmaLink.replace(/^https?:\/\//, '');
+          nameEl.title = variant.figmaLink;
+          infoEl.appendChild(nameEl);
+
+          // Actions: edit + delete
+          const actionsEl = document.createElement('div');
+          actionsEl.className = 'link-row__actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'link-row__action edit';
+          editBtn.innerHTML = getIcon('pencil', { size: 14 });
+          editBtn.title = 'Edit link';
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            row.classList.add('editing');
+          };
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'link-row__action delete';
+          deleteBtn.innerHTML = getIcon('minus', { size: 14 });
+          deleteBtn.title = 'Remove link';
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            variant.figmaLink = '';
+            renderFigmaLink();
+          };
+
+          actionsEl.appendChild(editBtn);
+          actionsEl.appendChild(deleteBtn);
+
+          // Edit form (hidden by default, shown on edit click)
+          const editForm = document.createElement('div');
+          editForm.className = 'link-row__edit-form';
+
+          const editInput = document.createElement('input');
+          editInput.type = 'url';
+          editInput.className = 'link-row__edit-input';
+          editInput.value = variant.figmaLink;
+          editInput.placeholder = 'Paste Figma link for this variant';
+
+          editInput.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+              ev.preventDefault();
+              const val = editInput.value.trim();
+              if (val) { variant.figmaLink = val; }
+              renderFigmaLink();
+            } else if (ev.key === 'Escape') {
+              ev.preventDefault();
+              renderFigmaLink();
+            }
+          });
+
+          const editActions = document.createElement('div');
+          editActions.className = 'link-row__edit-actions';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.type = 'button';
+          saveBtn.className = 'link-row__edit-btn save';
+          saveBtn.innerHTML = getIcon('check', { size: 14 });
+          saveBtn.title = 'Save';
+          saveBtn.onclick = (e) => {
+            e.stopPropagation();
+            const val = editInput.value.trim();
+            if (val) { variant.figmaLink = val; }
+            renderFigmaLink();
+          };
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.type = 'button';
+          cancelBtn.className = 'link-row__edit-btn cancel';
+          cancelBtn.innerHTML = getIcon('x', { size: 14 });
+          cancelBtn.title = 'Cancel';
+          cancelBtn.onclick = (e) => {
+            e.stopPropagation();
+            renderFigmaLink();
+          };
+
+          editActions.appendChild(saveBtn);
+          editActions.appendChild(cancelBtn);
+          editForm.appendChild(editInput);
+          editForm.appendChild(editActions);
+
+          // Click row to open link
+          row.addEventListener('click', () => {
+            if (!row.classList.contains('editing')) {
+              window.open(variant.figmaLink, '_blank');
+            }
+          });
+
+          row.appendChild(iconEl);
+          row.appendChild(infoEl);
+          row.appendChild(actionsEl);
+          row.appendChild(editForm);
+          figmaLinkDiv.appendChild(row);
+        } else {
+          // Show empty input (same as resource link input)
+          const inputRow = document.createElement('div');
+          inputRow.className = 'link-input-row';
+
+          const inputField = document.createElement('div');
+          inputField.className = 'InputField';
+          inputField.setAttribute('data-state', 'default');
+          inputField.setAttribute('data-variant', 'horizontal');
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'InputField__wrapper';
+
+          const iconEl = document.createElement('span');
+          iconEl.className = 'InputField__left-icon figma';
+          iconEl.innerHTML = getBrandIcon('figma', { size: 14 });
+          wrapper.appendChild(iconEl);
+
+          const input = document.createElement('input');
+          input.className = 'InputField__input';
+          input.type = 'url';
+          input.id = `variant-figma-link-${eventIndex}-${variantIndex}`;
+          input.placeholder = 'Paste Figma link for this variant';
+
+          input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+              ev.preventDefault();
+              const val = input.value.trim();
+              if (val) {
+                variant.figmaLink = val;
+                renderFigmaLink();
+              }
+            }
+          });
+
+          input.addEventListener('paste', () => {
+            setTimeout(() => {
+              const val = input.value.trim();
+              if (val && val.includes('.')) {
+                variant.figmaLink = val;
+                renderFigmaLink();
+              }
+            }, 0);
+          });
+
+          wrapper.appendChild(input);
+          inputField.appendChild(wrapper);
+          inputRow.appendChild(inputField);
+          figmaLinkDiv.appendChild(inputRow);
+        }
+      }
+
+      renderFigmaLink();
+
+      // Add description, metrics, and figma link to subtree
       subtree.appendChild(row2);
       subtree.appendChild(metricsSection);
+      subtree.appendChild(figmaLinkDiv);
 
       // Insert row1 (with name field) at the top of the content area
       content.appendChild(row1);
@@ -6961,6 +7146,7 @@
             description: variant.description || '',
             traffic: Number(variant.traffic) || 0,
             metrics: variant.metrics || {},
+            figmaLink: variant.figmaLink || '',
             style: variant.color ? { variantColor: variant.color } : undefined,
             // STRICT: Only pass true if explicitly true, otherwise pass false (never undefined)
             isControl: variant.isControl === true ? true : false
