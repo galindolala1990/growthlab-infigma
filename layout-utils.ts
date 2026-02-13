@@ -3,7 +3,16 @@
 
 import { TOKENS } from './design-tokens';
 
-// Convert hex color to RGB
+/**
+ * Converts a hexadecimal color string to Figma's RGB format
+ * @param hex - Hex color string with or without # prefix (e.g., '#FF0000' or 'FF0000')
+ *              Supports both 6-digit (#RRGGBB) and 3-digit (#RGB) formats
+ * @returns RGB object with r, g, b values normalized to 0-1 range
+ * @example
+ * hexToRgb('#FF0000') // { r: 1, g: 0, b: 0 } (red)
+ * hexToRgb('00FF00') // { r: 0, g: 1, b: 0 } (green)
+ * hexToRgb('#0F0')   // { r: 0, g: 1, b: 0 } (green, 3-digit)
+ */
 export function hexToRgb(hex: string): RGB {
   hex = hex.replace('#', '');
   if (hex.length === 3) {
@@ -17,12 +26,30 @@ export function hexToRgb(hex: string): RGB {
   };
 }
 
-// Example: spacing utility (can be expanded)
+/**
+ * Retrieves a spacing/sizing value from design tokens
+ * Used to maintain consistent spacing throughout the plugin using centralized token definitions
+ * @param token - Key from TOKENS object (must be a numeric token)
+ * @returns The numeric value of the token
+ * @example
+ * getSpacing('space12') // Returns 12 (or whatever value is defined in TOKENS)
+ * getSpacing('radiusMD') // Returns medium border radius value
+ */
 export function getSpacing(token: keyof typeof TOKENS): number {
   return TOKENS[token] as number;
 }
 
-// Example: font style utility
+/**
+ * Creates a font style configuration for Figma text nodes
+ * Maintains consistent typography throughout the plugin
+ * @param style - Font weight/style: 'Bold' (700), 'Regular' (400), or 'Medium' (500)
+ * @returns Font configuration object { family, style } ready for Figma text nodes
+ * @example
+ * const text = figma.createText();
+ * text.fontName = getFontStyle('Bold');
+ * text.fontSize = 16;
+ * text.characters = 'Heading';
+ */
 export function getFontStyle(style: 'Bold' | 'Regular' | 'Medium' = 'Regular') {
   return { family: TOKENS.fontFamily, style };
 }
@@ -35,12 +62,28 @@ export function getFontStyle(style: 'Bold' | 'Regular' | 'Medium' = 'Regular') {
 export type BadgeStyle = 'filled' | 'outlined' | 'micro';
 
 /**
- * Create a badge with consistent styling
- * @param label - Badge text
- * @param style - 'filled' (card type), 'outlined' (status), or 'micro' (table cells)
- * @param bgColor - Background color (for filled/micro) or border color (for outlined)
- * @param textColor - Text color
- * @param icon - Optional icon node to display before the text
+ * Creates a styled badge component for displaying labels, statuses, or metadata
+ * Badges are used throughout the plugin for variant labels, status indicators, metrics, etc.
+ * 
+ * Three styles available:
+ * - 'filled': Solid background, fixed 16px height (default for most badges)
+ * - 'outlined': Border only, fixed 16px height (for status tags)
+ * - 'micro': Smaller badge (10px height) for dense layouts like metric tables
+ * 
+ * @param label - Text to display in the badge
+ * @param style - Badge variant: 'filled' | 'outlined' | 'micro'
+ * @param bgColor - Background color (hex string) for filled/micro badges; border color for outlined
+ * @param textColor - Text color (hex string)
+ * @param icon - Optional icon node to display before the text (will be resized to fit badge)
+ * @returns FrameNode containing the styled badge
+ * 
+ * @example
+ * // Variant status badge
+ * const badge = createBadge('Winner', 'filled', '#10B981', '#FFFFFF');
+ * 
+ * @example
+ * // Metric label in table (micro)
+ * const metricBadge = createBadge('CTR', 'micro', '#E0E7FF', '#4F46E5');
  */
 export function createBadge(
   label: string,

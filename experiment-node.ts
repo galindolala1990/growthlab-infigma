@@ -5,11 +5,28 @@ import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle, createBadge } from './layout-utils';
 
 /**
- * Create an icon from SVG string using Figma's importSVGAsync
- * @param svgString - Complete SVG string
- * @param size - Desired icon size
- * @param name - Node name
- * @returns Promise<FrameNode> containing the imported SVG
+ * Creates an icon frame from an SVG string using Figma's importSVGAsync
+ * Handles color updates and scaling to match the target size
+ * 
+ * Useful for embedding custom icons (status indicators, badges, etc.) into Figma nodes
+ * Automatically handles SVG color updates and sizing to prevent icons from exceeding frame bounds
+ * 
+ * @param svgString - Complete SVG XML string (e.g., from clipboard or inline data)
+ * @param size - Desired icon size in pixels (default: 16)
+ * @param name - Name for the resulting frame node (appears in Layers panel)
+ * @param color - RGB color for the icon strokes (default: black); pass via parameter to customize
+ * @returns Promise<FrameNode> containing the imported and formatted SVG
+ * 
+ * @note Falls back to placeholder rectangle if importSVGAsync fails (graceful degradation)
+ * @note Recursively updates all stroke colors in the SVG to the provided color parameter
+ * 
+ * @example
+ * const icon = await createIconFromSVG(
+ *   '<svg viewBox="0 0 16 16">...</svg>',
+ *   20,
+ *   'Success Icon',
+ *   { r: 0, g: 1, b: 0 }  // green
+ * );
  */
 async function createIconFromSVG(
   svgString: string,
@@ -88,6 +105,32 @@ async function createIconFromSVG(
 
 
 
+/**
+ * Creates a Touchpoint (Event) card for displaying an experiment event/step
+ * Shows the event name, optional thumbnail, step number, and variant count
+ * 
+ * Card layout:
+ * - Thumbnail: 368×260px placeholder (ready for "Replace with" image)
+ * - Header: Step number badge + Event name + Variant count badge
+ * - Body: Space for event metadata and notes (in v2 flows)
+ * 
+ * Features:
+ * - Supports optional thumbnail from current selection (Frame or Rectangle)
+ * - Displays step number in circle badge (purple if variants, outlined if no variants)
+ * - Shows variant count in micro badge when variants exist
+ * - Auto-fallback event name if not provided
+ * 
+ * @param eventName - Display name for the event (e.g., "Purchase Button Click")
+ * @param variantCount - Number of variants being tested at this event (optional)
+ * @param eventIndex - Position in event sequence (used for step number, 0-indexed)
+ * @returns FrameNode containing the complete event card
+ * 
+ * @example
+ * const eventCard = createEventCard('Homepage Load', 3, 0);
+ * eventCard.x = 100;
+ * eventCard.y = 200;
+ * figma.currentPage.appendChild(eventCard);
+ */
 export function createEventCard(eventName: string, variantCount?: number, eventIndex?: number): FrameNode {
   const card = figma.createFrame();
   card.layoutMode = 'VERTICAL';
@@ -267,6 +310,37 @@ export interface MetricDefinition {
   max?: number;
 }
 
+/**
+ * Creates a Variant card displaying experiment variant details and performance metrics
+ * 
+ * Card layout:
+ * - Header: Variant name + status badges (Control, Rolled Out, Winner, Stat Sig)
+ * - Metrics section: Chipset showing metric values and confidence indicators
+ * - Description: Optional variant description text (hidden by default)
+ * 
+ * Features:
+ * - Status badges indicate: control baseline, rolled-out winner, statistical significance
+ * - Color-coded border: Purple (2px) for rolled-out variants, standard gray for others
+ * - Metrics display with compact chip layout
+ * - Auto-height to fit content
+ * - Responsive width (400-640px)
+ * 
+ * @param variant - Variant data object containing: id, name, traffic, status, metrics, etc.
+ * @param variantIndex - Position in variant list (used for numbering/display, 0-indexed)
+ * @param options - Optional configuration
+ * @param options.rolledout - Whether this variant was selected as rolled-out winner (Purple border)
+ * @param options.metrics - Available metric definitions from plugin (for rendering metric chips)
+ * @param options.showDescription - Whether to display variant description text (default: false)
+ * @returns Promise<FrameNode> containing the complete variant card
+ * 
+ * @example
+ * const variantCard = await createVariantCard(
+ *   { name: 'CTA Button Red', traffic: 50, metrics: { ctr: 2.5 } },
+ *   0,
+ *   { rolledout: true, metrics: metricDefs }
+ * );
+ * figma.currentPage.appendChild(variantCard);
+ */
 export async function createVariantCard(
   variant: Variant, 
   variantIndex?: number, 
@@ -622,6 +696,23 @@ export async function createVariantCard(
   return card;
 }
 
+/**
+ * Creates a small, compact metric display chip for showing single metric values
+ * Used in outcome cards, variant cards, and other metric-heavy layouts
+ * 
+ * Design:
+ * - Horizontal layout with label and value side-by-side
+ * - Light background with border
+ * - Compact padding and rounded corners (small radius)
+ * 
+ * @param label - Metric label (e.g., "CTR", "Conv Rate", "RPM")
+ * @param value - Numeric value to display
+ * @returns FrameNode containing the metric chip (ready to append to parent)
+ * 
+ * @example
+ * const chip = createMetricChip('CTR', 2.5);
+ * metricsContainer.appendChild(chip);
+ */
 export function createMetricChip(label: string, value: number): FrameNode {
   const chip = figma.createFrame();
   chip.layoutMode = 'HORIZONTAL';

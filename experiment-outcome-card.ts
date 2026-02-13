@@ -221,7 +221,38 @@ function getMetricKey(metric: MetricDefinition): string {
 }
 
 /**
- * Create the experiment outcome card with metrics table
+ * Creates an experiment outcome card displaying metrics results and variant comparisons
+ * 
+ * Card layout: Three-section vertical design
+ * - Header: Experiment name, date, and status badge
+ * - Metrics Table: Variant performance metrics with uplift percentages, rolled-out indicators
+ * - Summary: Recommendation and decision summary
+ * 
+ * Features:
+ * - Variant comparison against control (baseline)
+ * - Primary metric highlighting with star icon
+ * - Traffic/sample size annotations
+ * - Rolled-out indicator badge for variants in production
+ * - Status-based styling (running, completed, failed, rolled_out)
+ * - Auto-layout with proper spacing and alignment
+ * - Minimum dimensions: 792×612px
+ * 
+ * @param data - Experiment outcome data containing variants, metrics, and status
+ * @returns Promise<FrameNode> containing the complete outcome card with metrics table
+ * 
+ * @example
+ * const outcomeCard = await createExperimentOutcomeCard({
+ *   experimentName: 'CTA Button Color Test',
+ *   experimentType: 'ab_test',
+ *   status: 'completed',
+ *   variants: [
+ *     { key: 'A', name: 'Control', traffic: 50, metrics: { conversions: 1200 }, isControl: true },
+ *     { key: 'B', name: 'Red CTA', traffic: 50, metrics: { conversions: 1450 }, uplift: 20.8 }
+ *   ],
+ *   metrics: [
+ *     { id: 'conv', name: 'Conversions', isPrimary: true }
+ *   ]
+ * });
  */
 export async function createExperimentOutcomeCard(
   data: ExperimentOutcomeData
@@ -871,7 +902,30 @@ async function createSummarySection(data: ExperimentOutcomeData): Promise<FrameN
 
 /**
  * Convenience function to create an outcome card from experiment info card data
- * This bridges the experiment-info-card data with the outcome card format
+ * 
+ * Bridges the data structure used in experiment-info-card with the outcome card format.
+ * Automatically:
+ * - Identifies control variant (must be explicitly marked with isControl: true)
+ * - Calculates uplift percentages for each metric vs control
+ * - Converts metric definitions to outcome format
+ * - Handles missing data gracefully with defaults
+ * 
+ * @param experimentName - Title of the experiment
+ * @param metrics - Array of metric definitions used in the experiment
+ * @param variants - Array of variant results with traffic and metric values
+ * @param options - Optional experiment metadata (hypothesis, type, dates, status, etc.)
+ * @returns Promise<FrameNode> containing the outcome card with calculated metrics
+ * 
+ * @example
+ * const outcomeCard = await createOutcomeCardFromExperimentData(
+ *   'New CTA Button',
+ *   [{ id: 'conv', name: 'Conversions', isPrimary: true }],
+ *   [
+ *     { key: 'A', name: 'Control', traffic: 50, isControl: true, metrics: { conversions: 100 } },
+ *     { key: 'B', name: 'Red', traffic: 50, metrics: { conversions: 120 } }
+ *   ],
+ *   { status: 'completed' }
+ * );
  */
 export async function createOutcomeCardFromExperimentData(
   experimentName: string,

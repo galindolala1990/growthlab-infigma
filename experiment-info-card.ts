@@ -391,6 +391,54 @@ export interface ExperimentCardOptions {
   excludeResources?: boolean; // If true, don't include resources section in the card
 }
 
+/**
+ * Creates a comprehensive Experiment Info Card displaying experiment metadata and resources
+ * 
+ * Card layout: Two-panel design
+ * - Left panel (60%): Experiment header, description, metrics summary, and details
+ * - Right panel (40%): Resource links (Figma, Jira, Miro, Notion, etc.)
+ * 
+ * Features:
+ * - Status badge (running, completed, failed, etc.) with color coding
+ * - Experiment name and description
+ * - Optional outcome card if variants data provided
+ * - Metric definitions and calculations
+ * - Responsive link section with brand logos
+ * - Auto layout with proper spacing and alignment
+ * 
+ * @param experimentName - Title of the experiment
+ * @param description - Experiment description/hypothesis
+ * @param figmaLink - Link to Figma design file
+ * @param jiraLink - Link to Jira ticket
+ * @param miroLink - Link to Miro board
+ * @param notionLink - Link to Notion doc
+ * @param amplitudeLink - Link to Amplitude analytics
+ * @param asanaLink - Link to Asana project
+ * @param LinearLink - Link to Linear issue
+ * @param SlackLink - Link to Slack channel
+ * @param GithubLink - Link to GitHub PR/repo
+ * @param ConfluenceLink - Link to Confluence page
+ * @param TrelloLink - Link to Trello board
+ * @param MondayLink - Link to Monday.com board
+ * @param ClickupLink - Link to ClickUp task
+ * @param genericLinks - Array of custom links
+ * @param metrics - Metric definitions for outcome card
+ * @param status - Experiment status: 'running' | 'completed' | 'failed' | 'paused'
+ * @param options - Optional configuration (variants, owner, audience, dates, etc.)
+ * @returns Promise<FrameNode> containing the complete info card
+ * 
+ * @example
+ * const infoCard = await createExperimentInfoCard(
+ *   'New CTA Button',
+ *   'Testing if red button increases conversions',
+ *   'https://figma.com/...',
+ *   'https://jira.com/...',
+ *   // ... other links
+ *   metrics,
+ *   'running',
+ *   { variants: variantList, owner: 'Alice' }
+ * );
+ */
 export async function createExperimentInfoCard(
   experimentName: string,
   description: string = "",
