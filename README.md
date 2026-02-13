@@ -38,3 +38,10 @@ Auto-fix lint issues with:
 #### More info
 For Figma plugin API docs, see: https://www.figma.com/plugin-docs/
 For TypeScript info: https://www.typescriptlang.org/
+
+### Docs
+- [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md)
+- [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md)
+- [docs/PLUGIN_MANIFEST.md](docs/PLUGIN_MANIFEST.md)
+- [docs/PLUGIN_UX_GUIDELINES.md](docs/PLUGIN_UX_GUIDELINES.md)
+- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)

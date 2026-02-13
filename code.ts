@@ -2098,6 +2098,8 @@ if (figma.editorType === 'figma') {
 
 
   const MIN_UI_WIDTH = 500;
+  // Keep in sync with package.json version
+  const PLUGIN_VERSION = '1.0.0';
 
   figma.showUI(__html__, {
     width: MIN_UI_WIDTH,
@@ -2105,6 +2107,8 @@ if (figma.editorType === 'figma') {
     title: 'Growthlab Builder',
     themeColors: true,
   });
+
+  figma.ui.postMessage({ type: 'plugin-version', version: PLUGIN_VERSION });
 
   // ...existing code...
 
