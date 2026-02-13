@@ -8,6 +8,112 @@ import { createEventCard, createVariantCard, createMetricChip } from './experime
 import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
 import { loadFonts } from './load-fonts';
 
+// ===== Error Handling System =====
+/**
+ * Structured error message system for consistent user feedback
+ */
+interface ErrorMessage {
+  type: 'success' | 'warning' | 'error' | 'info';
+  title: string;
+  detail?: string;
+  actionHint?: string;
+}
+
+/**
+ * Displays a structured error/info message to the user
+ * @param error The error message object
+ */
+function notifyUser(error: ErrorMessage): void {
+  let message = error.title;
+  if (error.detail) message += `\n${error.detail}`;
+  if (error.actionHint) message += `\n${error.actionHint}`;
+  figma.notify(message);
+}
+
+/**
+ * Common error messages used throughout the plugin
+ */
+const ERRORS = {
+  NO_CONNECTORS_FOUND: {
+    type: 'info',
+    title: '✓ No connectors to refresh',
+    detail: 'No connector lines found in the selected frame.',
+    actionHint: 'Try selecting a frame with connector lines.'
+  } as ErrorMessage,
+  CONNECTOR_REFRESH_PARTIAL_FAILURE: (refreshed: number, errors: number): ErrorMessage => ({
+    type: 'warning',
+    title: `⚠️ Refreshed ${refreshed} connector${refreshed !== 1 ? 's' : ''}`,
+    detail: `${errors} connector${errors !== 1 ? 's' : ''} failed to update.`,
+    actionHint: 'Check that connector endpoints are still valid.'
+  }),
+  CONNECTOR_REFRESH_FAILED: (errorCount: number): ErrorMessage => ({
+    type: 'error',
+    title: '❌ Failed to refresh connectors',
+    detail: `${errorCount} error${errorCount !== 1 ? 's' : ''} encountered.`,
+    actionHint: 'Try recreating the flow or check the console for details.'
+  }),
+  NO_CONNECTORS_CREATED: {
+    type: 'warning',
+    title: '⚠️ No connectors created',
+    detail: 'The flow was created but connector lines could not be drawn.',
+    actionHint: 'Flow structure is intact. You can add connectors manually or try refreshing.'
+  } as ErrorMessage,
+  CONNECTORS_CREATED: (count: number): ErrorMessage => ({
+    type: 'success',
+    title: `✓ Created ${count} connector${count !== 1 ? 's' : ''}`,
+    detail: 'Connector lines have been drawn between flow nodes.'
+  }),
+  FLOW_CREATED_SUCCESSFULLY: {
+    type: 'success',
+    title: '✓ Experiment flow created',
+    detail: 'Nodes, connectors, and entry notes have been generated.'
+  } as ErrorMessage,
+  FLOW_DELETED_SUCCESSFULLY: {
+    type: 'success',
+    title: '✓ Flow frames deleted',
+    detail: 'Old experiment flow frames have been removed.'
+  } as ErrorMessage,
+  OLD_FLOW_SCHEMA: {
+    type: 'info',
+    title: 'ℹ️ Legacy flow detected',
+    detail: 'This flow uses an older format.',
+    actionHint: 'Please use the updated flow builder for new experiments.'
+  } as ErrorMessage,
+  NO_VARIANTS: {
+    type: 'error',
+    title: '❌ At least one variant required',
+    detail: 'Please add at least one variant to create a flow.',
+    actionHint: 'Add variants in the flow builder form and try again.'
+  } as ErrorMessage,
+  DEPRECATED_FLOW_TYPE: {
+    type: 'warning',
+    title: '⚠️ Deprecated flow type',
+    detail: 'This flow type is no longer supported.',
+    actionHint: 'Please use the updated flow builder instead.'
+  } as ErrorMessage,
+  INVALID_THUMBNAIL_SELECTION: {
+    type: 'error',
+    title: '❌ Select 0-3 frames for thumbnails',
+    detail: 'You selected frames to use as variant thumbnails.',
+    actionHint: 'Select up to 3 frames and try again.'
+  } as ErrorMessage,
+  FORM_INCOMPLETE: {
+    type: 'error',
+    title: '❌ Form incomplete',
+    detail: 'Please fill out all required fields in the experiment form.',
+    actionHint: 'Click "Create from selection" again after completing the form.'
+  } as ErrorMessage,
+  FLOW_FROM_SELECTION_CREATED: {
+    type: 'success',
+    title: '✓ Flow created from selection',
+    detail: 'Your experiment flow has been generated from the selected frames.'
+  } as ErrorMessage,
+  OPERATION_CANCELLED: {
+    type: 'info',
+    title: 'Operation cancelled'
+  } as ErrorMessage
+};
+
 // --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
 /**
  * Creates a Figma ConnectorNode between two nodes, magnetized to specified edges.
@@ -37,6 +143,21 @@ function isFigJam(): boolean {
   }
 }
 
+/**
+ * Creates a native Figma connector between two nodes with magnetic attachment points.
+ * These connectors automatically update when nodes are moved (FigJam only).
+ * 
+ * @param fromNode - The source node to connect from
+ * @param toNode - The destination node to connect to
+ * @param fromMagnet - Magnetic attachment point on source: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
+ * @param toMagnet - Magnetic attachment point on destination: 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
+ * @param options - Optional styling configuration
+ * @param options.color - RGB color for the connector stroke
+ * @param options.strokeWeight - Connector line width in pixels
+ * @param options.connectorLineType - Line style: 'ELBOWED' | 'STRAIGHT' | 'CURVED'
+ * @returns ConnectorNode if successful, null if FigJam unavailable or creation fails
+ * @note Only available in FigJam; returns null in regular Figma
+ */
 function createMagnetizedConnector(
   fromNode: BaseNode & { id: string },
   toNode: BaseNode & { id: string },
@@ -195,14 +316,21 @@ function createDynamicConnector(
 }
 
 /**
- * Refreshes all VectorNode-based connectors on the current page.
- * This updates their positions based on current node positions.
- * Native ConnectorNodes don't need refreshing - they update automatically!
+ * Refreshes positions of all VectorNode-based connectors on the current page.
+ * 
+ * VectorNode connectors don't update automatically; call this after moving nodes
+ * in regular Figma. Native ConnectorNodes (FigJam) auto-update and don't need refresh.
+ * 
+ * @async
+ * @returns Promise<void>
+ * @throws May catch errors silently for orphaned connectors (deleted nodes)
  * 
  * Usage:
- * - Call directly: await refreshConnectors()
- * - Or send message from UI: figma.ui.postMessage({ type: 'refresh-connectors' })
- * - Or add to menu/command handler
+ * - Direct call: `await refreshConnectors()`
+ * - From UI: `figma.ui.postMessage({ type: 'refresh-connectors' })`
+ * - Auto-refresh: Connectors refresh automatically when nodes move (if listeners active)
+ * 
+ * @see setupAutoRefreshConnectors for automatic refresh on node changes
  */
 const refreshDebounceTimer: number | null = null;
 let isRefreshing = false;
@@ -259,7 +387,7 @@ async function refreshConnectors(): Promise<void> {
   findConnectors(figma.currentPage as unknown as SceneNode);
   
   if (connectors.length === 0) {
-    figma.notify('No connectors found to refresh.');
+    notifyUser(ERRORS.NO_CONNECTORS_FOUND);
     isRefreshing = false;
     return;
   }
@@ -484,10 +612,12 @@ async function refreshConnectors(): Promise<void> {
   
   isRefreshing = false;
   
-  if (refreshed > 0) {
-    figma.notify(`Refreshed ${refreshed} connector${refreshed !== 1 ? 's' : ''}${errors > 0 ? ` (${errors} errors)` : ''}`);
+  if (refreshed > 0 && errors === 0) {
+    notifyUser(ERRORS.CONNECTORS_CREATED(refreshed));
+  } else if (refreshed > 0 && errors > 0) {
+    notifyUser(ERRORS.CONNECTOR_REFRESH_PARTIAL_FAILURE(refreshed, errors));
   } else if (errors > 0) {
-    figma.notify(`Failed to refresh connectors (${errors} errors)`);
+    notifyUser(ERRORS.CONNECTOR_REFRESH_FAILED(errors));
   }
 }
 
@@ -620,11 +750,18 @@ async function setupAutoRefreshConnectors(): Promise<void> {
 }
 
 /**
- * Creates a branching tree structure: trunk from event to midpoint, then branches to each variant
- * @param eventNode The source event node
- * @param variantNodes Array of variant nodes and their connector metadata
- * @param experimentId The experiment ID for metadata
- * @returns Array of created vector nodes (trunk + branches)
+ * Creates branching tree structure: trunk from event to midpoint, then branches to variants.
+ * Used for routing flow from events to their variants with split visualization.
+ * 
+ * @param eventNode - Source event node
+ * @param variantNodes - Array of variant nodes with their connector metadata
+ * @param experimentId - Experiment ID for metadata storage
+ * @returns Array of created connector nodes (trunk + branches)
+ * 
+ * @example
+ * ```ts
+ * const branches = createBranchingTree(eventCard, variantCards, experiment.id);
+ * ```
  */
 function createBranchingTree(
   eventNode: SceneNode & { width: number; height: number },
@@ -2171,7 +2308,33 @@ if (figma.editorType === 'figma') {
 
   // --- Unified V2 Flow Creation Function ---
   // Extracted from message handler for reuse by both UI messages and sample flows
-  async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metrics?: MetricDefinition[]): Promise<void> {
+  /**
+ * Main flow rendering pipeline. Creates complete experiment flow visualization from structured data.
+ * 
+ * Generates:
+ * - Entry/exit node cards
+ * - Event (touchpoint) cards with variants
+ * - Connectors (primary flow, branches, merges)
+ * - Metrics and outcome information
+ * - Auto-layout frame organization
+ * 
+ * @async
+ * @param experiment - Experiment metadata (id, name, description, outcomes)
+ * @param flow - Flow structure (events, connectors, layout configuration)
+ * @param metrics - Metric definitions and calculations
+ * @returns Promise<void>
+ * @throws Catches errors internally and notifies user; doesn't throw
+ * 
+ * @note Automatically sets up auto-refresh listeners for connectors in regular Figma
+ * @note Call after UI form submission or via message handler
+ * 
+ * @example
+ * ```ts
+ * const { experiment, flow, metrics } = msg.payload as CreateFlowV2Payload;
+ * await createFlowV2FromData(experiment, flow, metrics);
+ * ```
+ */
+async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metrics?: MetricDefinition[]): Promise<void> {
     await loadFonts();
 
     // Remove any existing flow frames with the same name/id
@@ -2678,9 +2841,9 @@ if (figma.editorType === 'figma') {
           message += `. ${vectorCount} connector${vectorCount !== 1 ? 's' : ''} - auto-refreshing when cards move`;
         }
       }
-      figma.notify(message);
+      notifyUser({ type: 'success', title: `✓ Created ${message}` });
     } else {
-      figma.notify('⚠️ No connectors were created - check console');
+      notifyUser(ERRORS.NO_CONNECTORS_CREATED);
     }
     
     // Select info card and zoom to view all nodes
@@ -2763,7 +2926,7 @@ if (figma.editorType === 'figma') {
 
     // Outcome Note removed
 
-    figma.notify('Experiment flow v2: nodes, connectors, and entry notes created.');
+    notifyUser(ERRORS.FLOW_CREATED_SUCCESSFULLY);
     
     // Set up auto-refresh for connectors in regular Figma
     // (In FigJam, native connectors auto-update, so this isn't needed)
@@ -2795,13 +2958,13 @@ if (figma.editorType === 'figma') {
     // --- OLD HANDLERS BELOW ---
     if (msg.type === 'delete-experiment-flows') {
       deleteExperimentFlowFrames();
-      figma.notify('Experiment Flow frames deleted (if any were found).');
+      notifyUser(ERRORS.FLOW_DELETED_SUCCESSFULLY);
       return;
     }
 
 
     if (msg.type === 'create-flow' && 'payload' in msg && msg.payload) {
-      figma.notify('Handler: create-flow (OLD SCHEMA)');
+      notifyUser(ERRORS.OLD_FLOW_SCHEMA);
       const {
         experimentName,
         roundNumber,
@@ -2815,19 +2978,19 @@ if (figma.editorType === 'figma') {
       } = msg.payload as any;
 
       if (!Array.isArray(variants) || variants.length === 0) {
-        figma.notify('You must add at least one variant to create a flow.');
+        notifyUser(ERRORS.NO_VARIANTS);
         return;
       }
       // The old handler logic is deprecated and replaced by the sample/demo flow and v2 handler.
-      figma.notify('This flow type is deprecated. Please use the updated flow builder.');
+      notifyUser(ERRORS.DEPRECATED_FLOW_TYPE);
     } else if (msg.type === 'create-from-selection') {
       const selection = figma.currentPage.selection.filter(node => node.type === 'FRAME' || node.type === 'GROUP');
       if (selection.length === 0) {
-        figma.notify('Select up to 3 frames to use as variant thumbnails.');
+        notifyUser(ERRORS.INVALID_THUMBNAIL_SELECTION);
         return;
       }
       if (!('payload' in msg) || !msg.payload) {
-        figma.notify('Please fill the experiment form and click \"Create from selection\" again.');
+        notifyUser(ERRORS.FORM_INCOMPLETE);
         return;
       }
       const payload = (msg as PluginMessage).payload;
@@ -2917,10 +3080,10 @@ if (figma.editorType === 'figma') {
         });
       }
 
-      figma.notify('Experiment flow created from selection.');
+      notifyUser(ERRORS.FLOW_FROM_SELECTION_CREATED);
     } else if (msg.type === 'cancel') {
       if (!KEEP_OPEN) figma.closePlugin('Plugin closed.');
-      else figma.notify('Canceled');
+      else notifyUser(ERRORS.OPERATION_CANCELLED);
       return;
     }
   };
