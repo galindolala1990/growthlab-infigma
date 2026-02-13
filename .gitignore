@@ -1,7 +1,13 @@
 # Ignore build outputs
-code.js
+build/code.js
+build/code.js.map
 ui.js
-experiment-info-card.js
-load-fonts.js
+ui.js.map
+ui.css.map
 *.js.map
+*.css.map
 node_modules
+dist/
+
+# Archived documentation (historical process docs)
+_archive/

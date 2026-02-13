@@ -45,7 +45,6 @@ function createMagnetizedConnector(
 ): ConnectorNode | null {
   // Only try native connectors in FigJam
   if (!isFigJam()) {
-    console.log('Native ConnectorNode only available in FigJam, using VectorNode fallback');
     return null;
   }
   
@@ -67,7 +66,6 @@ function createMagnetizedConnector(
     connector.name = 'Connector line';
     return connector;
   } catch (error) {
-    console.warn('Native ConnectorNode creation failed:', error);
     return null;
   }
 }
@@ -206,11 +204,9 @@ let isRefreshing = false;
 async function refreshConnectors(): Promise<void> {
   // Prevent concurrent refreshes
   if (isRefreshing) {
-    console.log('Refresh already in progress, skipping...');
     return;
   }
   
-  console.log('Starting connector refresh...');
   isRefreshing = true;
   const connectors: VectorNode[] = [];
   
@@ -256,8 +252,6 @@ async function refreshConnectors(): Promise<void> {
   
   findConnectors(figma.currentPage as unknown as SceneNode);
   
-  console.log(`Found ${connectors.length} connectors to refresh`);
-  
   if (connectors.length === 0) {
     figma.notify('No connectors found to refresh.');
     isRefreshing = false;
@@ -299,13 +293,13 @@ async function refreshConnectors(): Promise<void> {
       try {
         fromNode = await figma.getNodeByIdAsync(meta.fromNodeId) as SceneNode & { width: number; height: number } | null;
       } catch (err) {
-        console.warn(`From node ${meta.fromNodeId} does not exist:`, err);
+        // From node does not exist
       }
       
       try {
         toNode = await figma.getNodeByIdAsync(meta.toNodeId) as SceneNode & { width: number; height: number } | null;
       } catch (err) {
-        console.warn(`To node ${meta.toNodeId} does not exist:`, err);
+        // To node does not exist
       }
       
       if (!fromNode || !toNode) {
@@ -415,7 +409,6 @@ async function refreshConnectors(): Promise<void> {
             return { success: false, error: 'no_variants' };
           }
         } catch (err) {
-          console.error('Error refreshing branch trunk:', err);
           return { success: false, error: 'trunk_refresh_failed' };
         }
       }
@@ -449,7 +442,6 @@ async function refreshConnectors(): Promise<void> {
           }
           return { success: true };
         } catch (appendErr) {
-          console.error('Error appending refreshed connector:', appendErr);
           // Clean up the new connector if append failed
           try {
             newConnector.remove();
@@ -461,7 +453,6 @@ async function refreshConnectors(): Promise<void> {
       }
       return { success: false, error: 'creation_failed' };
     } catch (error) {
-      console.error('Error refreshing connector:', error);
       // If connector exists but has an error, try to remove it to clean up
       try {
         if (connector && !connector.removed) {
@@ -505,11 +496,8 @@ let refreshTimeout: number | null = null;
 async function setupAutoRefreshConnectors(): Promise<void> {
   // Only set up auto-refresh in regular Figma (not FigJam)
   if (isFigJam()) {
-    console.log('In FigJam - native connectors auto-update, no refresh needed');
     return;
   }
-  
-  console.log('Setting up auto-refresh for connectors in regular Figma');
   
   // Store initial positions of all nodes with connectors
   function storeNodePositions(): void {
@@ -531,7 +519,6 @@ async function setupAutoRefreshConnectors(): Promise<void> {
             }
           } catch (e) {
             // Invalid metadata
-            console.warn('Invalid connector metadata:', e);
           }
         }
       }
@@ -543,7 +530,6 @@ async function setupAutoRefreshConnectors(): Promise<void> {
     }
     
     findConnectors(figma.currentPage as unknown as SceneNode);
-    console.log(`Tracking ${lastNodePositions.size} nodes for connector refresh`);
   }
   
   // Initial position storage
@@ -582,22 +568,19 @@ async function setupAutoRefreshConnectors(): Promise<void> {
     }
     
     if (needsRefresh) {
-      console.log('Node positions changed, refreshing connectors...');
       refreshConnectors().then(() => {
         // Update positions after refresh
         storeNodePositions();
       }).catch(err => {
-        console.error('Error in auto-refresh:', err);
+        // Auto-refresh error
       });
     }
   }
   
   // Use selection change event - triggers when user selects/moves nodes
   figma.on('selectionchange', () => {
-    console.log('Selection changed - checking for connector refresh...');
     // Check immediately (no debounce needed for selection)
     checkAndRefresh().catch(err => {
-      console.error('Error in checkAndRefresh:', err);
     });
   });
   
@@ -608,10 +591,7 @@ async function setupAutoRefreshConnectors(): Promise<void> {
     if (typeof figma.loadAllPagesAsync === 'function') {
       try {
         await figma.loadAllPagesAsync();
-        console.log('All pages loaded for documentchange listener');
       } catch (loadError) {
-        // Not in a mode that requires this, or already loaded
-        console.log('loadAllPagesAsync not needed or already loaded');
       }
     }
     
@@ -625,19 +605,12 @@ async function setupAutoRefreshConnectors(): Promise<void> {
       });
       
       if (hasTransform) {
-        console.log('Document changed (node moved) - checking for connector refresh...');
         checkAndRefresh();
       }
     });
-    
-    console.log('Document change listener registered successfully');
   } catch (error) {
-    console.warn('Could not register documentchange listener (this is OK, selectionchange will still work):', error);
     // Continue without documentchange - selectionchange will still work
   }
-  
-  console.log('Auto-refresh listeners set up. Connectors will refresh when nodes move.');
-  console.log('You can also manually refresh by clicking "Refresh Connectors" button or sending: { type: "refresh-connectors" }');
 }
 
 /**
@@ -2578,19 +2551,7 @@ if (figma.editorType === 'figma') {
         infoCard.y = center.y;
         figma.currentPage.appendChild(infoCard);
       }
-      console.log('Info card created:', {
-        name: infoCard.name,
-        width: infoCard.width,
-        height: infoCard.height,
-        x: infoCard.x,
-        y: infoCard.y,
-        hasParent: infoCard.parent !== null
-      });
-    } else {
-      console.error('Info card was not created!');
-    }
-    
-    // Wait for layout to settle before drawing connectors
+      // Wait for layout to settle before drawing connectors
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // --- Render Dynamic Connectors ---
@@ -2599,10 +2560,6 @@ if (figma.editorType === 'figma') {
     // 2. Falls back to VectorNode if native connectors aren't available
     // For VectorNode connectors, use refreshConnectors() or send 'refresh-connectors' message to update positions
     const createdConnectors: SceneNode[] = [];
-    
-    console.log('=== CONNECTOR RENDERING ===');
-    console.log('Flow has connectors:', flow.connectors?.length || 0);
-    console.log('NodeMap keys:', Object.keys(nodeMap));
     
     if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
       // Group merge connectors by destination event for merge+trunk pattern
@@ -2624,13 +2581,8 @@ if (figma.editorType === 'figma') {
       
       // Render direct connectors (PRIMARY_FLOW_LINE and BRANCH_LINE)
       for (const connector of directConnectors) {
-        console.log(`Processing connector: ${connector.type} from ${connector.from.id} to ${connector.to.id}`);
-        
         const fromNode = nodeMap[connector.from.id];
         const toNode = nodeMap[connector.to.id];
-        
-        console.log('From node found:', !!fromNode, fromNode?.name);
-        console.log('To node found:', !!toNode, toNode?.name);
         
         if (fromNode && toNode) {
           try {
@@ -2675,40 +2627,18 @@ if (figma.editorType === 'figma') {
                 connectorNode.name = `${connector.type}: ${connector.from.nodeType} → ${connector.to.nodeType}`;
               }
               
-              console.log('✓ Connector created:', connectorNode.name, connectorNode.type === 'CONNECTOR' ? '(Native - Auto-updates!)' : '(Vector - Use refresh to update)');
-              
               createdConnectors.push(connectorNode);
             }
           } catch (error) {
-            console.error('ERROR creating connector:', error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorStack = error instanceof Error ? error.stack : undefined;
-            console.error('Error details:', {
-              message: errorMessage,
-              stack: errorStack,
-              fromNodeId: fromNode.id,
-              toNodeId: toNode.id,
-              fromNodeType: fromNode.type,
-              toNodeType: toNode.type
-            });
           }
         } else {
-          console.warn('✗ Skipping connector - missing nodes:', {
-            fromId: connector.from.id,
-            toId: connector.to.id,
-            fromFound: !!fromNode,
-            toFound: !!toNode
-          });
         }
       }
       
       // Render merge connectors as merge+trunk groups
       for (const [targetId, merges] of mergeGroups.entries()) {
-        console.log(`Processing merge group to ${targetId} from ${merges.length} variants`);
-        
         const targetNode = nodeMap[targetId];
         if (!targetNode) {
-          console.warn('✗ Target node not found for merge group:', targetId);
           continue;
         }
         
@@ -2718,7 +2648,6 @@ if (figma.editorType === 'figma') {
           .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
         
         if (variantNodes.length === 0) {
-          console.warn('✗ No variant nodes found for merge group');
           continue;
         }
         
@@ -2726,18 +2655,13 @@ if (figma.editorType === 'figma') {
           // Create merge+trunk structure (variants → trunk → target)
           const mergeConnectors = createMergingTree(variantNodes, targetNode, experiment.id);
           createdConnectors.push(...mergeConnectors);
-          console.log(`✓ Created merge+trunk with ${mergeConnectors.length} elements`);
         } catch (error) {
-          console.error('ERROR creating merge group:', error);
         }
       }
     } else {
-      console.warn('No connectors in flow.connectors array');
     }
     
     // Notify user
-    console.log('=== CONNECTOR SUMMARY ===');
-    console.log('Total connectors created:', createdConnectors.length);
     
     if (createdConnectors.length > 0) {
       const nativeCount = createdConnectors.filter(c => c.type === 'CONNECTOR').length;
@@ -2843,9 +2767,9 @@ if (figma.editorType === 'figma') {
     // Set up auto-refresh for connectors in regular Figma
     // (In FigJam, native connectors auto-update, so this isn't needed)
     setupAutoRefreshConnectors().catch(err => {
-      console.error('Error setting up auto-refresh:', err);
     });
   }
+}
 
   figma.ui.onmessage = async (msg: PluginMessage | PluginMessageV2 | { type: string; width?: number; height?: number }) => {
     // Handle UI resize
@@ -2858,15 +2782,12 @@ if (figma.editorType === 'figma') {
     }
 
     if (msg.type === 'create-flow-v2' && 'payload' in msg && msg.payload) {
-      figma.notify('Handler: create-flow-v2 (NEW SCHEMA)');
-      console.log('Handler: create-flow-v2 (NEW SCHEMA)');
       // --- NEW V2 FLOW HANDLER ---
       const { experiment, flow, metrics } = msg.payload as CreateFlowV2Payload;
       await createFlowV2FromData(experiment, flow, metrics);
     }
     
     if (msg.type === 'refresh-connectors') {
-      console.log('Manual refresh requested');
       await refreshConnectors();
     }
 
@@ -2880,7 +2801,6 @@ if (figma.editorType === 'figma') {
 
     if (msg.type === 'create-flow' && 'payload' in msg && msg.payload) {
       figma.notify('Handler: create-flow (OLD SCHEMA)');
-      console.log('Handler: create-flow (OLD SCHEMA)');
       const {
         experimentName,
         roundNumber,
@@ -3352,4 +3272,3 @@ function serializeNode(node: SceneNode): SerializeNode {
 // const frame = createFrame({ name: 'Experiment Frame', type: 'frame' as const }, { width: 400, height: 300 });
 // figma.currentPage.appendChild(frame);
 // const meta = getNodeMeta(frame);
-// console.log(meta);
