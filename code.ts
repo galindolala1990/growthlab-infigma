@@ -7,19 +7,32 @@ import { hexToRgb, getFontStyle } from './layout-utils';
 import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
 import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
 import { loadFonts } from './load-fonts';
-import type { MetricDefinition, VariantStatus, VariantMetrics, Variant } from './types';
+import type { 
+  MetricDefinition, 
+  VariantStatus, 
+  VariantMetrics, 
+  Variant, 
+  ErrorMessage, 
+  CanvasNodeType, 
+  CanvasNodeMeta, 
+  CanvasNodeOptions, 
+  SerializeNode,
+  ExperimentV2,
+  EntryNodeV2,
+  ExitNodeV2,
+  VariantV2,
+  EventNodeV2,
+  EntryNoteV2,
+  ConnectorTypeV2,
+  ConnectorStyle,
+  ConnectorV2,
+  FlowLayoutV2,
+  FlowV2,
+  CreateFlowV2Payload,
+  PluginMessageV2
+} from './types';
 
 // ===== Error Handling System =====
-/**
- * Structured error message system for consistent user feedback
- */
-interface ErrorMessage {
-  type: 'success' | 'warning' | 'error' | 'info';
-  title: string;
-  detail?: string;
-  actionHint?: string;
-}
-
 /**
  * Displays a structured error/info message to the user
  * @param error The error message object
@@ -2048,103 +2061,7 @@ function deleteExperimentFlowFrames() {
     }
   }
 
-// --- V2 Experiment Flow Types ---
-export interface ExperimentV2 {
-  id: string;
-  name: string;
-  roundNumber: number;
-  description?: string;
-  links?: {
-    figma?: string;
-    jira?: string;
-    miro?: string;
-    notion?: string;
-    amplitude?: string;
-    asana?: string;
-    linear?: string;
-    slack?: string;
-    github?: string;
-    confluence?: string;
-    trello?: string;
-    monday?: string;
-    clickup?: string;
-    generic?: string;
-  };
-  outcomes?: {
-    winningPaths?: Array<{ eventId: string; variantId: string }>;
-    notes?: string;
-    rolledOutVariantId?: string;  // ID of the rolled-out variant
-  };
-}
-
-export interface EntryNodeV2 {
-  id: string;
-  label: string;
-  note?: string;
-  nodeType: 'ENTRY_NODE';
-}
-
-export interface ExitNodeV2 {
-  id: string;
-  label: string;
-  nodeType: 'EXIT_NODE';
-}
-
-export interface VariantV2 {
-  id: string;
-  parentEventId: string;
-  key: string;
-  name: string;
-  description?: string;
-  traffic: number;
-  metrics?: VariantMetrics;
-  style?: {
-    variantColor?: string;
-  };
-}
-
-export interface EventNodeV2 {
-  id: string;
-  name: string;
-  nodeType: 'EVENT_NODE';
-  entryNote?: EntryNoteV2;
-  variants?: VariantV2[];
-}
-
-export interface EntryNoteV2 {
-  id: string;
-  text: string;
-  attachTo: {
-    target: 'EVENT_NODE' | 'PRIMARY_FLOW_LINE';
-    targetId?: string;
-    fromId?: string;
-    toId?: string;
-    anchor?: string;
-  };
-}
-
-export type ConnectorTypeV2 = 'PRIMARY_FLOW_LINE' | 'BRANCH_LINE' | 'MERGE_LINE';
-
-/**
- * Connector style properties with type-safe values
- */
-export interface ConnectorStyle {
-  strokeWeight?: number;
-  color?: RGB | string;
-  dashPattern?: number[];
-  arrowhead?: boolean;
-  opacity?: number;
-}
-
-export interface ConnectorV2 {
-  id: string;
-  type: ConnectorTypeV2;
-  from: { nodeType: string; id: string };
-  to: { nodeType: string; id: string };
-  label?: string;
-  arrowhead?: boolean;
-  style?: ConnectorStyle;
-}
+// --- V2 Experiment Flow Helpers ---
 
 /**
  * Connector style configuration based on type
@@ -2256,36 +2173,7 @@ function getConnectorStyle(
   }
 }
 
-export interface FlowLayoutV2 {
-  direction?: 'HORIZONTAL' | 'VERTICAL';
-  eventSpacing?: number;
-  variantSpacing?: number;
-  branchDepth?: number;
-}
-
-export interface FlowV2 {
-  id: string;
-  layout?: FlowLayoutV2;
-  entry: EntryNodeV2;
-  events: EventNodeV2[];
-  exit: ExitNodeV2;
-  connectors: ConnectorV2[];
-}
 const selectedEventIndex = 0; // Default to first event selected
-
-export interface CreateFlowV2Payload {
-  experiment: ExperimentV2;
-  flow: FlowV2;
-  metrics?: MetricDefinition[];
-}
-
-/**
- * V2 message for creating experiment flows with type-safe payload
- */
-export interface PluginMessageV2 {
-  type: 'create-flow-v2';
-  payload: CreateFlowV2Payload;
-}
 
 /**
  * Type-safe union of all plugin message types
@@ -3861,35 +3749,7 @@ async function handlePluginMessage(msg: PluginMessage | PluginMessageV2 | { type
 
 // --- Canvas Node Framework ---
 
-export type CanvasNodeType = 'frame' | 'component' | 'group' | 'text' | 'shape';
-
-// Removed duplicate CanvasNodeType
-
-export interface CanvasNodeMeta {
-  id?: string;
-  name: string;
-  type: CanvasNodeType;
-  description?: string;
-  tags?: string[];
-  extra?: Record<string, unknown>;
-}
-
-export interface CanvasNodeOptions {
-  width?: number;
-  height?: number;
-  x?: number;
-  y?: number;
-  fills?: Paint[];
-  layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL';
-  padding?: number;
-  itemSpacing?: number;
-  paddingLeft?: number;
-  paddingRight?: number;
-  paddingTop?: number;
-  paddingBottom?: number;
-  cornerRadius?: number;
-  extra?: Record<string, unknown>;
-}
+// ===== Canvas Helper Functions =====
 
 export function attachNodeMeta(node: BaseNode, meta: CanvasNodeMeta) {
   node.setPluginData('meta', JSON.stringify(meta));
@@ -3966,24 +3826,7 @@ export function getNodeMeta(node: BaseNode): CanvasNodeMeta | null {
 }
 
 // --- Visual QA Helper ---
-export type SerializeNode = {
-  id: string;
-  type: string;
-  name: string;
-  layoutMode?: string;
-  fills?: Paint[];
-  fontName?: FontName;
-  characters?: string;
-  children?: SerializeNode[];
-  width: number;
-  height: number;
-  paddingLeft?: number;
-  paddingRight?: number;
-  paddingTop?: number;
-  paddingBottom?: number;
-  itemSpacing?: number;
-  cornerRadius?: number;
-};
+// ===== Serialization Helper =====
 
 function serializeNode(node: SceneNode): SerializeNode {
   return {

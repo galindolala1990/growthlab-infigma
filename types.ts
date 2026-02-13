@@ -280,16 +280,14 @@ export interface CanvasNodeOptions {
   x?: number;
   y?: number;
   fills?: Paint[];
-  strokes?: Paint[];
-  strokeWeight?: number;
-  cornerRadius?: number;
-  layoutMode?: 'HORIZONTAL' | 'VERTICAL' | 'NONE';
-  itemSpacing?: number;
+  layoutMode?: 'NONE' | 'HORIZONTAL' | 'VERTICAL';
   padding?: number;
+  itemSpacing?: number;
   paddingLeft?: number;
   paddingRight?: number;
   paddingTop?: number;
   paddingBottom?: number;
+  cornerRadius?: number;
   extra?: Record<string, unknown>;
 }
 
@@ -323,13 +321,13 @@ export type SerializeNode = {
   id: string;
   type: string;
   name: string;
-  width?: number;
-  height?: number;
   layoutMode?: string;
   fills?: Paint[];
   fontName?: FontName;
   characters?: string;
   children?: SerializeNode[];
+  width: number;
+  height: number;
   paddingLeft?: number;
   paddingRight?: number;
   paddingTop?: number;
