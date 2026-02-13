@@ -2046,11 +2046,6 @@ function deleteExperimentFlowFrames() {
       frame.remove();
     }
   }
-  // Utility: Convert hex color to RGB
-  // ...existing code...
-
-  // Create an Event Card styled similarly to Variant Card -- ACTUAL CARD
-  // ...existing code...
 
 // --- V2 Experiment Flow Types ---
 export interface ExperimentV2 {
