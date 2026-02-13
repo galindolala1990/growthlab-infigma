@@ -3,6 +3,7 @@
 
 import { TOKENS } from './design-tokens';
 import { hexToRgb, getFontStyle, createBadge } from './layout-utils';
+import type { MetricDefinition } from './types';
 
 /**
  * Creates an icon frame from an SVG string using Figma's importSVGAsync
@@ -302,14 +303,6 @@ export function createEventCard(eventName: string, variantCount?: number, eventI
 }
 
 import type { Variant } from './types';
-
-export interface MetricDefinition {
-  id: string;
-  name: string;
-  abbreviation?: string;
-  min?: number;
-  max?: number;
-}
 
 /**
  * Creates a Variant card displaying experiment variant details and performance metrics

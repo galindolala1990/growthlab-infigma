@@ -7,6 +7,7 @@ import { hexToRgb, getFontStyle } from './layout-utils';
 import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
 import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
 import { loadFonts } from './load-fonts';
+import type { MetricDefinition, VariantStatus, VariantMetrics, Variant } from './types';
 
 // ===== Error Handling System =====
 /**
@@ -2272,23 +2273,6 @@ export interface FlowV2 {
 }
 const selectedEventIndex = 0; // Default to first event selected
 
-export interface MetricDefinition {
-  id: string;
-  name: string;
-  abbreviation?: string;
-  /**
-   * Goal direction and threshold (current UI)
-   */
-  direction?: "increase" | "decrease";
-  thresholdPct?: number;
-  /**
-   * Backward-compat for older UI payloads
-   */
-  min?: number;
-  max?: number;
-  isPrimary?: boolean;
-}
-
 export interface CreateFlowV2Payload {
   experiment: ExperimentV2;
   flow: FlowV2;
@@ -2333,21 +2317,6 @@ function isKnownMessageType(msg: unknown): msg is PluginMessageUnion {
 
 /// <reference types="@figma/plugin-typings" />
 /* eslint-disable no-inner-declarations */
-
-type VariantStatus = "running" | "winner" | "none";
-
-type VariantMetrics = {
-  [key: string]: number; // Dynamic metrics based on plugin configuration
-};
-
-export type Variant = {
-  key: string;        // "A", "B", "C"
-  name: string;       // "Black btn"
-  traffic: number;    // 50, 25, etc
-  status: VariantStatus;
-  metrics: VariantMetrics;
-  figmaLink?: string; // Link to the Figma design for this variant
-};
 
 const KEEP_OPEN = true;
 

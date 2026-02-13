@@ -2,6 +2,7 @@
 import { TOKENS } from "./design-tokens";
 import { hexToRgb, getFontStyle, createBadge } from "./layout-utils";
 import { loadFonts } from "./load-fonts";
+import type { MetricDefinition } from "./types";
 
 // Baseline label constant - only used when variant is explicitly marked as control
 const BASELINE_LABEL = "(Baseline)";
@@ -66,17 +67,6 @@ function createLucideStarFilledIcon(size: number = 12, color: RGB = hexToRgb(TOK
  * - Primary metric highlighting
  * - Rolled out variant indicator
  */
-
-export interface MetricDefinition {
-  id: string;
-  name: string;
-  abbreviation?: string;
-  direction?: "increase" | "decrease";
-  thresholdPct?: number;
-  min?: number;
-  max?: number;
-  isPrimary?: boolean; // Primary metric for decision making
-}
 
 export interface VariantOutcome {
   id: string;

@@ -3,6 +3,7 @@ import { TOKENS } from "./design-tokens";
 import { hexToRgb, createBadge } from "./layout-utils";
 import { loadFonts, getLoadedFigtreeSemibold } from "./load-fonts";
 import { createOutcomeCardFromExperimentData, type VariantOutcome } from "./experiment-outcome-card";
+import type { MetricDefinition } from "./types";
 
 // Brand icon SVG markup (complete SVGs for figma.createNodeFromSvg)
 const BRAND_SVGS: Record<string, string> = {
@@ -272,24 +273,6 @@ function createLucideStarFilledIcon(size: number = 12, color: RGB = hexToRgb(TOK
     fallback.fills = [];
     return fallback;
   }
-}
-
-export interface MetricDefinition {
-  id: string;
-  name: string;
-  abbreviation?: string;
-  /**
-   * Goal direction (matches UI)
-   */
-  direction?: "increase" | "decrease";
-  /**
-   * Goal threshold percent (matches UI)
-   */
-  thresholdPct?: number;
-  // Backward-compat (older UI)
-  min?: number;
-  max?: number;
-  isPrimary?: boolean;
 }
 
 export interface VariantData {
