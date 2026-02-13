@@ -1,6 +1,12 @@
-// ...existing code...
+/// <reference types="@figma/plugin-typings" />
+
+// ===== Imports =====
 import { createExperimentInfoCard } from './experiment-info-card';
-// ...existing code...
+import { TOKENS } from './design-tokens';
+import { hexToRgb, getFontStyle } from './layout-utils';
+import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
+import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
+import { loadFonts } from './load-fonts';
 
 // --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
 /**
@@ -1779,13 +1785,6 @@ export type Variant = {
 
 const KEEP_OPEN = true;
 
-
-import { TOKENS } from './design-tokens';
-import { hexToRgb, getFontStyle } from './layout-utils';
-import { createEventCard, createVariantCard, createMetricChip } from './experiment-node';
-import { createExperimentOutcomeCard, createOutcomeCardFromExperimentData } from './experiment-outcome-card';
-import { loadFonts } from './load-fonts';
-
 if (figma.editorType === 'figma') {
 
   // --- SAMPLE DATA (mirrors UI sample) ---
@@ -2394,7 +2393,8 @@ if (figma.editorType === 'figma') {
     let maxEventHeight = 0;
     
     // Store event positions for variant placement
-    const eventPositions: {event: any, eventCard: any, x: number, y: number}[] = [];
+    type EventPosition = { event: EventNodeV2; eventCard: SceneNode; x: number; y: number };
+    const eventPositions: EventPosition[] = [];
     
     for (const [eventIdx, event] of flow.events.entries()) {
       const safeEventName = typeof event.name === 'string' && event.name.trim().length > 0
@@ -2451,7 +2451,8 @@ if (figma.editorType === 'figma') {
         const variantY = eventY + eventCard.height + eventToVariantSpacing;
         
         for (const [vIdx, variantCard] of variantCards.entries()) {
-          const variant = event.variants[vIdx];
+          const variant = event.variants?.[vIdx];
+          if (!variant) continue;
           const safeVariantName = typeof variant.name === 'string' && variant.name.trim().length > 0
             ? variant.name
             : `Variant ${vIdx + 1}`;
@@ -2849,7 +2850,7 @@ if (figma.editorType === 'figma') {
 
       // Detect if entryLabel matches a variant name
       let entryCard: FrameNode;
-      const matchingVariant = variants.find((v: any) => v.name === entryLabel);
+      const matchingVariant = variants.find((v: VariantV2) => v.name === entryLabel);
       if (matchingVariant) {
         entryCard = await createVariantCard(matchingVariant);
         entryCard.name = 'Entry Variant Node';
