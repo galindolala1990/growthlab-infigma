@@ -332,7 +332,7 @@ function validateExperiment(experiment: any): ValidationResult {
 
   // Outcomes validation (optional)
   if (experiment.outcomes && typeof experiment.outcomes === 'object') {
-    if (experiment.outcomes.rolledoutVariantId && typeof experiment.outcomes.rolledoutVariantId !== 'string') {
+    if (experiment.outcomes.rolledOutVariantId && typeof experiment.outcomes.rolledOutVariantId !== 'string') {
       warnings.push('Rolled-out variant ID should be a string if provided');
     }
   }
@@ -2077,7 +2077,7 @@ export interface ExperimentV2 {
   outcomes?: {
     winningPaths?: Array<{ eventId: string; variantId: string }>;
     notes?: string;
-    rolledoutVariantId?: string;  // ID of the rolled-out variant
+    rolledOutVariantId?: string;  // ID of the rolled-out variant
   };
 }
 
@@ -2825,7 +2825,7 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
-          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
+          const rolledOutId = experiment.outcomes?.rolledOutVariantId;
           // Normalize isControl: safely extract and validate (prevents accidental multiple baselines)
           // This ensures outcome card shows correct control baseline
           const finalIsControl = safeGetBoolean(variant, 'isControl');
@@ -2901,7 +2901,7 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         })(),
         // Performance optimization: Single lookup for rolled-out variant (was 2 separate find() calls)
         ...(() => {
-          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
+          const rolledOutId = experiment.outcomes?.rolledOutVariantId;
           if (!rolledOutId) return { rolledOutVariantName: undefined, rolledOutVariantColor: undefined };
           const rolledOutVariant = allVariants.find(v => v.id === rolledOutId);
           return {
@@ -2987,7 +2987,7 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
           const variantColor = (variant as any).color || variant.style?.variantColor;
           
           // Check if this variant is rolled out
-          const isRolledout = experiment.outcomes?.rolledoutVariantId === variant.id;
+          const isRolledout = experiment.outcomes?.rolledOutVariantId === variant.id;
           
           const variantForCard = {
             ...variant,
@@ -3251,9 +3251,9 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
           // Rolled-out variants get special styling to highlight the chosen path
           const fromNodeId = connector.from.id;
           const toNodeId = connector.to.id;
-          const rolledoutVariantId = experiment.outcomes?.rolledoutVariantId;
+          const rolledOutVariantId = experiment.outcomes?.rolledOutVariantId;
           // Check if either endpoint is the rolled-out variant
-          const isRolledout = rolledoutVariantId && (fromNodeId === rolledoutVariantId || toNodeId === rolledoutVariantId);
+          const isRolledout = rolledOutVariantId && (fromNodeId === rolledOutVariantId || toNodeId === rolledOutVariantId);
           // Rolled-out styling takes priority over generic winner styling
           const isWinner = isRolledout || false;
           
