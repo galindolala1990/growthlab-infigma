@@ -120,6 +120,45 @@ const ERRORS = {
   })
 };
 
+// ===== Performance Utilities =====
+/**
+ * Batch append multiple nodes to parent to reduce layout recalculation overhead
+ * Figma recalculates layout after each appendChild - batching reduces this
+ * @param parent - Parent frame/node
+ * @param children - Array of nodes to append
+ */
+function batchAppendChildren(parent: BaseNode & ChildrenMixin, children: SceneNode[]): void {
+  // Temporarily disable auto-layout to prevent recalculation on each append
+  const wasAutoLayout = 'layoutMode' in parent && parent.layoutMode !== 'NONE';
+  const originalLayoutMode = wasAutoLayout ? (parent as FrameNode).layoutMode : undefined;
+  
+  if (wasAutoLayout) {
+    (parent as FrameNode).layoutMode = 'NONE';
+  }
+  
+  // Append all children
+  children.forEach(child => parent.appendChild(child));
+  
+  // Re-enable auto-layout (triggers single recalculation)
+  if (wasAutoLayout && originalLayoutMode) {
+    (parent as FrameNode).layoutMode = originalLayoutMode;
+  }
+}
+
+/**
+ * Pre-cache frequently used RGB colors to avoid repeated conversions
+ */
+const CACHED_COLORS = {
+  royalBlue600: hexToRgb(TOKENS.royalBlue600),
+  malachite600: hexToRgb(TOKENS.malachite600),
+  electricViolet600: hexToRgb(TOKENS.electricViolet600),
+  textPrimary: hexToRgb(TOKENS.textPrimary),
+  textSecondary: hexToRgb(TOKENS.textSecondary),
+  fillsSurface: hexToRgb(TOKENS.fillsSurface),
+  border: hexToRgb(TOKENS.border),
+  azure50: hexToRgb(TOKENS.azure50),
+};
+
 // ===== Type Guards & Safe Type Utilities =====
 /**
  * Type guard: Check if value is ExperimentV2
@@ -547,7 +586,7 @@ function createMagnetizedConnector(
     connector.strokeWeight = options?.strokeWeight ?? 4;
     connector.strokeJoin = 'ROUND';
     connector.connectorEndStrokeCap = 'ARROW_LINES';
-    connector.strokes = [{ type: 'SOLID', color: options?.color ?? hexToRgb(TOKENS.royalBlue600) }];
+    connector.strokes = [{ type: 'SOLID', color: options?.color ?? CACHED_COLORS.royalBlue600 }];
     connector.name = 'Connector line';
     return connector;
   } catch (error) {
@@ -2628,8 +2667,8 @@ if (figma.editorType === 'figma') {
     card.paddingLeft = card.paddingRight = TOKENS.space16;
     card.paddingTop = card.paddingBottom = TOKENS.space16;
     card.cornerRadius = TOKENS.radiusLG;
-    card.fills = [{ type: 'SOLID', color: hexToRgb(TOKENS.fillsSurface) }];
-    card.strokes = [{ type: 'SOLID', color: hexToRgb(TOKENS.border) }];
+    card.fills = [{ type: 'SOLID', color: CACHED_COLORS.fillsSurface }];
+    card.strokes = [{ type: 'SOLID', color: CACHED_COLORS.border }];
     card.strokeWeight = 1;
     card.name = title ? `Node: ${title}` : 'Node';
     card.itemSpacing = TOKENS.space8;
@@ -2872,19 +2911,15 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
           if (!primaryMetricDef) return undefined;
           return primaryMetricDef.abbreviation?.toLowerCase() || primaryMetricDef.name.replace(/\s+/g, '_').toLowerCase();
         })(),
-        rolledOutVariantName: (() => {
-          // Find the rolled out variant name from the outcomes
+        // Performance optimization: Single lookup for rolled-out variant (was 2 separate find() calls)
+        ...(() => {
           const rolledOutId = experiment.outcomes?.rolledoutVariantId;
-          if (!rolledOutId) return undefined;
+          if (!rolledOutId) return { rolledOutVariantName: undefined, rolledOutVariantColor: undefined };
           const rolledOutVariant = allVariants.find(v => v.id === rolledOutId);
-          return rolledOutVariant?.name;
-        })(),
-        rolledOutVariantColor: (() => {
-          // Find the rolled out variant color from the outcomes
-          const rolledOutId = experiment.outcomes?.rolledoutVariantId;
-          if (!rolledOutId) return undefined;
-          const rolledOutVariant = allVariants.find(v => v.id === rolledOutId);
-          return rolledOutVariant?.color;
+          return {
+            rolledOutVariantName: rolledOutVariant?.name,
+            rolledOutVariantColor: rolledOutVariant?.color
+          };
         })(),
       }
     );

@@ -3,8 +3,16 @@
 
 import { TOKENS } from './design-tokens';
 
+// ===== Performance Optimization: Memoization Cache =====
+/**
+ * Cache for hexToRgb conversions to avoid repeated calculations
+ * Typical flow has 10-50 color conversions, many repeated
+ */
+const colorCache = new Map<string, RGB>();
+
 /**
  * Converts a hexadecimal color string to Figma's RGB format
+ * Uses memoization cache to avoid repeated conversions (performance optimization)
  * @param hex - Hex color string with or without # prefix (e.g., '#FF0000' or 'FF0000')
  *              Supports both 6-digit (#RRGGBB) and 3-digit (#RGB) formats
  * @returns RGB object with r, g, b values normalized to 0-1 range
@@ -14,16 +22,25 @@ import { TOKENS } from './design-tokens';
  * hexToRgb('#0F0')   // { r: 0, g: 1, b: 0 } (green, 3-digit)
  */
 export function hexToRgb(hex: string): RGB {
-  hex = hex.replace('#', '');
-  if (hex.length === 3) {
-    hex = hex.split('').map(x => x + x).join('');
+  // Check cache first
+  if (colorCache.has(hex)) {
+    return colorCache.get(hex)!;
   }
-  const num = parseInt(hex, 16);
-  return {
+  
+  // Calculate and cache result
+  let normalized = hex.replace('#', '');
+  if (normalized.length === 3) {
+    normalized = normalized.split('').map(x => x + x).join('');
+  }
+  const num = parseInt(normalized, 16);
+  const rgb = {
     r: ((num >> 16) & 255) / 255,
     g: ((num >> 8) & 255) / 255,
     b: (num & 255) / 255,
   };
+  
+  colorCache.set(hex, rgb);
+  return rgb;
 }
 
 /**
