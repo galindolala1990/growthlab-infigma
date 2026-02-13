@@ -301,7 +301,7 @@ export function createEventCard(eventName: string, variantCount?: number, eventI
   return card;
 }
 
-import type { Variant } from './code';
+import type { Variant } from './types';
 
 export interface MetricDefinition {
   id: string;
