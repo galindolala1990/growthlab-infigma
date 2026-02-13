@@ -2335,9 +2335,20 @@ if (figma.editorType === 'figma') {
  * ```
  */
 async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metrics?: MetricDefinition[]): Promise<void> {
+    // ========================================================================
+    // FLOW RENDERING PIPELINE
+    // Orchestrates complete experiment flow creation in 5 stages:
+    //   1. SETUP: Load fonts, clean up existing frames
+    //   2. DATA PREP: Collect and normalize variants from all events
+    //   3. NODE CREATION: Create info card and all flow nodes (entry→events→variants→exit)
+    //   4. LAYOUT: Calculate positions with proper spacing and vertical centering
+    //   5. CONNECTORS: Draw connections using dynamic system (native ConnectorNode when possible)
+    // ========================================================================
+
     await loadFonts();
 
-    // Remove any existing flow frames with the same name/id
+    // --- STAGE 1: SETUP & FRAME CLEANUP ---
+    // Remove existing frames to avoid duplicates when re-running the flow builder
     const flowFrameName = `Experiment Flow — ${experiment.name}`;
     const infoCardName = `Experiment Overview — ${experiment.name}`;
     const cardsContainerName = `Experiment Cards — ${experiment.name}`;
@@ -2349,7 +2360,10 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
     const existingCardsContainer = figma.currentPage.findOne(n => n.type === 'FRAME' && n.name === cardsContainerName);
     if (existingCardsContainer) existingCardsContainer.remove();
 
-    // Collect all variants from flow events for outcome card
+    // --- STAGE 2: DATA PREPARATION & VARIANT COLLECTION ---
+    // Collect all variants from all events and normalize their properties
+    // This unified list is used for the outcome card showing all variants with metrics
+    // Normalizing here ensures consistent properties across the flow
     const allVariants: Array<{
       id?: string;
       key: string;
@@ -2364,31 +2378,37 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       color?: string;
     }> = [];
     
+    // Iterate through all events and extract variants, applying normalizations
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
         event.variants.forEach((variant, index) => {
           const rolledOutId = experiment.outcomes?.rolledoutVariantId;
-          // Use isControl from variant data (single-select baseline in ui.html), only show baseline badge when explicitly true
+          // Normalize isControl: only true if explicitly set (prevents accidental multiple baselines)
+          // This ensures outcome card shows correct control baseline
           const finalIsControl = (variant as any).isControl === true ? true : false;
           allVariants.push({
             id: variant.id,
             key: variant.key,
-            name: variant.name || `Variant ${variant.key}`,
+            name: variant.name || `Variant ${variant.key}`, // Fallback if no name provided
             description: variant.description,
-            // Use isControl from variant data (single-select baseline in ui.html), only show baseline badge when explicitly true
+            // Control baseline flag: determines which variant is the control in outcome card
             isControl: finalIsControl,
             traffic: variant.traffic,
             metrics: variant.metrics,
-            isRolledOut: rolledOutId === variant.id, // Check if this variant is the rolled out one
-            isStatSig: (variant as any).isStatSig, // Pass statistical significance from UI
-            color: (variant as any).color || variant.style?.variantColor, // Variant color for display
+            // Check if this is the rolled-out (winning) variant from outcomes
+            isRolledOut: rolledOutId === variant.id,
+            // Statistical significance marker passed from UI for outcome card display
+            isStatSig: (variant as any).isStatSig,
+            // Variant color used for visual identification in cards
+            color: (variant as any).color || variant.style?.variantColor,
           });
         });
       }
     }
 
-    // Safety: enforce AT MOST one baseline/control for the outcome card data.
-    // If none is explicitly set, keep none (outcome card will fall back to first variant for comparison).
+    // Enforce constraint: AT MOST one control/baseline across all variants
+    // Multiple controls would be confusing for outcome card comparison
+    // If multiple marked as control, use first; if none, leave none (outcome card uses first as default)
     if (allVariants.length > 0) {
       const firstControlIndex = allVariants.findIndex(v => v.isControl === true);
       const resolvedControlIndex = firstControlIndex >= 0 ? firstControlIndex : -1;
@@ -2397,7 +2417,9 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       });
     }
 
-    // Create experiment info card with two-panel structure (content + resources)
+    // --- STAGE 3: NODE CREATION (Phase A: Info Card) ---
+    // Create experiment info card: Two-panel layout with experiment metadata and resource links
+    // Positioned to the left of main flow to provide context
     infoCard = await createExperimentInfoCard(
       experiment.name,
       experiment.description || 'e.g., Testing if new CTA increases conversions.',
@@ -2457,20 +2479,26 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       extra: { experimentId: experiment.id, role: 'experiment-info' },
     });
 
-    // Manual positioning for magnetized connectors
-    // All nodes will be placed directly on the page (not in a container frame)
-    // This allows ConnectorNodes to work with magnetized anchors
+    // --- STAGE 4: LAYOUT POSITIONING & NODE PLACEMENT ---
+    // All nodes positioned directly on page (not in container frame) for ConnectorNode magnetic anchors
+    //
+    // Layout strategy:
+    //   - Horizontal spine: Entry → Events → Exit (same Y line, centered vertically)
+    //   - Variants: Below their parent event, in horizontal row
+    //   - All positioned with precise X,Y coordinates for deterministic output
+    //
     const center = figma.viewport.center;
-    const eventSpacing = flow.layout?.eventSpacing ?? 80;
-    const variantSpacing = flow.layout?.variantSpacing ?? 40; // Horizontal spacing between variants
-    const eventToVariantSpacing = 100; // Vertical spacing between event and variant row
-    const baseX = infoCard ? infoCard.x + infoCard.width + 200 : 600; // Start after info card
-    const baseY = infoCard ? infoCard.y : center.y;
+    const eventSpacing = flow.layout?.eventSpacing ?? 80; // Horizontal space between events (configurable)
+    const variantSpacing = flow.layout?.variantSpacing ?? 40; // Horizontal space between variants in a row
+    const eventToVariantSpacing = 100; // Vertical space from event to variant row
+    const baseX = infoCard ? infoCard.x + infoCard.width + 200 : 600; // Entry starts after info card
+    const baseY = infoCard ? infoCard.y : center.y; // Align to info card or viewport center
     
-    // Track all created nodes for positioning
+    // Track all created nodes: used for layout calc, connector lookup, and viewport zoom
     const allNodes: {node: SceneNode & {width: number; height: number}, id: string, type: string}[] = [];
 
-    // --- Entry Node ---
+    // --- STAGE 4a: Create Entry Node (Flow Spine Start) ---
+    // Entry node is leftmost on horizontal spine - represents where users enter the experiment
     const entry = flow.entry;
     const entryCard = createNodeCard(entry.label, undefined, undefined, entry.note);
     entryCard.name = 'Entry Node';
@@ -2485,15 +2513,16 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         nodeType: 'ENTRY_NODE',
       },
     });
-    // Position and add to page directly
+    // Position at baseline Y; will be vertically centered later in Stage 4f
     entryCard.x = baseX;
     entryCard.y = baseY;
     figma.currentPage.appendChild(entryCard);
     allNodes.push({node: entryCard as SceneNode & {width: number; height: number}, id: entry.id, type: 'ENTRY_NODE'});
 
-    // --- Pre-calculate variant widths ---
-    // First, create all variant cards off-screen to measure their widths
-    // This allows us to calculate proper spacing between events with variants
+    // --- STAGE 4b: Pre-calculate Variant Widths (Layout Phase 1) ---
+    // Create all variant cards off-screen first to measure their actual widths
+    // This allows us to calculate event spacing that accounts for variant row width
+    // Why: Events with many variants need more horizontal space
     const variantWidthsByEvent: Map<string, number> = new Map();
     const variantCardsByEvent: Map<string, FrameNode[]> = new Map();
     
@@ -2505,9 +2534,10 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       return metric.name.replace(/\s+/g, '_').toLowerCase();
     };
     
+    // Iterate through events and pre-create variant cards to measure widths
     for (const event of flow.events) {
       if (event.variants && event.variants.length > 0) {
-        let totalVariantWidth = 0;
+        let totalVariantWidth = 0; // Accumulate total width including spacing
         const variantCards: FrameNode[] = [];
         
         for (const [vIdx, variant] of event.variants.entries()) {
@@ -2532,14 +2562,15 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
             rolledout: isRolledout,
             metrics: metrics
           });
-          // Position off-screen temporarily to measure width
+          // Position off-screen temporarily (will be positioned correctly in Stage 4d)
+          // We need to add to page to get accurate measurements from Figma's layout engine
           variantCard.x = -10000;
           variantCard.y = -10000;
           figma.currentPage.appendChild(variantCard);
           
-          // Calculate total width including spacing between variants
+          // Accumulate total width: spacing between variants + card width
           if (vIdx > 0) {
-            totalVariantWidth += variantSpacing;
+            totalVariantWidth += variantSpacing; // Gap between this and previous variant
           }
           totalVariantWidth += variantCard.width;
           variantCards.push(variantCard);
@@ -2550,12 +2581,15 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       }
     }
 
-    // --- Event Nodes ---
-    // Place event nodes directly on page with manual positioning for magnetized connectors
-    let currentX = baseX + entryCard.width + eventSpacing;
-    let maxEventHeight = 0;
+    // --- STAGE 4c: Create Event Nodes (Flow Spine Middle) ---
+    // Event nodes represent touchpoints where variants are tested
+    // Positioned on horizontal spine between Entry and Exit
+    // Horizontal spacing accounts for variant row widths to prevent overlaps
+    //
+    let currentX = baseX + entryCard.width + eventSpacing; // Start after entry node
+    let maxEventHeight = 0; // Track max height for vertical centering later
     
-    // Store event positions for variant placement
+    // Store event positions: needed to correctly position variants below their events
     type EventPosition = { event: EventNodeV2; eventCard: SceneNode; x: number; y: number };
     const eventPositions: EventPosition[] = [];
     
@@ -2582,36 +2616,38 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         },
       });
       
-      // Position event card on page
+      // Position this event at calculated X, aligned to baseY (will be centered vertically in Stage 4f)
       eventCard.x = currentX;
       eventCard.y = baseY;
       figma.currentPage.appendChild(eventCard);
       allNodes.push({node: eventCard as SceneNode & {width: number; height: number}, id: event.id, type: 'EVENT_NODE'});
       
-      // Store position for variant placement
+      // Store position: used in next stage to position variants directly below this event
       eventPositions.push({event, eventCard, x: currentX, y: baseY});
       
-      // Track max height for variant row positioning
+      // Track max height: all spine nodes will be centered to this height
       maxEventHeight = Math.max(maxEventHeight, eventCard.height);
       
-      // Calculate spacing: use the maximum of event width and variant row width
-      // Add extra spacing when event has variants to prevent overlap
+      // Calculate spacing to next event: account for variant row width
+      // This prevents variants from overlapping with the next event
       const eventWidth = eventCard.width;
-      const variantRowWidth = variantWidthsByEvent.get(event.id) || 0;
-      const effectiveWidth = Math.max(eventWidth, variantRowWidth);
-      const extraSpacingForVariants = event.variants && event.variants.length > 0 ? eventSpacing * 0.5 : 0; // Add 50% more spacing when variants exist
+      const variantRowWidth = variantWidthsByEvent.get(event.id) || 0; // Total width of variant row
+      const effectiveWidth = Math.max(eventWidth, variantRowWidth); // Use whichever is wider
+      const extraSpacingForVariants = event.variants && event.variants.length > 0 ? eventSpacing * 0.5 : 0; // Add extra space for variants
       
-      // Move to next event position with spacing that accounts for variants
+      // Advance X cursor: past effective width + normal spacing + extra spacing
       currentX += effectiveWidth + eventSpacing + extraSpacingForVariants;
     }
 
-    // --- Variants ---
-    // Position pre-created variant cards below their events
+    // --- STAGE 4d: Position Variant Nodes (Rows Below Events) ---
+    // Reposition variant cards from off-screen to their final locations
+    // Each event's variants are positioned in a horizontal row below the event
+    // All variants for an event are aligned to the same Y coordinate
     for (const {event, eventCard, x: eventX, y: eventY} of eventPositions) {
       const variantCards = variantCardsByEvent.get(event.id);
       if (variantCards && variantCards.length > 0) {
-        let variantX = eventX;
-        const variantY = eventY + eventCard.height + eventToVariantSpacing;
+        let variantX = eventX; // Start variants aligned to event's left edge
+        const variantY = eventY + eventCard.height + eventToVariantSpacing; // Position below event
         
         for (const [vIdx, variantCard] of variantCards.entries()) {
           const variant = event.variants?.[vIdx];
@@ -2648,7 +2684,8 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
       }
     }
 
-    // --- Exit Node ---
+    // --- STAGE 4e: Create Exit Node (Flow Spine End) ---
+    // Exit node is rightmost on horizontal spine - represents where users exit the experiment
     const exit = flow.exit;
     const exitCard = createNodeCard(exit.label);
     exitCard.name = 'Exit Node';
@@ -2663,72 +2700,81 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         nodeType: 'EXIT_NODE',
       },
     });
-    // Position exit at the end
+    // Position exit at calculated X position (after all events), baseline Y
     exitCard.x = currentX;
     exitCard.y = baseY;
     figma.currentPage.appendChild(exitCard);
     allNodes.push({node: exitCard as SceneNode & {width: number; height: number}, id: exit.id, type: 'EXIT_NODE'});
     
-    // --- Vertical Alignment: Center Entry and Exit nodes with Event nodes ---
-    // Find the maximum height among all spine nodes (Entry, Events, Exit)
+    // --- STAGE 4f: Vertical Alignment (Center All Spine Nodes) ---
+    // Ensure Entry → Events → Exit are all vertically centered as a group
+    // This creates a clean horizontal spine regardless of individual node heights
+    // Strategy: Find tallest spine node, then center all others around it
+    //
     const spineNodes = [entryCard, ...eventPositions.map(ep => ep.eventCard), exitCard];
     const maxSpineHeight = Math.max(...spineNodes.map(n => n.height));
     
-    // Center Entry node vertically
+    // Center Entry node: move up by half the height difference
     const entryCenterOffset = (maxSpineHeight - entryCard.height) / 2;
     entryCard.y = baseY + entryCenterOffset;
     
-    // Center Event nodes vertically and adjust their variants
+    // Center each Event node vertically and cascade adjustments to variants
+    // When an event moves, its variants must move with it to maintain relative positioning
     for (const {event, eventCard} of eventPositions) {
-      const oldEventY = eventCard.y;
+      const oldEventY = eventCard.y; // Remember old position before centering
       const eventCenterOffset = (maxSpineHeight - eventCard.height) / 2;
       const newEventY = baseY + eventCenterOffset;
       eventCard.y = newEventY;
       
-      // Update variant positions to match the event's new Y position
+      // Cascade Y adjustment to variants: move them by same delta as their event
       if (event.variants && event.variants.length > 0) {
-        const yDelta = newEventY - oldEventY;
+        const yDelta = newEventY - oldEventY; // How much did event move?
         for (const variant of event.variants) {
           const variantNode = allNodes.find(n => n.id === variant.id);
           if (variantNode) {
-            variantNode.node.y += yDelta;
+            variantNode.node.y += yDelta; // Move variant by same amount
           }
         }
       }
     }
     
-    // Center Exit node vertically
+    // Center Exit node: move up by half the height difference
     const exitCenterOffset = (maxSpineHeight - exitCard.height) / 2;
     exitCard.y = baseY + exitCenterOffset;
 
-    // --- Build node map for connector rendering ---
-    // Nodes are already on the page, just build the map
+    // --- STAGE 5: CONNECTOR RENDERING SETUP ---
+    // Build a quick lookup map: node ID → node object
+    // This is used to find source/target nodes when drawing connectors
     const nodeMap: Record<string, SceneNode & { width: number; height: number }> = {};
     for (const {node, id} of allNodes) {
       nodeMap[id] = node;
     }
     
-    // InfoCard positioning (if it exists)
+    // Position info card (sidebar with experiment metadata)
+    // Info card appears to the left of the main flow spine
     if (infoCard) {
       if (infoCard.parent === null) {
         infoCard.x = 100;
         infoCard.y = center.y;
         figma.currentPage.appendChild(infoCard);
       }
-      // Wait for layout to settle before drawing connectors
-    await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait briefly for Figma's layout engine to settle before drawing connectors
+      // This ensures accurate node positions for connector calculations
+      await new Promise(resolve => setTimeout(resolve, 100));
     
-    // --- Render Dynamic Connectors ---
-    // Uses createDynamicConnector() which:
-    // 1. Tries native ConnectorNode first (automatically updates when nodes move!)
-    // 2. Falls back to VectorNode if native connectors aren't available
-    // For VectorNode connectors, use refreshConnectors() or send 'refresh-connectors' message to update positions
+    // --- STAGE 5a: Dynamic Connector Rendering ---
+    // Creates connectors between nodes using the smart dynamic system:
+    //   1. Tries native ConnectorNode first (FigJam): automatic updates when nodes move! ✨
+    //   2. Falls back to VectorNode (regular Figma): manual refresh via refreshConnectors()
+    // For VectorNode connectors, call refreshConnectors() or send 'refresh-connectors' message when nodes move
     const createdConnectors: SceneNode[] = [];
     
     if (flow.connectors && Array.isArray(flow.connectors) && flow.connectors.length > 0) {
-      // Group merge connectors by destination event for merge+trunk pattern
-      const mergeGroups = new Map<string, ConnectorV2[]>();
-      const directConnectors: ConnectorV2[] = []; // PRIMARY_FLOW_LINE and BRANCH_LINE use direct connections
+      // Categorize connectors into two groups based on their structure:
+      //   1. Merge connectors (MERGE_LINE): Multiple sources → single target, uses merge+trunk pattern
+      //   2. Direct connectors (PRIMARY_FLOW_LINE, BRANCH_LINE): Simple one-to-one or one-to-many connections
+      const mergeGroups = new Map<string, ConnectorV2[]>(); // Group merges by target ID
+      const directConnectors: ConnectorV2[] = []; // PRIMARY_FLOW_LINE and BRANCH_LINE connectors
       
       for (const connector of flow.connectors) {
         if (connector.type === 'MERGE_LINE') {
@@ -2743,22 +2789,26 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         }
       }
       
-      // Render direct connectors (PRIMARY_FLOW_LINE and BRANCH_LINE)
+      // Render direct connectors (PRIMARY_FLOW_LINE: spine connections; BRANCH_LINE: event to variant)
+      // Direct connectors use simple one-to-one paths without merging
       for (const connector of directConnectors) {
         const fromNode = nodeMap[connector.from.id];
         const toNode = nodeMap[connector.to.id];
         
         if (fromNode && toNode) {
           try {
-            // Check if this connector involves a rolled-out variant (which is the winner)
+            // Determine connector styling: is one endpoint a rolled-out (winning) variant?
+            // Rolled-out variants get special styling to highlight the chosen path
             const fromNodeId = connector.from.id;
             const toNodeId = connector.to.id;
             const rolledoutVariantId = experiment.outcomes?.rolledoutVariantId;
+            // Check if either endpoint is the rolled-out variant
             const isRolledout = rolledoutVariantId && (fromNodeId === rolledoutVariantId || toNodeId === rolledoutVariantId);
-            // Rolled-out variant is the winner, but rollout styling takes priority
+            // Rolled-out styling takes priority over generic winner styling
             const isWinner = isRolledout || false;
             
-            // Use dynamic connector (tries native ConnectorNode first, falls back to VectorNode)
+            // Create connector using dynamic system (tries native → VectorNode fallback)
+            // Native connectors in FigJam will automatically update when nodes move!
             const connectorNode = createDynamicConnector(
               fromNode,
               toNode,
@@ -2799,14 +2849,16 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
         }
       }
       
-      // Render merge connectors as merge+trunk groups
+      // Render merge connectors as merge+trunk patterns
+      // Merge pattern: Multiple variants connect via branches to a common trunk, then trunk to target
+      // This creates cleaner visualization than many separate connectors
       for (const [targetId, merges] of mergeGroups.entries()) {
         const targetNode = nodeMap[targetId];
         if (!targetNode) {
           continue;
         }
         
-        // Get all variant nodes for this merge group
+        // Collect all variant source nodes for this merge group
         const variantNodes = merges
           .map(m => ({ connector: m, node: nodeMap[m.from.id] }))
           .filter(v => v.node !== undefined) as Array<{ connector: ConnectorV2; node: SceneNode & { width: number; height: number } }>;
