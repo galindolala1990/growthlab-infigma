@@ -111,8 +111,197 @@ const ERRORS = {
   OPERATION_CANCELLED: {
     type: 'info',
     title: 'Operation cancelled'
-  } as ErrorMessage
+  } as ErrorMessage,
+  VALIDATION_FAILED: (errorCount: number): ErrorMessage => ({
+    type: 'error',
+    title: '❌ Flow data validation failed',
+    detail: `Flow contains ${errorCount} validation error${errorCount !== 1 ? 's' : ''}.`,
+    actionHint: 'Check the console for details and verify all required fields are present.'
+  })
 };
+
+// ===== Flow Data Validation System =====
+/**
+ * Validation result with detailed error information
+ */
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+/**
+ * Validates ExperimentV2 structure for required fields and data integrity
+ * @param experiment The experiment object to validate
+ * @returns ValidationResult with any errors or warnings found
+ */
+function validateExperiment(experiment: any): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!experiment) {
+    errors.push('Experiment object is missing');
+    return { isValid: false, errors, warnings };
+  }
+
+  // Required fields
+  if (!experiment.id || typeof experiment.id !== 'string') {
+    errors.push('Experiment must have a valid id (string)');
+  }
+  if (!experiment.name || typeof experiment.name !== 'string') {
+    errors.push('Experiment must have a valid name (string)');
+  }
+
+  // Optional but recommended
+  if (!experiment.description) {
+    warnings.push('Experiment has no description');
+  }
+
+  // Outcomes validation (optional)
+  if (experiment.outcomes && typeof experiment.outcomes === 'object') {
+    if (experiment.outcomes.rolledoutVariantId && typeof experiment.outcomes.rolledoutVariantId !== 'string') {
+      warnings.push('Rolled-out variant ID should be a string if provided');
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+
+/**
+ * Validates FlowV2 structure for required fields and data integrity
+ * @param flow The flow object to validate
+ * @returns ValidationResult with any errors or warnings found
+ */
+function validateFlow(flow: any): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!flow) {
+    errors.push('Flow object is missing');
+    return { isValid: false, errors, warnings };
+  }
+
+  // Entry node validation
+  if (!flow.entry || typeof flow.entry !== 'object') {
+    errors.push('Flow must have an entry node');
+  } else {
+    if (!flow.entry.id || typeof flow.entry.id !== 'string') {
+      errors.push('Entry node must have a valid id (string)');
+    }
+    if (!flow.entry.label || typeof flow.entry.label !== 'string') {
+      errors.push('Entry node must have a valid label (string)');
+    }
+  }
+
+  // Exit node validation
+  if (!flow.exit || typeof flow.exit !== 'object') {
+    errors.push('Flow must have an exit node');
+  } else {
+    if (!flow.exit.id || typeof flow.exit.id !== 'string') {
+      errors.push('Exit node must have a valid id (string)');
+    }
+    if (!flow.exit.label || typeof flow.exit.label !== 'string') {
+      errors.push('Exit node must have a valid label (string)');
+    }
+  }
+
+  // Events validation
+  if (!Array.isArray(flow.events)) {
+    errors.push('Flow must have an events array');
+  } else {
+    if (flow.events.length === 0) {
+      warnings.push('Flow has no events');
+    }
+
+    // Validate each event
+    for (let i = 0; i < flow.events.length; i++) {
+      const event = flow.events[i];
+      
+      if (!event.id || typeof event.id !== 'string') {
+        errors.push(`Event ${i} must have a valid id (string)`);
+      }
+      if (!event.name || typeof event.name !== 'string') {
+        warnings.push(`Event ${i} has no name`);
+      }
+
+      // Validate variants in this event
+      if (!Array.isArray(event.variants)) {
+        warnings.push(`Event ${i} has no variants array`);
+      } else if (event.variants.length > 0) {
+        for (let vIdx = 0; vIdx < event.variants.length; vIdx++) {
+          const variant = event.variants[vIdx];
+          
+          if (!variant.id || typeof variant.id !== 'string') {
+            errors.push(`Event ${i}, Variant ${vIdx} must have a valid id (string)`);
+          }
+          if (!variant.key || typeof variant.key !== 'string') {
+            errors.push(`Event ${i}, Variant ${vIdx} must have a valid key (string)`);
+          }
+          if (typeof variant.traffic !== 'number' || variant.traffic < 0) {
+            errors.push(`Event ${i}, Variant ${vIdx} must have a valid traffic value (number >= 0)`);
+          }
+        }
+      }
+    }
+  }
+
+  // Connectors validation (optional)
+  if (flow.connectors && !Array.isArray(flow.connectors)) {
+    errors.push('Flow connectors must be an array if provided');
+  } else if (Array.isArray(flow.connectors) && flow.connectors.length > 0) {
+    // Basic connector structure check
+    for (let i = 0; i < flow.connectors.length; i++) {
+      const connector = flow.connectors[i];
+      
+      if (!connector.from || !connector.from.id) {
+        errors.push(`Connector ${i} missing from.id`);
+      }
+      if (!connector.to || !connector.to.id) {
+        errors.push(`Connector ${i} missing to.id`);
+      }
+      if (!connector.type || typeof connector.type !== 'string') {
+        errors.push(`Connector ${i} must have a valid type (string)`);
+      }
+    }
+  }
+
+  // Layout configuration (optional)
+  if (flow.layout && typeof flow.layout === 'object') {
+    if (flow.layout.eventSpacing && typeof flow.layout.eventSpacing !== 'number') {
+      warnings.push('Layout eventSpacing should be a number if provided');
+    }
+    if (flow.layout.variantSpacing && typeof flow.layout.variantSpacing !== 'number') {
+      warnings.push('Layout variantSpacing should be a number if provided');
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+
+/**
+ * Validates both experiment and flow, combining results
+ * @param experiment The experiment to validate
+ * @param flow The flow to validate
+ * @returns Combined ValidationResult
+ */
+function validateFlowData(experiment: any, flow: any): ValidationResult {
+  const experimentResult = validateExperiment(experiment);
+  const flowResult = validateFlow(flow);
+
+  return {
+    isValid: experimentResult.isValid && flowResult.isValid,
+    errors: [...experimentResult.errors, ...flowResult.errors],
+    warnings: [...experimentResult.warnings, ...flowResult.warnings]
+  };
+}
 
 // --- Utility: Create a native Figma connector between two nodes, magnetized to edges ---
 /**
@@ -2346,6 +2535,26 @@ async function createFlowV2FromData(experiment: ExperimentV2, flow: FlowV2, metr
     // ========================================================================
 
     await loadFonts();
+
+    // --- PRE-STAGE: VALIDATE FLOW DATA ---
+    // Validate that experiment and flow have all required fields before attempting to render
+    // Early validation prevents cryptic errors later in the pipeline
+    const validation = validateFlowData(experiment, flow);
+    if (!validation.isValid) {
+      const errorDetail = validation.errors.slice(0, 3).join('\n');
+      const additionalErrors = validation.errors.length > 3 ? `\n(+${validation.errors.length - 3} more errors)` : '';
+      notifyUser({
+        type: 'error',
+        title: '❌ Flow data validation failed',
+        detail: `Flow contains invalid data:\n${errorDetail}${additionalErrors}`,
+        actionHint: 'Check the console for details and fix the flow structure.'
+      });
+      return; // Stop processing if data is invalid
+    }
+
+    // Log warnings if any (non-blocking)
+    if (validation.warnings.length > 0) {
+    }
 
     // --- STAGE 1: SETUP & FRAME CLEANUP ---
     // Remove existing frames to avoid duplicates when re-running the flow builder
