@@ -100,6 +100,106 @@ Provide a clear, task‑first documentation experience for Growthlab Builder use
 - UI ↔ plugin message contracts
 - Release checklist
 
+## User Documentation Content Design
+This section defines what the user‑facing documentation should cover, how it should be structured, and the UX/usability guidance to include.
+
+### Core User Outcomes
+- Create a complete experiment flow in one pass.
+- Understand where to add experiment details, metrics, journey steps, and variants.
+- Refresh an existing flow without duplicating.
+- Share a readable, consistent artifact with teammates.
+
+### Plugin Functionality Coverage (User‑Facing)
+Each topic should answer **What it is**, **Why it matters**, **How to use it**, and **Example input**.
+
+1. **Experiment Details**
+	- Name, description, status, rolled‑out variant (for concluded), hypothesis, dates, audience, sample size, owner.
+	- Explain required vs optional fields and the impact on the generated card.
+
+2. **Goals & Metrics**
+	- Primary metric, direction (increase/decrease), thresholds, reorder.
+	- Emphasize the “Primary” marker and decision focus.
+
+3. **Journey Mapping**
+	- Entry → touchpoints → experiment step → exit.
+	- Clarify that only the experiment step can host variants.
+
+4. **Variants & Traffic Splits**
+	- Control variant, traffic split, winner (for concluded).
+	- Create from selection (up to 3 frames) and how it maps into cards.
+
+5. **Resources & Links**
+	- Auto‑detect services and icons; show supported links list.
+	- Show how links appear in the experiment card.
+
+6. **Outcomes & Rollouts**
+	- How “Concluded” unlocks the winner/rolled‑out variant fields.
+	- Explain how this affects the diagram visually.
+
+7. **Refresh vs Create**
+	- Create a new diagram vs update an existing one.
+	- Explain safe usage to avoid duplicates.
+
+### UX Guidance for Users (Usability)
+Include small, practical guidance blocks throughout the docs. Use these in sidebars or callouts.
+
+- **Start simple:** only the experiment name is required to generate a flow.
+- **Use descriptive variant names:** “Green button” beats “Variant A.”
+- **Mark a primary metric:** keeps decisions focused.
+- **Keep journeys short:** 3–6 touchpoints are easier to read.
+- **Use the experiment step intentionally:** only this step holds variants.
+- **Refresh over recreate:** prevents duplicate flows.
+- **Link early:** add Figma/Jira/Miro links for fast context sharing.
+
+### Usability Patterns (Documentation Requirements)
+Each user page should include:
+- **Task‑first headings** (e.g., “Add a primary metric”).
+- **Short steps** (no more than 5 per task).
+- **Expected result** section (what appears in Figma).
+- **Common mistakes** callout.
+- **Keyboard shortcuts** where relevant.
+
+### Suggested Page Content (User Guide Expansion)
+#### Understanding the Interface
+- Intro screen, experiment section, goals section, journey builder, variants list, resources, action buttons.
+- Include a “Where to find it” map of sections.
+
+#### Create Your First Flow (Guided)
+- Provide a complete, copy‑ready example.
+- Show expected output: experiment card, journey spine, variants.
+
+#### Advanced Settings
+- Hypothesis, dates, audience, sample size, owner, resources.
+- Explain how each appears on the experiment info card.
+
+#### Working With Variants
+- Control badge, winner badge, traffic split validation.
+- Creating variants from selected frames.
+
+#### Goals & Metrics
+- Primary metric selection.
+- Increase/decrease direction.
+- Thresholds and guardrails.
+
+#### Journey Mapping
+- Define entry/exit and experiment step.
+- What happens if the experiment step changes.
+
+#### Resources & Links
+- Supported services list and icon mapping.
+- Tips for clean links and naming.
+
+#### Refresh Flow
+- When to refresh.
+- How to avoid duplicate flows.
+
+### Content Quality Checklist
+- Every page includes at least one real example.
+- Use consistent field names from the UI.
+- Avoid jargon without definitions.
+- Keep paragraphs under 3 lines when possible.
+- Provide a “What you’ll get” summary on task pages.
+
 ## Voice & Tone
 - **Clear and concise** (short sentences, action verbs)
 - **Productive and helpful** (tips over warnings)
