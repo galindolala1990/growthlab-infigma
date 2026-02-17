@@ -17,6 +17,12 @@ This plugin helps you quickly create clean, Growth Labs–style experiment flows
 3. Click "Create flow" to generate the experiment flow diagram on the canvas
 4. Optionally, select up to 3 frames and click "Create from selection" to use them as variant thumbnails
 
+**📚 New to the plugin?** Check out our user documentation:
+- **[Getting Started Guide](docs/GETTING_STARTED.md)** - Step-by-step walkthrough for your first experiment flow
+- **[User Guide](docs/USER_GUIDE.md)** - Complete feature reference and best practices
+- **[FAQ](docs/FAQ.md)** - Common questions and answers
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Solutions to common issues
+
 ### Development
 This plugin uses TypeScript and NPM for development.
 
@@ -52,8 +58,15 @@ For TypeScript info: https://www.typescriptlang.org/
 - **Result:** Cleaner codebase, better maintainability, zero TypeScript errors
 
 ### Docs
-- [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md)
-- [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md)
-- [docs/PLUGIN_MANIFEST.md](docs/PLUGIN_MANIFEST.md)
-- [docs/PLUGIN_UX_GUIDELINES.md](docs/PLUGIN_UX_GUIDELINES.md)
-- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
+**For Users:**
+- [Getting Started Guide](docs/GETTING_STARTED.md) - Your first experiment flow
+- [User Guide](docs/USER_GUIDE.md) - Complete features and usage
+- [FAQ](docs/FAQ.md) - Common questions and answers
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Fix common issues
+
+**For Developers:**
+- [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md) - Figma API reference
+- [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md) - UI ↔ Plugin communication
+- [docs/PLUGIN_MANIFEST.md](docs/PLUGIN_MANIFEST.md) - Manifest configuration
+- [docs/PLUGIN_UX_GUIDELINES.md](docs/PLUGIN_UX_GUIDELINES.md) - UX best practices
+- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) - Release process

@@ -9,7 +9,10 @@
     "build:tsc": "tsc -p tsconfig.json",
     "lint": "eslint --ext .ts --ignore-pattern node_modules .",
     "lint:fix": "eslint --ext .ts --ignore-pattern node_modules --fix .",
-    "watch": "npm run build -- --watch"
+    "watch": "npm run build -- --watch",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "author": "",
   "license": "",
@@ -21,7 +24,8 @@
     "esbuild": "^0.27.1",
     "eslint": "^8.54.0",
     "sortablejs": "^1.15.7",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitepress": "^1.6.4"
   },
   "eslintConfig": {
     "extends": [

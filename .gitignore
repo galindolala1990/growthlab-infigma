@@ -9,5 +9,9 @@ ui.css.map
 node_modules
 dist/
 
+# VitePress build output
+docs/.vitepress/dist
+docs/.vitepress/cache
+
 # Archived documentation (historical process docs)
 _archive/
