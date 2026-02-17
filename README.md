@@ -1,3 +1,22 @@
+3. To build once:
+   npm run build
+4. To watch and auto-build on save:
+   npm run watch
+
+#### Linting
+Run lint checks with:
+   npm run lint
+Auto-fix lint issues with:
+   npm run lint:fix
+
+#### More info
+For Figma plugin API docs, see: https://www.figma.com/plugin-docs/
+For TypeScript info: https://www.typescriptlang.org/
+
+### Project Maintenance
+**Feb 2026 - Code Cleanup & Optimization:**
+- ✅ Removed ~1.1 MB of build artifacts from root directory (source maps, compiled JS)
+- ✅ Archived 13 historical process documents to `_archive/` folder for cleaner root
 ## Growthlab Builder Figma Plugin
 
 
