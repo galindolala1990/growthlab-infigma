@@ -9,7 +9,7 @@ ui.css.map
 node_modules
 dist/
 
-# VitePress build output
+# VitePress output
 docs/.vitepress/dist
 docs/.vitepress/cache
 

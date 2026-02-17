@@ -6,22 +6,51 @@ This plugin helps you quickly create clean, Growth Labs–style experiment flows
 **Font:** This plugin uses the [Figtree](https://fonts.google.com/specimen/Figtree) font for all UI and generated nodes. Make sure Figtree is available in your Figma environment for best results.
 
 ### Features
-- Build experiment flows with entry/exit nodes, variant cards, traffic splits, winner badges, and metrics chips
-- Modern, compact UI for easy experiment setup
-- Auto Layout for all frames and cards for easy resizing and alignment
-- Supports using selected frames as variant thumbnails ("Create from selection")
+
+#### Core Experiment Documentation
+- Experiment name, description, hypothesis, status, timeline, audience, sample size, and owner
+- Status tracking: Draft, Planned, Running, Paused, Concluded
+- Advanced settings (collapsible) for detailed metadata
+
+#### Goals & Metrics
+- Multiple metrics with primary designation
+- Direction and threshold targets per metric
+- Drag-and-drop reordering
+
+#### Journey Mapping
+- Entry/exit nodes and touchpoint steps
+- Experiment-step designation for variants
+- Auto layout and connected flow spine
+
+#### Variants
+- Unlimited variants (A/B, A/B/C, multivariate)
+- Control and winner badges
+- Traffic splits and color badges
+- Drag-and-drop ordering
+- Create from selection (use up to 3 selected frames as thumbnails)
+
+#### Resources & Links
+- Smart link detection with service icons (Figma, Jira, Miro, Notion, Asana, Linear, GitHub, Slack, Trello, Confluence, Monday, ClickUp)
+- Multiple links per experiment
+
+#### UX & Design
+- Modern compact UI with Figtree font
+- Auto Layout for all generated frames
+- Refresh to update existing flows
 
 ### Usage
 1. Open your Figma file and run the plugin
-2. Fill in the experiment name, round number, entry/exit labels, and edit the variants as needed
-3. Click "Create flow" to generate the experiment flow diagram on the canvas
-4. Optionally, select up to 3 frames and click "Create from selection" to use them as variant thumbnails
+2. Fill in the experiment name and status
+3. Add goals/metrics and set the primary metric
+4. Define journey touchpoints and mark the experiment step
+5. Configure variants and traffic splits
+6. Click **Create flow** to generate the diagram
 
-**📚 New to the plugin?** Check out our user documentation:
-- **[Getting Started Guide](docs/GETTING_STARTED.md)** - Step-by-step walkthrough for your first experiment flow
-- **[User Guide](docs/USER_GUIDE.md)** - Complete feature reference and best practices
-- **[FAQ](docs/FAQ.md)** - Common questions and answers
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Solutions to common issues
+**Optional workflows**
+- Select **Concluded** and choose the rolled-out variant to show the winner
+- Add resource links (Figma, Jira, Miro, Notion, etc.)
+- Use **Refresh** to update an existing flow without recreating
+- Select up to 3 frames and use **Create from selection** for visual variants
 
 ### Development
 This plugin uses TypeScript and NPM for development.
@@ -58,15 +87,15 @@ For TypeScript info: https://www.typescriptlang.org/
 - **Result:** Cleaner codebase, better maintainability, zero TypeScript errors
 
 ### Docs
-**For Users:**
-- [Getting Started Guide](docs/GETTING_STARTED.md) - Your first experiment flow
-- [User Guide](docs/USER_GUIDE.md) - Complete features and usage
-- [FAQ](docs/FAQ.md) - Common questions and answers
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Fix common issues
+**For users**
+- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+- [docs/FAQ.md](docs/FAQ.md)
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
-**For Developers:**
-- [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md) - Figma API reference
-- [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md) - UI ↔ Plugin communication
-- [docs/PLUGIN_MANIFEST.md](docs/PLUGIN_MANIFEST.md) - Manifest configuration
-- [docs/PLUGIN_UX_GUIDELINES.md](docs/PLUGIN_UX_GUIDELINES.md) - UX best practices
-- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) - Release process
+**For developers**
+- [docs/FIGMA_PLUGIN_API.md](docs/FIGMA_PLUGIN_API.md)
+- [docs/PLUGIN_MESSAGING.md](docs/PLUGIN_MESSAGING.md)
+- [docs/PLUGIN_MANIFEST.md](docs/PLUGIN_MANIFEST.md)
+- [docs/PLUGIN_UX_GUIDELINES.md](docs/PLUGIN_UX_GUIDELINES.md)
+- [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
