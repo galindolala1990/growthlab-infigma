@@ -1458,12 +1458,19 @@ async function appendDetailsSection(
   // Create a simple vertical section similar to existing working sections
   const section = figma.createFrame();
   section.layoutMode = "VERTICAL";
-  section.counterAxisSizingMode = "AUTO";
+  section.counterAxisSizingMode = "FIXED";
   section.primaryAxisSizingMode = "AUTO";
   section.layoutAlign = 'STRETCH';
   section.itemSpacing = 8;
   section.fills = [];
   section.name = `Section: ${title}`;
+
+  // Use a deterministic width so wrapped text doesn't collapse before the frame is attached.
+  const sectionWidth = parent.maxWidth || parent.minWidth || parent.width;
+  if (sectionWidth && sectionWidth > 0) {
+    section.minWidth = sectionWidth;
+    section.maxWidth = sectionWidth;
+  }
   
   // Section title label
   const titleLabel = figma.createText();
@@ -1478,7 +1485,7 @@ async function appendDetailsSection(
   // Details container with background
   const detailsContainer = figma.createFrame();
   detailsContainer.layoutMode = "VERTICAL";
-  detailsContainer.counterAxisSizingMode = "AUTO";
+  detailsContainer.counterAxisSizingMode = "FIXED";
   detailsContainer.primaryAxisSizingMode = "AUTO";
   detailsContainer.layoutAlign = 'STRETCH';
   detailsContainer.itemSpacing = 16;
@@ -1489,18 +1496,30 @@ async function appendDetailsSection(
   detailsContainer.strokes = [{ type: "SOLID", color: hexToRgb(TOKENS.border) }];
   detailsContainer.name = "Details Container";
   section.appendChild(detailsContainer);
+
+  if (sectionWidth && sectionWidth > 0) {
+    detailsContainer.minWidth = sectionWidth;
+    detailsContainer.maxWidth = sectionWidth;
+  }
+  const contentWidth = sectionWidth && sectionWidth > 0
+    ? Math.max(0, sectionWidth - (detailsContainer.paddingLeft || 0) - (detailsContainer.paddingRight || 0))
+    : 0;
   
   // Create each row
   for (const { label, value, valueColor, valueDot } of rowsData) {
     const row = figma.createFrame();
     row.layoutMode = "VERTICAL";
-    row.counterAxisSizingMode = "AUTO";
+    row.counterAxisSizingMode = "FIXED";
     row.primaryAxisSizingMode = "AUTO";
     row.layoutAlign = 'STRETCH';
     row.counterAxisAlignItems = "MIN";
     row.itemSpacing = 4;
     row.fills = [];
     row.name = `Row: ${label}`;
+    if (contentWidth > 0) {
+      row.minWidth = contentWidth;
+      row.maxWidth = contentWidth;
+    }
     detailsContainer.appendChild(row);
     
     // Label
@@ -1525,8 +1544,24 @@ async function appendDetailsSection(
     valueNode.fontName = { family: "Figtree", style: "Medium" };
     valueNode.fontSize = TOKENS.fontSizeBodySm;
     valueNode.fills = [{ type: "SOLID", color: hexToRgb(valueColor || TOKENS.textPrimary) }];
-    valueNode.textAutoResize = "WIDTH_AND_HEIGHT";
+    // Ensure long content wraps and grows in height for key detail fields
+    const shouldWrapValue =
+      label === 'Description' ||
+      label === 'Hypothesis' ||
+      label === 'Name' ||
+      label === 'Type' ||
+      label === 'Owner' ||
+      label === 'Timeline';
+    if (shouldWrapValue) {
+      valueNode.textAutoResize = "HEIGHT";
+      valueNode.layoutAlign = "STRETCH";
+    } else {
+      valueNode.textAutoResize = "WIDTH_AND_HEIGHT";
+    }
     valueNode.characters = value || "—";
+    if (shouldWrapValue && contentWidth > 0) {
+      valueNode.resize(contentWidth, valueNode.height);
+    }
     row.appendChild(valueNode);
   }
   
