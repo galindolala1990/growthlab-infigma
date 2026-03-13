@@ -1801,6 +1801,7 @@
     .event-row {
       display: flex;
       flex-direction: column;
+      position: relative;
       /* gap: var(--space-8);*/
       border-bottom: 0px dashed var(--border);
 
@@ -1812,6 +1813,48 @@
       gap: var(--space-8);
       padding: var(--space-8) var(--space-12);
       border-bottom: 0px dashed var(--border);
+    }
+
+    .event-row:not(.system):not(.add-step-row) .event-row-main {
+      cursor: grab;
+    }
+
+    .event-row:not(.system):not(.add-step-row):not(.drag-active):hover .event-row-main {
+      background: var(--color-royal-blue-alpha-50);
+      border-radius: var(--radius-md);
+    }
+
+    .events-list.is-dragging .event-row:not(.system):not(.add-step-row) .event-row-main {
+      cursor: grabbing;
+    }
+
+    .event-row.drag-active .event-row-main {
+      opacity: 0.72;
+      background: var(--color-white-100);
+    }
+
+    .event-row::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      right: 0;
+      height: 2px;
+      background: var(--brand);
+      z-index: 4;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.08s ease;
+    }
+
+    .event-row.drop-indicator-above::before {
+      top: 0;
+      opacity: 1;
+    }
+
+    .event-row.drop-indicator-below::before {
+      top: auto;
+      bottom: 0;
+      opacity: 1;
     }
 
     /* .event-row-main:not(:last-child) {
@@ -1864,6 +1907,39 @@
       justify-content: center;
       position: relative;
       z-index: 1;
+    }
+
+    .event-step-badge__number,
+    .event-step-badge__drag-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.12s ease;
+    }
+
+    .event-step-badge__number {
+      opacity: 1;
+    }
+
+    .event-step-badge__drag-icon {
+      opacity: 0;
+    }
+
+    .event-step-badge__drag-icon .lucide {
+      width: 12px;
+      height: 12px;
+    }
+
+    .event-row:not(.system):not(.add-step-row):hover .event-step-badge__number,
+    .event-row.drag-active .event-step-badge__number {
+      opacity: 0;
+    }
+
+    .event-row:not(.system):not(.add-step-row):hover .event-step-badge__drag-icon,
+    .event-row.drag-active .event-step-badge__drag-icon {
+      opacity: 1;
     }
 
     /* Experiment events (with variants) get purple background */
@@ -4039,7 +4115,7 @@
         <div class="events-header">
           <div class="section-block-left">
             <h2>Journey</h2>
-            <p class="body-md">Map the sequence of touchpoints. Add variants to experiment step only.</p>
+            <p class="body-md" data-tooltip="Drag touchpoints to reorder journey." data-tooltip-position="top" data-tooltip-align="start" data-tooltip-cursor="default">Map the sequence of touchpoints. Add variants to experiment step only.</p>
             <span class="section-count" id="eventsCount">0 touchpoints • 0 variants</span>
           </div>
           <button class="icon-btn btn-add-event" type="button" aria-label="Add touchpoint" data-tooltip="Add touchpoint" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" style="display:none">
@@ -4105,6 +4181,8 @@
       'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
       // https://lucide.dev/icons/ellipsis-vertical
       'ellipsis-vertical': '<circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />',
+      // https://lucide.dev/icons/grip-vertical
+      'grip-vertical': '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>',
       // https://lucide.dev/icons/copy-plus
       'copy-plus': '<line x1="15" x2="15" y1="12" y2="18" /><line x1="12" x2="18" y1="15" y2="15" /><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
       // https://lucide.dev/icons/git-branch-plus
@@ -5809,6 +5887,7 @@
       const row = document.createElement('div');
       row.className = 'event-row';
       row.id = event.id;
+      row.dataset.eventId = event.id;
 
       // Main row (step badge + input + actions)
       const mainRow = document.createElement('div');
@@ -5825,7 +5904,14 @@
       
       const stepBadge = document.createElement('div');
       stepBadge.className = 'event-step-badge';
-      stepBadge.textContent = String(eventIndex + 1);
+      const stepBadgeNumber = document.createElement('span');
+      stepBadgeNumber.className = 'event-step-badge__number';
+      stepBadgeNumber.textContent = String(eventIndex + 1);
+      const stepBadgeDragIcon = document.createElement('span');
+      stepBadgeDragIcon.className = 'event-step-badge__drag-icon';
+      stepBadgeDragIcon.innerHTML = getIcon('grip-vertical', { size: 12, strokeWidth: 2.25 });
+      stepBadge.appendChild(stepBadgeNumber);
+      stepBadge.appendChild(stepBadgeDragIcon);
       stepDiv.appendChild(stepBadge);
 
       // Flow line below (if not last event or has variants)
@@ -6321,6 +6407,121 @@
       });
     }
 
+    function initEventDragReorder(eventsListEl) {
+      if (!eventsListEl || eventsListEl.dataset.touchpointDndInitialized === 'true') return;
+      eventsListEl.dataset.touchpointDndInitialized = 'true';
+
+      const DRAG_THRESHOLD = 4;
+      let dragRow = null;
+      let startY = 0;
+      let isDragging = false;
+      let targetInfo = null;
+
+      function isBlockedDragStart(target) {
+        if (!(target instanceof Element)) return false;
+        return !!target.closest('input, textarea, select, button, .CustomDropdown, .event-variants-container, .journey-insert, .inline-add-row');
+      }
+
+      function getDraggableRows() {
+        return Array.from(eventsListEl.querySelectorAll(':scope > .event-row')).filter((row) => {
+          return !row.classList.contains('system') && !row.classList.contains('add-step-row');
+        });
+      }
+
+      function clearIndicators() {
+        getDraggableRows().forEach((row) => {
+          row.classList.remove('drop-indicator-above', 'drop-indicator-below');
+        });
+        targetInfo = null;
+      }
+
+      function cleanupDragState() {
+        if (dragRow) {
+          dragRow.classList.remove('drag-active');
+        }
+        eventsListEl.classList.remove('is-dragging');
+        clearIndicators();
+        dragRow = null;
+        isDragging = false;
+      }
+
+      function onMouseMove(ev) {
+        if (!dragRow) return;
+
+        if (!isDragging) {
+          if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
+          isDragging = true;
+          dragRow.classList.add('drag-active');
+          eventsListEl.classList.add('is-dragging');
+        }
+
+        ev.preventDefault();
+        clearIndicators();
+
+        const rows = getDraggableRows();
+        for (const row of rows) {
+          if (row === dragRow) continue;
+          const rect = row.getBoundingClientRect();
+          if (ev.clientY < rect.top || ev.clientY > rect.bottom) continue;
+
+          const position = ev.clientY < rect.top + rect.height / 2 ? 'above' : 'below';
+          row.classList.add(position === 'above' ? 'drop-indicator-above' : 'drop-indicator-below');
+          targetInfo = {
+            targetEventId: row.dataset.eventId,
+            position
+          };
+          break;
+        }
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+
+        if (!dragRow) return;
+
+        const movedEventId = dragRow.dataset.eventId;
+        const didDrag = isDragging;
+        const dropTarget = targetInfo;
+
+        cleanupDragState();
+
+        if (!didDrag || !dropTarget || !movedEventId) return;
+
+        const sourceIndex = events.findIndex((event) => event.id === movedEventId);
+        const targetIndex = events.findIndex((event) => event.id === dropTarget.targetEventId);
+        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+
+        let insertIndex = targetIndex + (dropTarget.position === 'below' ? 1 : 0);
+        const [movedEvent] = events.splice(sourceIndex, 1);
+        if (!movedEvent) return;
+
+        if (sourceIndex < insertIndex) {
+          insertIndex -= 1;
+        }
+
+        events.splice(insertIndex, 0, movedEvent);
+        setPendingFocus('event', movedEvent.id);
+        renderEvents(events);
+      }
+
+      eventsListEl.addEventListener('mousedown', (e) => {
+        if (e.button !== 0 || isBlockedDragStart(e.target)) return;
+
+        const row = e.target.closest('.event-row');
+        if (!row || row.parentElement !== eventsListEl) return;
+        if (row.classList.contains('system') || row.classList.contains('add-step-row')) return;
+
+        dragRow = row;
+        startY = e.clientY;
+        isDragging = false;
+        targetInfo = null;
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    }
+
     function renderEvents(eventsList) {
       const list = document.getElementById('eventsList');
       const emptyState = document.getElementById('eventsEmptyState');
@@ -6489,6 +6690,7 @@
         showLineBelow: false
       }));
 
+      initEventDragReorder(list);
       updateEventsCount();
       applyPendingFocus();
     }
