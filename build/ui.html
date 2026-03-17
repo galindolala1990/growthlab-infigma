@@ -997,7 +997,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-8);
-      padding: 8px 6px;
+      padding: 4px;
       cursor: default;
       user-select: auto;
     }
@@ -1011,6 +1011,16 @@
       width: 28px;
       flex-shrink: 0;
       cursor: grab;
+    }
+
+    .goal-step::before,
+    .event-step::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      bottom: -6px;
+      left: -6px;
     }
 
     .metrics-list.is-dragging .goal-step,
@@ -1960,7 +1970,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-8);
-      padding: var(--space-12);
+      padding: var(--space-8);
       border-bottom: 0px dashed var(--border);
     }
 
