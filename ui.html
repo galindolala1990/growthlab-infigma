@@ -982,14 +982,14 @@
 
     .goal-row.drag-active .goal-row-header,
     .event-row.drag-active .event-row-main {
-      opacity: 0.72;
+      opacity: 1;
       background: var(--color-white-100);
       border-radius: var(--radius-md);
     }
 
     .goal-row.is-selected .goal-row-header,
     .event-row.is-selected .event-row-main {
-      background: var(--color-royal-blue-alpha-50);
+      background: var(--dropdown-selected-bg);
       border-radius: var(--radius-md);
     }
 
@@ -997,7 +997,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-8);
-      padding: 8px;
+      padding: 8px 6px;
       cursor: default;
       user-select: auto;
     }
@@ -1053,14 +1053,23 @@
       opacity: 0;
     }
 
-    .goal-step-badge__drag-icon .lucide {
-      width: 12px;
-      height: 12px;
+    .goal-step-badge__drag-icon .lucide,
+    .event-step-badge__drag-icon .lucide {
+      width: 10px;
+      height: 10px;
     }
 
-    .goal-row:hover .goal-step-badge,
-    .goal-row.drag-active .goal-step-badge {
+    .event-step-badge__drag-icon .lucide {
+      width: 9px;
+      height: 9px;
+    }
+
+    .goal-row:hover .goal-step-badge {
       color: var(--text-primary);
+    }
+
+    .goal-row.drag-active .goal-step-badge {
+      color: var(--text-link);
     }
 
     .goal-row:hover .goal-step-badge__number,
@@ -2036,11 +2045,6 @@
       opacity: 0;
     }
 
-    .event-step-badge__drag-icon .lucide {
-      width: 12px;
-      height: 12px;
-    }
-
     .event-row:not(.system):not(.add-step-row):hover .event-step-badge__number,
     .event-row.drag-active .event-step-badge__number {
       opacity: 0;
@@ -2049,6 +2053,11 @@
     .event-row:not(.system):not(.add-step-row):hover .event-step-badge__drag-icon,
     .event-row.drag-active .event-step-badge__drag-icon {
       opacity: 1;
+    }
+
+    .event-row.drag-active .event-step-badge {
+      border-color: var(--text-link);
+      color: var(--text-link);
     }
 
     /* Experiment events (with variants) get purple background */
@@ -2150,6 +2159,15 @@
       outline: 2px solid var(--input-field-focus-border);
       outline-offset: 2px;
       border-radius: var(--radius-md);
+    }
+
+    .events-list.is-dragging .journey-insert {
+      pointer-events: none;
+    }
+
+    .events-list.is-dragging .journey-insert__line,
+    .events-list.is-dragging .journey-insert__btn {
+      opacity: 0 !important;
     }
 
     /* System rows: Start/End (auto, read-only) */
@@ -4316,6 +4334,8 @@
       'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
       // https://lucide.dev/icons/ellipsis-vertical
       'ellipsis-vertical': '<circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />',
+      // https://lucide.dev/icons/menu
+      'menu': '<line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>',
       // https://lucide.dev/icons/grip-vertical
       'grip-vertical': '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>',
       // https://lucide.dev/icons/copy-plus
@@ -5028,7 +5048,7 @@
       stepBadgeNumber.textContent = `#${index + 1}`;
       const stepBadgeDragIcon = document.createElement('span');
       stepBadgeDragIcon.className = 'goal-step-badge__drag-icon';
-      stepBadgeDragIcon.innerHTML = getIcon('grip-vertical', { size: 12, strokeWidth: 2.25 });
+      stepBadgeDragIcon.innerHTML = getIcon(ROW_DRAG_ICON.name, { size: ROW_DRAG_ICON.size, strokeWidth: ROW_DRAG_ICON.strokeWidth });
       stepBadge.appendChild(stepBadgeNumber);
       stepBadge.appendChild(stepBadgeDragIcon);
       stepDiv.appendChild(stepBadge);
@@ -5242,6 +5262,12 @@
       DROP_ABOVE: 'drop-indicator-above',
       DROP_BELOW: 'drop-indicator-below',
       LIST_DRAGGING: 'is-dragging'
+    });
+
+    const ROW_DRAG_ICON = Object.freeze({
+      name: 'menu',
+      size: 12,
+      strokeWidth: 2.25
     });
 
     function initGoalDragReorder(metricsListEl) {
@@ -6253,7 +6279,7 @@
       stepBadgeNumber.textContent = String(eventIndex + 1);
       const stepBadgeDragIcon = document.createElement('span');
       stepBadgeDragIcon.className = 'event-step-badge__drag-icon';
-      stepBadgeDragIcon.innerHTML = getIcon('grip-vertical', { size: 12, strokeWidth: 2.25 });
+      stepBadgeDragIcon.innerHTML = getIcon(ROW_DRAG_ICON.name, { size: ROW_DRAG_ICON.size, strokeWidth: ROW_DRAG_ICON.strokeWidth });
       stepBadge.appendChild(stepBadgeNumber);
       stepBadge.appendChild(stepBadgeDragIcon);
       stepDiv.appendChild(stepBadge);
