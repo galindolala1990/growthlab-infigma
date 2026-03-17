@@ -1816,16 +1816,16 @@
       border-bottom: 0px dashed var(--border);
     }
 
-    .event-row:not(.system):not(.add-step-row) .event-row-main {
+    .event-row:not(.system):not(.add-step-row) .event-step {
       cursor: grab;
     }
 
-    .event-row:not(.system):not(.add-step-row):not(.drag-active):hover .event-row-main {
+    .event-row:not(.system):not(.add-step-row):not(.drag-active):has(.event-variants-container):hover .event-row-main {
       background: var(--color-royal-blue-alpha-50);
       border-radius: var(--radius-md);
     }
 
-    .events-list.is-dragging .event-row:not(.system):not(.add-step-row) .event-row-main {
+    .events-list.is-dragging .event-row:not(.system):not(.add-step-row) .event-step {
       cursor: grabbing;
     }
 
@@ -3379,7 +3379,7 @@
     /* Label */
     .InputField__label {
       font-size: 9px;
-      font-weight: 400;
+      font-weight: 500;
       line-height: 100%;
       letter-spacing: 0.09px;
       color: var(--input-field-text-color);
@@ -6736,6 +6736,7 @@
 
       eventsListEl.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || isBlockedDragStart(e.target)) return;
+        if (!e.target.closest('.event-step')) return;
 
         const row = e.target.closest('.event-row');
         if (!row || row.parentElement !== eventsListEl) return;
