@@ -1872,7 +1872,8 @@
 
     /* First event row should have top padding */
     .event-row:first-child .event-row-main {
-      padding: var(--space-8) var(--space-12);
+      padding-top: var(--space-12);
+      padding-bottom: var(--space-12);
     }
 
     /* Last event row should not have bottom border */
@@ -1880,6 +1881,13 @@
       border-bottom: none;
       padding-top: var(--space-12);
       padding-bottom: var(--space-12);
+    }
+
+    /* Start and End event rows: use 8px top/bottom padding */
+    .event-row.system:first-child .event-row-main,
+    .event-row.system:last-child .event-row-main {
+      padding-top: var(--space-8);
+      padding-bottom: var(--space-8);
     }
 
     /* Hide border when variants container follows
@@ -1965,19 +1973,18 @@
 
     .event-flow-line {
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      left: calc(50% - 0.5px);
       width: 1px;
-      height: 19px;
-      border-left: 1px solid var(--color-azure-600);
+      height: 12px;
+      background: var(--text-secondary);
     }
 
     .event-flow-line:first-child {
-      bottom: 100%;
+      bottom: 20px;
     }
 
     .event-flow-line:last-child {
-      top: 100%;
+      top: 20px;
     }
 
     /* Minimal insert affordance (shown on hover) */
@@ -2062,12 +2069,14 @@
     .event-row.system .event-step-badge {
       /*background: var(--color-azure-100);*/
       color: var(--text-secondary);
-      border: 1px dashed var(--text-primary);
+      border: 1px dashed var(--text-secondary);
       font-weight: 600;
       font-size: 10px;
     }
-    .event-row.system .event-flow-line {
-      border-left: 1px solid var(--text-primary);
+
+    .event-row.add-step-row .event-step-badge {
+      color: var(--text-secondary);
+      border: 1px dashed var(--text-secondary);
     }
 
     .event-row.system .InputField__wrapper {
@@ -2168,7 +2177,7 @@
 
     .event-variants-line {
       width: 1px;
-      border-left: 1px solid var(--color-azure-600);
+      background: var(--text-secondary);
       flex: 1;
       min-height: 40px;
     }
