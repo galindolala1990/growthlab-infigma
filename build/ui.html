@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    .goal-row {
+      cursor: default;
+    }
     /*
      * FIGTREE FONT (self-hosted for Figma plugin sandbox compatibility)
      * Using WOFF2 format with base64 encoding for best compatibility
@@ -924,10 +927,12 @@
      * GOAL ROWS (collapsible)
      * ============================================ */
     .goal-row {
+      position: relative;
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
-      padding: var(--space-8) 0 var(--space-8) 0;
+      padding: 0;
+      transition: margin 0.12s ease;
       /*border-bottom: 1px dashed var(--border);
       border-radius: var(--radius-md);
       background: var(--background-surface); */
@@ -938,12 +943,134 @@
       background: var(--background-surface); */
     }
 
+    .goal-row::before,
+    .event-row::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      right: 0;
+      height: 2px;
+      background: var(--brand);
+      z-index: 4;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.08s ease;
+    }
+
+    .goal-row.drop-indicator-above::before,
+    .event-row.drop-indicator-above::before {
+      top: -4px;
+      opacity: 1;
+    }
+
+    .goal-row.drop-indicator-below::before,
+    .event-row.drop-indicator-below::before {
+      top: auto;
+      bottom: -4px;
+      opacity: 1;
+    }
+
+    .goal-row.drop-indicator-above,
+    .event-row.drop-indicator-above {
+      margin-top: 8px;
+    }
+
+    .goal-row.drop-indicator-below,
+    .event-row.drop-indicator-below {
+      margin-bottom: 8px;
+    }
+
+    .goal-row.drag-active .goal-row-header,
+    .event-row.drag-active .event-row-main {
+      opacity: 0.72;
+      background: var(--color-white-100);
+      border-radius: var(--radius-md);
+    }
+
+    .goal-row.is-selected .goal-row-header,
+    .event-row.is-selected .event-row-main {
+      background: var(--color-royal-blue-alpha-50);
+      border-radius: var(--radius-md);
+    }
+
     .goal-row-header {
       display: flex;
       align-items: center;
       gap: var(--space-8);
+      padding: 8px;
       cursor: default;
       user-select: auto;
+    }
+
+    .goal-step {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      flex-shrink: 0;
+      cursor: grab;
+    }
+
+    .metrics-list.is-dragging .goal-step,
+    .events-list.is-dragging .event-row:not(.system):not(.add-step-row) .event-step {
+      cursor: grabbing;
+    }
+
+    .goal-step-badge {
+      min-width: 28px;
+      height: 16px;
+      border-radius: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+      z-index: 1;
+      padding-right: 1px;
+    }
+
+    .goal-step-badge__number,
+    .goal-step-badge__drag-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.12s ease;
+    }
+
+    .goal-step-badge__number {
+      opacity: 1;
+    }
+
+    .goal-step-badge__drag-icon {
+      opacity: 0;
+    }
+
+    .goal-step-badge__drag-icon .lucide {
+      width: 12px;
+      height: 12px;
+    }
+
+    .goal-row:hover .goal-step-badge,
+    .goal-row.drag-active .goal-step-badge {
+      color: var(--text-primary);
+    }
+
+    .goal-row:hover .goal-step-badge__number,
+    .goal-row.drag-active .goal-step-badge__number {
+      opacity: 0;
+    }
+
+    .goal-row:hover .goal-step-badge__drag-icon,
+    .goal-row.drag-active .goal-step-badge__drag-icon {
+      opacity: 1;
     }
 
     .goal-caret {
@@ -1130,6 +1257,14 @@
       width: 76px;
     }
 
+    .goal-primary-chip {
+      pointer-events: none;
+    }
+
+    .goal-primary-chip.is-inactive {
+      visibility: hidden;
+    }
+
     /* Match Steps: show actions on hover */
     .goal-row-header:hover .goal-actions {
       opacity: 1;
@@ -1138,6 +1273,10 @@
     /* Also show actions when editing via keyboard */
     .goal-row:focus-within .goal-actions {
       opacity: 1;
+    }
+
+    .metrics-list.is-dragging .goal-row {
+      user-select: none;
     }
 
     /* Goal primary toggle (star icon) */
@@ -1818,52 +1957,6 @@
 
     .event-row:not(.system):not(.add-step-row) .event-step {
       cursor: grab;
-    }
-
-    .event-row:not(.system):not(.add-step-row):not(.drag-active):has(.event-variants-container):hover .event-row-main {
-      background: var(--color-royal-blue-alpha-50);
-      border-radius: var(--radius-md);
-    }
-
-    .events-list.is-dragging .event-row:not(.system):not(.add-step-row) .event-step {
-      cursor: grabbing;
-    }
-
-    .event-row.drag-active .event-row-main {
-      opacity: 0.72;
-      background: var(--color-white-100);
-    }
-
-    .event-row::before {
-      content: '';
-      position: absolute;
-      left: 28px;
-      right: 0;
-      height: 2px;
-      background: var(--brand);
-      z-index: 4;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.08s ease;
-    }
-
-    .event-row.drop-indicator-above::before {
-      top: -4px;
-      opacity: 1;
-    }
-
-    .event-row.drop-indicator-below::before {
-      top: auto;
-      bottom: -4px;
-      opacity: 1;
-    }
-
-    .event-row.drop-indicator-above {
-      margin-top: 8px;
-    }
-
-    .event-row.drop-indicator-below {
-      margin-bottom: 8px;
     }
 
     /* .event-row-main:not(:last-child) {
@@ -4133,7 +4226,7 @@
         <div class="metrics-header">
           <div class="section-block-left">
             <h2>Goals</h2>
-            <p class="body-md">Define success metrics for this experiment.</p>
+            <p class="body-md" data-tooltip="Drag to reorder priority. Top priority is primary." data-tooltip-position="top" data-tooltip-align="start" data-tooltip-cursor="default">Define success metrics. Drag to reorder priority.</p>
             <span class="section-count" id="metricsCount"></span>
           </div>
           <button class="icon-btn btn-add-metric" type="button" aria-label="Add goal" data-tooltip="Add goal" data-tooltip-position="bottom" data-tooltip-align="end" data-tooltip-cursor="pointer" style="display:none">
@@ -4908,6 +5001,10 @@
       const row = document.createElement('div');
       row.className = 'goal-row';
       row.id = metric.id || `metric-${index}`;
+      row.dataset.metricId = row.id;
+      if (row.dataset.metricId && selectedGoalId === row.dataset.metricId) {
+        row.classList.add('is-selected');
+      }
 
       // Ensure defaults
       if (!metric.direction) metric.direction = 'increase';
@@ -4915,6 +5012,26 @@
 
       const header = document.createElement('div');
       header.className = 'goal-row-header';
+
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'goal-step';
+      stepDiv.setAttribute('aria-label', `Priority ${index + 1}. Drag to reorder priority`);
+      stepDiv.setAttribute('data-tooltip', 'Drag to reorder priority');
+      stepDiv.setAttribute('data-tooltip-position', 'bottom');
+      stepDiv.setAttribute('data-tooltip-align', 'start');
+      stepDiv.setAttribute('data-tooltip-cursor', 'pointer');
+
+      const stepBadge = document.createElement('div');
+      stepBadge.className = 'goal-step-badge';
+      const stepBadgeNumber = document.createElement('span');
+      stepBadgeNumber.className = 'goal-step-badge__number';
+      stepBadgeNumber.textContent = `#${index + 1}`;
+      const stepBadgeDragIcon = document.createElement('span');
+      stepBadgeDragIcon.className = 'goal-step-badge__drag-icon';
+      stepBadgeDragIcon.innerHTML = getIcon('grip-vertical', { size: 12, strokeWidth: 2.25 });
+      stepBadge.appendChild(stepBadgeNumber);
+      stepBadge.appendChild(stepBadgeDragIcon);
+      stepDiv.appendChild(stepBadge);
 
       const titleEl = document.createElement('div');
       titleEl.className = 'goal-title';
@@ -5015,25 +5132,8 @@
       titleEditor.appendChild(thresholdInline);
       titleEl.appendChild(titleEditor);
 
-      const primarySlot = document.createElement('div');
-      primarySlot.className = 'goal-primary-slot';
-
       const actions = document.createElement('div');
       actions.className = 'goal-actions';
-
-      const primaryChip = document.createElement('button');
-      primaryChip.type = 'button';
-      primaryChip.className = 'radio-selection goal-primary-chip';
-      primaryChip.setAttribute('aria-pressed', metric.isPrimary === true ? 'true' : 'false');
-      primaryChip.setAttribute('aria-label', metric.isPrimary === true ? 'Primary metric' : 'Set as primary metric');
-      primaryChip.setAttribute('data-tooltip', metric.isPrimary === true ? 'Primary metric' : 'Set as primary metric');
-      primaryChip.setAttribute('data-tooltip-position', 'bottom');
-      primaryChip.setAttribute('data-tooltip-align', 'end');
-      primaryChip.setAttribute('data-tooltip-cursor', 'pointer');
-      primaryChip.innerHTML = `
-        <span class="radio-selection__indicator" aria-hidden="true"></span>
-        <span class="radio-selection__label">Primary</span>
-      `;
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn';
@@ -5044,11 +5144,10 @@
       deleteBtn.setAttribute('data-tooltip-align', 'end');
       deleteBtn.setAttribute('data-tooltip-cursor', 'pointer');
 
-      primarySlot.appendChild(primaryChip);
       actions.appendChild(deleteBtn);
 
+      header.appendChild(stepDiv);
       header.appendChild(titleEl);
-      header.appendChild(primarySlot);
       header.appendChild(actions);
 
       const updateTitle = () => {
@@ -5081,16 +5180,6 @@
         thresholdInline.classList.toggle('entered', thresholdInlineInput.value.trim().length > 0);
         thresholdInline.dataset.state = thresholdInline.classList.contains('entered') ? 'entered' : 'default';
       };
-
-      // Primary toggle behavior (exactly one primary)
-      primaryChip.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (metric.isPrimary === true) return; // keep one selected (no unselect)
-        metrics.forEach(m => { m.isPrimary = false; });
-        metric.isPrimary = true;
-        renderMetrics(metrics);
-      });
 
       // Delete
       deleteBtn.addEventListener('click', (e) => {
@@ -5130,6 +5219,15 @@
       updateTitle();
 
       row.appendChild(header);
+      row.addEventListener('click', () => {
+        const metricsListEl = document.getElementById('metricsList');
+        if (!metricsListEl) return;
+        metricsListEl.querySelectorAll(':scope > .goal-row.is-selected').forEach((el) => {
+          el.classList.remove('is-selected');
+        });
+        row.classList.add('is-selected');
+        selectedGoalId = row.dataset.metricId || null;
+      });
       return row;
     }
 
@@ -5137,6 +5235,146 @@
       const countEl = document.getElementById('metricsCount');
       const count = metrics.filter(m => m.name).length;
       countEl.textContent = count > 0 ? `${count} metric${count !== 1 ? 's' : ''}` : '';
+    }
+
+    const DND_ROW_CLASSES = Object.freeze({
+      DRAG_ACTIVE: 'drag-active',
+      DROP_ABOVE: 'drop-indicator-above',
+      DROP_BELOW: 'drop-indicator-below',
+      LIST_DRAGGING: 'is-dragging'
+    });
+
+    function initGoalDragReorder(metricsListEl) {
+      if (!metricsListEl || metricsListEl.dataset.goalDndInitialized === 'true') return;
+      metricsListEl.dataset.goalDndInitialized = 'true';
+
+      const DRAG_THRESHOLD = 4;
+      let dragRow = null;
+      let startY = 0;
+      let isDragging = false;
+      let targetInfo = null;
+
+      function getDraggableRows() {
+        return Array.from(metricsListEl.querySelectorAll(':scope > .goal-row'));
+      }
+
+      function clearIndicators() {
+        getDraggableRows().forEach((row) => {
+          row.classList.remove(DND_ROW_CLASSES.DROP_ABOVE, DND_ROW_CLASSES.DROP_BELOW);
+        });
+        targetInfo = null;
+      }
+
+      function removeDragListeners() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mouseleave', onPointerCancel);
+        window.removeEventListener('blur', onPointerCancel);
+      }
+
+      function updateDropTarget(pointerY) {
+        clearIndicators();
+
+        const rows = getDraggableRows();
+        for (const row of rows) {
+          if (row === dragRow) continue;
+          const rect = row.getBoundingClientRect();
+          if (pointerY < rect.top || pointerY > rect.bottom) continue;
+
+          const position = pointerY < rect.top + rect.height / 2 ? 'above' : 'below';
+          row.classList.add(position === 'above' ? DND_ROW_CLASSES.DROP_ABOVE : DND_ROW_CLASSES.DROP_BELOW);
+          targetInfo = {
+            targetMetricId: row.dataset.metricId,
+            position
+          };
+          break;
+        }
+      }
+
+      function cleanupDragState() {
+        if (dragRow) {
+          dragRow.classList.remove(DND_ROW_CLASSES.DRAG_ACTIVE);
+        }
+        metricsListEl.classList.remove(DND_ROW_CLASSES.LIST_DRAGGING);
+        clearIndicators();
+        dragRow = null;
+        isDragging = false;
+      }
+
+      function onMouseMove(ev) {
+        if (!dragRow) return;
+
+        if (!isDragging) {
+          if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
+          isDragging = true;
+          dragRow.classList.add(DND_ROW_CLASSES.DRAG_ACTIVE);
+          metricsListEl.classList.add(DND_ROW_CLASSES.LIST_DRAGGING);
+        }
+
+        ev.preventDefault();
+        updateDropTarget(ev.clientY);
+      }
+
+      function onMouseUp() {
+        removeDragListeners();
+
+        if (!dragRow) return;
+
+        const movedMetricId = dragRow.dataset.metricId;
+        const didDrag = isDragging;
+        const dropTarget = targetInfo;
+
+        cleanupDragState();
+
+        if (!didDrag || !dropTarget || !movedMetricId) return;
+
+        const sourceIndex = metrics.findIndex((metric) => metric.id === movedMetricId);
+        const targetIndex = metrics.findIndex((metric) => metric.id === dropTarget.targetMetricId);
+        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+
+        let insertIndex = targetIndex + (dropTarget.position === 'below' ? 1 : 0);
+        const [movedMetric] = metrics.splice(sourceIndex, 1);
+        if (!movedMetric) return;
+
+        if (sourceIndex < insertIndex) {
+          insertIndex -= 1;
+        }
+
+        metrics.splice(insertIndex, 0, movedMetric);
+        renderMetrics(metrics);
+      }
+
+      function onPointerCancel() {
+        removeDragListeners();
+        cleanupDragState();
+      }
+
+      metricsListEl.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        if (!(e.target instanceof Element)) return;
+
+        const stepHandle = e.target.closest('.goal-step');
+        if (!stepHandle) return;
+
+        const row = stepHandle.closest('.goal-row');
+        if (!row || row.parentElement !== metricsListEl) return;
+
+        metricsListEl.querySelectorAll(':scope > .goal-row.is-selected').forEach((el) => {
+          el.classList.remove('is-selected');
+        });
+        row.classList.add('is-selected');
+        selectedGoalId = row.dataset.metricId || null;
+
+        dragRow = row;
+        startY = e.clientY;
+        isDragging = false;
+        targetInfo = null;
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mouseleave', onPointerCancel);
+        window.addEventListener('blur', onPointerCancel);
+      });
     }
 
     function renderMetrics(metricsArray, skipEventRender = false) {
@@ -5149,9 +5387,11 @@
       emptyState.classList.toggle('hidden', hasGoals);
       list.style.display = 'flex';
 
-      // Ensure there is exactly one primary goal when there are goals
-      if (metrics.length > 0 && !metrics.some(m => m.isPrimary === true)) {
-        metrics[0].isPrimary = true;
+      // Primary goal is always determined by order: first goal is primary.
+      if (metrics.length > 0) {
+        metrics.forEach((metric, idx) => {
+          metric.isPrimary = idx === 0;
+        });
       }
 
       // Render existing goals
@@ -5184,6 +5424,8 @@
         renderMetrics(metrics);
       };
       list.appendChild(addRow);
+
+      initGoalDragReorder(list);
 
       updateMetricsCount();
       
@@ -5834,6 +6076,8 @@
     let lastExperimentSwitchUndo = null;       // enables Undo toast
     let pendingFocusTarget = null;             // { type: 'event'|'variant', id: string }
     let highlightedVariantId = null;           // variant card with blue bg until click-outside
+    let selectedGoalId = null;
+    let selectedEventId = null;
     let toastHideTimer = null;
 
     function ensureToast() {
@@ -5985,6 +6229,9 @@
       row.className = 'event-row';
       row.id = event.id;
       row.dataset.eventId = event.id;
+      if (event.id && selectedEventId === event.id) {
+        row.classList.add('is-selected');
+      }
 
       // Main row (step badge + input + actions)
       const mainRow = document.createElement('div');
@@ -6134,6 +6381,16 @@
       }
       mainRow.appendChild(actionsDiv);
       row.appendChild(mainRow);
+
+      row.addEventListener('click', () => {
+        const eventsListEl = document.getElementById('eventsList');
+        if (!eventsListEl) return;
+        eventsListEl.querySelectorAll(':scope > .event-row.is-selected').forEach((el) => {
+          el.classList.remove('is-selected');
+        });
+        row.classList.add('is-selected');
+        selectedEventId = event.id || null;
+      });
 
       // Variants container (always show to allow adding variants)
       const variantsContainer = document.createElement('div');
@@ -6585,7 +6842,7 @@
 
       function clearIndicators() {
         getDraggableRows().forEach((row) => {
-          row.classList.remove('drop-indicator-above', 'drop-indicator-below');
+          row.classList.remove(DND_ROW_CLASSES.DROP_ABOVE, DND_ROW_CLASSES.DROP_BELOW);
         });
         targetInfo = null;
       }
@@ -6644,7 +6901,7 @@
           if (pointerY < rect.top || pointerY > rect.bottom) continue;
 
           const position = pointerY < rect.top + rect.height / 2 ? 'above' : 'below';
-          row.classList.add(position === 'above' ? 'drop-indicator-above' : 'drop-indicator-below');
+          row.classList.add(position === 'above' ? DND_ROW_CLASSES.DROP_ABOVE : DND_ROW_CLASSES.DROP_BELOW);
           targetInfo = {
             targetEventId: row.dataset.eventId,
             position
@@ -6668,9 +6925,9 @@
       function cleanupDragState() {
         stopAutoScroll();
         if (dragRow) {
-          dragRow.classList.remove('drag-active');
+          dragRow.classList.remove(DND_ROW_CLASSES.DRAG_ACTIVE);
         }
-        eventsListEl.classList.remove('is-dragging');
+        eventsListEl.classList.remove(DND_ROW_CLASSES.LIST_DRAGGING);
         clearIndicators();
         dragRow = null;
         isDragging = false;
@@ -6684,8 +6941,8 @@
         if (!isDragging) {
           if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
           isDragging = true;
-          dragRow.classList.add('drag-active');
-          eventsListEl.classList.add('is-dragging');
+          dragRow.classList.add(DND_ROW_CLASSES.DRAG_ACTIVE);
+          eventsListEl.classList.add(DND_ROW_CLASSES.LIST_DRAGGING);
         }
 
         ev.preventDefault();
@@ -6741,6 +6998,12 @@
         const row = e.target.closest('.event-row');
         if (!row || row.parentElement !== eventsListEl) return;
         if (row.classList.contains('system') || row.classList.contains('add-step-row')) return;
+
+        eventsListEl.querySelectorAll(':scope > .event-row.is-selected').forEach((el) => {
+          el.classList.remove('is-selected');
+        });
+        row.classList.add('is-selected');
+        selectedEventId = row.dataset.eventId || null;
 
         dragRow = row;
         startY = e.clientY;
@@ -7931,6 +8194,21 @@
           dropdown.classList.remove('open');
         }
       });
+
+      const clickTarget = e.target instanceof Element ? e.target : null;
+      if (!clickTarget || !clickTarget.closest('.goal-row')) {
+        selectedGoalId = null;
+        document.querySelectorAll('#metricsList > .goal-row.is-selected').forEach((row) => {
+          row.classList.remove('is-selected');
+        });
+      }
+      if (!clickTarget || !clickTarget.closest('.event-row')) {
+        selectedEventId = null;
+        document.querySelectorAll('#eventsList > .event-row.is-selected').forEach((row) => {
+          row.classList.remove('is-selected');
+        });
+      }
+
       // Clear newly-added variant highlight when clicking outside
       if (highlightedVariantId) {
         const card = document.getElementById(highlightedVariantId);
