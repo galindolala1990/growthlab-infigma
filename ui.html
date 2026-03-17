@@ -1802,6 +1802,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      transition: margin 0.12s ease;
       /* gap: var(--space-8);*/
       border-bottom: 0px dashed var(--border);
 
@@ -1847,14 +1848,22 @@
     }
 
     .event-row.drop-indicator-above::before {
-      top: 0;
+      top: -4px;
       opacity: 1;
     }
 
     .event-row.drop-indicator-below::before {
       top: auto;
-      bottom: 0;
+      bottom: -4px;
       opacity: 1;
+    }
+
+    .event-row.drop-indicator-above {
+      margin-top: 8px;
+    }
+
+    .event-row.drop-indicator-below {
+      margin-bottom: 8px;
     }
 
     /* .event-row-main:not(:last-child) {
@@ -2095,6 +2104,16 @@
       border-radius: var(--radius-sm);
       padding: var(--space-4) var(--space-8);
       transition: background 0.15s, border-color 0.15s;
+    }
+
+    .event-input-container .InputField__input.touchpoint-name-input[readonly] {
+      cursor: default;
+      user-select: none;
+    }
+
+    .event-input-container .InputField__input.touchpoint-name-input:not([readonly]) {
+      cursor: text;
+      user-select: text;
     }
 
     /* Event action buttons */
@@ -2495,6 +2514,16 @@
       border-radius: var(--radius-sm);
       padding: var(--space-4) var(--space-8);
       transition: background 0.15s, border-color 0.15s;
+    }
+
+    .variant-name-field .InputField__input.variant-name-input[readonly] {
+      cursor: default;
+      user-select: none;
+    }
+
+    .variant-name-field .InputField__input.variant-name-input:not([readonly]) {
+      cursor: text;
+      user-select: text;
     }
 
     .variant-traffic-field {
@@ -5263,6 +5292,61 @@
           }
         }
       });
+
+      const variantNameInput = nameField.querySelector('.InputField__input');
+      const variantNameWrapper = nameField.querySelector('.InputField__wrapper');
+      if (variantNameInput) {
+        const lockVariantNameEditing = () => {
+          variantNameInput.readOnly = true;
+          variantNameInput.setAttribute('aria-readonly', 'true');
+          card.classList.remove('is-editing-name');
+        };
+
+        const unlockVariantNameEditing = () => {
+          variantNameInput.readOnly = false;
+          variantNameInput.removeAttribute('aria-readonly');
+          card.classList.add('is-editing-name');
+          variantNameInput.focus();
+          const cursorPos = variantNameInput.value.length;
+          if (typeof variantNameInput.setSelectionRange === 'function') {
+            variantNameInput.setSelectionRange(cursorPos, cursorPos);
+          }
+        };
+
+        variantNameInput.classList.add('variant-name-input');
+        variantNameInput.title = 'Double-click to edit variant name';
+        lockVariantNameEditing();
+
+        const handleVariantNameDblClick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          unlockVariantNameEditing();
+        };
+
+        if (variantNameWrapper) {
+          variantNameWrapper.addEventListener('dblclick', handleVariantNameDblClick);
+        }
+        variantNameInput.addEventListener('dblclick', handleVariantNameDblClick);
+
+        variantNameInput.addEventListener('mousedown', (e) => {
+          if (variantNameInput.readOnly) {
+            e.preventDefault();
+          }
+        });
+
+        variantNameInput.addEventListener('keydown', (e) => {
+          if (!variantNameInput.readOnly) return;
+          if (e.key === 'Enter' || e.key === 'F2') {
+            e.preventDefault();
+            unlockVariantNameEditing();
+          }
+        });
+
+        variantNameInput.addEventListener('blur', () => {
+          lockVariantNameEditing();
+        });
+      }
+
       nameFieldDiv.appendChild(nameField);
       // Content area
       const content = document.createElement('div');
@@ -6143,6 +6227,58 @@
 
       // Sync input to event data
       const nameInput = eventInput.querySelector('.InputField__input');
+      const nameWrapper = eventInput.querySelector('.InputField__wrapper');
+
+      const lockNameEditing = () => {
+        nameInput.readOnly = true;
+        nameInput.setAttribute('aria-readonly', 'true');
+        row.classList.remove('is-editing-name');
+      };
+
+      const unlockNameEditing = () => {
+        nameInput.readOnly = false;
+        nameInput.removeAttribute('aria-readonly');
+        row.classList.add('is-editing-name');
+        nameInput.focus();
+        const cursorPos = nameInput.value.length;
+        if (typeof nameInput.setSelectionRange === 'function') {
+          nameInput.setSelectionRange(cursorPos, cursorPos);
+        }
+      };
+
+      nameInput.classList.add('touchpoint-name-input');
+      nameInput.title = 'Double-click to edit touchpoint name';
+      lockNameEditing();
+
+      const handleDoubleClickEdit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        unlockNameEditing();
+      };
+
+      if (nameWrapper) {
+        nameWrapper.addEventListener('dblclick', handleDoubleClickEdit);
+      }
+      nameInput.addEventListener('dblclick', handleDoubleClickEdit);
+
+      nameInput.addEventListener('mousedown', (e) => {
+        if (nameInput.readOnly) {
+          e.preventDefault();
+        }
+      });
+
+      nameInput.addEventListener('keydown', (e) => {
+        if (!nameInput.readOnly) return;
+        if (e.key === 'Enter' || e.key === 'F2') {
+          e.preventDefault();
+          unlockNameEditing();
+        }
+      });
+
+      nameInput.addEventListener('blur', () => {
+        lockNameEditing();
+      });
+
       nameInput.addEventListener('change', () => {
         event.name = nameInput.value.trim();
         updateEventsCount();
@@ -6412,10 +6548,16 @@
       eventsListEl.dataset.touchpointDndInitialized = 'true';
 
       const DRAG_THRESHOLD = 4;
+      const AUTO_SCROLL_EDGE_PX = 56;
+      const AUTO_SCROLL_MAX_STEP = 14;
       let dragRow = null;
       let startY = 0;
       let isDragging = false;
       let targetInfo = null;
+      let lastPointerY = null;
+      let autoScrollRafId = null;
+
+      const scrollContainer = eventsListEl.closest('.form-content') || document.querySelector('.form-content');
 
       function isBlockedDragStart(target) {
         if (!(target instanceof Element)) return false;
@@ -6435,36 +6577,60 @@
         targetInfo = null;
       }
 
-      function cleanupDragState() {
-        if (dragRow) {
-          dragRow.classList.remove('drag-active');
-        }
-        eventsListEl.classList.remove('is-dragging');
-        clearIndicators();
-        dragRow = null;
-        isDragging = false;
+      function removeDragListeners() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mouseleave', onPointerCancel);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('blur', onPointerCancel);
       }
 
-      function onMouseMove(ev) {
-        if (!dragRow) return;
+      function stopAutoScroll() {
+        if (autoScrollRafId !== null) {
+          cancelAnimationFrame(autoScrollRafId);
+          autoScrollRafId = null;
+        }
+      }
 
-        if (!isDragging) {
-          if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
-          isDragging = true;
-          dragRow.classList.add('drag-active');
-          eventsListEl.classList.add('is-dragging');
+      function maybeStartAutoScroll() {
+        if (autoScrollRafId !== null || !isDragging || !scrollContainer) return;
+        autoScrollRafId = requestAnimationFrame(autoScrollTick);
+      }
+
+      function getAutoScrollDelta(pointerY) {
+        if (!scrollContainer) return 0;
+
+        const rect = scrollContainer.getBoundingClientRect();
+        const nearTop = pointerY < rect.top + AUTO_SCROLL_EDGE_PX;
+        const nearBottom = pointerY > rect.bottom - AUTO_SCROLL_EDGE_PX;
+
+        const canScrollUp = scrollContainer.scrollTop > 0;
+        const maxScrollTop = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        const canScrollDown = scrollContainer.scrollTop < maxScrollTop;
+
+        if (nearTop && canScrollUp) {
+          const intensity = Math.min(1, (rect.top + AUTO_SCROLL_EDGE_PX - pointerY) / AUTO_SCROLL_EDGE_PX);
+          return -Math.max(1, Math.ceil(AUTO_SCROLL_MAX_STEP * intensity));
         }
 
-        ev.preventDefault();
+        if (nearBottom && canScrollDown) {
+          const intensity = Math.min(1, (pointerY - (rect.bottom - AUTO_SCROLL_EDGE_PX)) / AUTO_SCROLL_EDGE_PX);
+          return Math.max(1, Math.ceil(AUTO_SCROLL_MAX_STEP * intensity));
+        }
+
+        return 0;
+      }
+
+      function updateDropTarget(pointerY) {
         clearIndicators();
 
         const rows = getDraggableRows();
         for (const row of rows) {
           if (row === dragRow) continue;
           const rect = row.getBoundingClientRect();
-          if (ev.clientY < rect.top || ev.clientY > rect.bottom) continue;
+          if (pointerY < rect.top || pointerY > rect.bottom) continue;
 
-          const position = ev.clientY < rect.top + rect.height / 2 ? 'above' : 'below';
+          const position = pointerY < rect.top + rect.height / 2 ? 'above' : 'below';
           row.classList.add(position === 'above' ? 'drop-indicator-above' : 'drop-indicator-below');
           targetInfo = {
             targetEventId: row.dataset.eventId,
@@ -6474,9 +6640,48 @@
         }
       }
 
+      function autoScrollTick() {
+        autoScrollRafId = null;
+        if (!isDragging || !dragRow || lastPointerY === null || !scrollContainer) return;
+
+        const delta = getAutoScrollDelta(lastPointerY);
+        if (delta !== 0) {
+          scrollContainer.scrollTop += delta;
+          updateDropTarget(lastPointerY);
+          autoScrollRafId = requestAnimationFrame(autoScrollTick);
+        }
+      }
+
+      function cleanupDragState() {
+        stopAutoScroll();
+        if (dragRow) {
+          dragRow.classList.remove('drag-active');
+        }
+        eventsListEl.classList.remove('is-dragging');
+        clearIndicators();
+        dragRow = null;
+        isDragging = false;
+        lastPointerY = null;
+      }
+
+      function onMouseMove(ev) {
+        if (!dragRow) return;
+        lastPointerY = ev.clientY;
+
+        if (!isDragging) {
+          if (Math.abs(ev.clientY - startY) < DRAG_THRESHOLD) return;
+          isDragging = true;
+          dragRow.classList.add('drag-active');
+          eventsListEl.classList.add('is-dragging');
+        }
+
+        ev.preventDefault();
+        updateDropTarget(ev.clientY);
+        maybeStartAutoScroll();
+      }
+
       function onMouseUp() {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
+        removeDragListeners();
 
         if (!dragRow) return;
 
@@ -6505,6 +6710,17 @@
         renderEvents(events);
       }
 
+      function onPointerCancel() {
+        removeDragListeners();
+        cleanupDragState();
+      }
+
+      function onVisibilityChange() {
+        if (document.hidden) {
+          onPointerCancel();
+        }
+      }
+
       eventsListEl.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || isBlockedDragStart(e.target)) return;
 
@@ -6516,9 +6732,13 @@
         startY = e.clientY;
         isDragging = false;
         targetInfo = null;
+        lastPointerY = e.clientY;
 
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mouseleave', onPointerCancel);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('blur', onPointerCancel);
       });
     }
 
